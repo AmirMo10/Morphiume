@@ -82,10 +82,32 @@ for (const [name, type, options] of [["chromium", chromium, { channel: "chrome" 
   await control.reload();
   await control.waitForLoadState("networkidle");
   const fullMarkupWithoutScripts = { events: await control.evaluate(() => window.__qaControlCsp), inlineStyleCount: await control.locator("[style]").count() };
+  const markupIsolation = [];
+  for (const transform of ["without-stylesheets", "without-svg", "without-controls", "without-images"]) {
+    await control.unrouteAll();
+    await control.route("**/products", async route => {
+      const response = await route.fetch();
+      let markup = (await response.text()).replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "");
+      if (transform === "without-stylesheets") markup = markup.replace(/<link\b[^>]*rel="stylesheet"[^>]*>/gi, "");
+      if (transform === "without-svg") markup = markup.replace(/<svg\b[^>]*>[\s\S]*?<\/svg>/gi, "");
+      if (transform === "without-controls") markup = markup.replace(/<input\b[^>]*>/gi, "").replace(/<select\b[^>]*>[\s\S]*?<\/select>/gi, "").replace(/<button\b[^>]*>[\s\S]*?<\/button>/gi, "");
+      if (transform === "without-images") markup = markup.replace(/<img\b[^>]*>/gi, "").replace(/<link\b[^>]*rel="icon"[^>]*>/gi, "");
+      await route.fulfill({ response, body: markup });
+    });
+    await control.reload(); await control.waitForLoadState("networkidle");
+    markupIsolation.push({ transform, events: await control.evaluate(() => window.__qaControlCsp) });
+  }
+  const nativeControls = [];
+  for (const [kind, markup] of [["checkbox", '<input type="checkbox">'], ["select", '<select><option value="name">نام محصول</option><option value="price">قیمت</option></select>'], ["button", '<button type="button">QA button</button>'], ["search-placeholder", '<input type="search" placeholder="نام یا خانوادهٔ رایحه" name="search" value="">']]) {
+    await control.unrouteAll();
+    await control.route("**/products", async route => { const response = await route.fetch(); await route.fulfill({ response, body: `<!doctype html><html lang="fa" dir="rtl"><head><title>QA native ${kind}</title></head><body>${markup}</body></html>` }); });
+    await control.reload(); await control.waitForLoadState("networkidle");
+    nativeControls.push({ kind, events: await control.evaluate(() => window.__qaControlCsp) });
+  }
   await control.close();
-  observations.push({ browser: name, version: browser.version(), baseline, announcer, arbitraryStyleBlocked: arbitraryStyle, expectedNegativeEvents: afterNegative.slice(baseline.events.length), approvedProbe, approvedProbeEvents: afterApproved.slice(afterNegative.length), cssomShadowProbe, cssomShadowProbeEvents: (await page.evaluate(() => window.__morphiumeCspObservations)).slice(afterApproved.length), serializedHashes, emptyDocumentControl, nativeSearchControl, fullMarkupWithoutScripts, inlineStyles: await page.locator("[style]").evaluateAll(elements => elements.map(el => ({ tag: el.tagName, style: el.getAttribute("style") }))) });
+  observations.push({ browser: name, version: browser.version(), baseline, announcer, arbitraryStyleBlocked: arbitraryStyle, expectedNegativeEvents: afterNegative.slice(baseline.events.length), approvedProbe, approvedProbeEvents: afterApproved.slice(afterNegative.length), cssomShadowProbe, cssomShadowProbeEvents: (await page.evaluate(() => window.__morphiumeCspObservations)).slice(afterApproved.length), serializedHashes, emptyDocumentControl, nativeSearchControl, fullMarkupWithoutScripts, markupIsolation, nativeControls, inlineStyles: await page.locator("[style]").evaluateAll(elements => elements.map(el => ({ tag: el.tagName, style: el.getAttribute("style") }))) });
   await browser.close();
 }
 await mkdir("docs/qa", { recursive: true });
 await writeFile("docs/qa/csp-observations.json", JSON.stringify({ generatedAt: new Date().toISOString(), scope: "anonymous catalog only", frameworkAttributeStyles, observations }, null, 2));
-console.log(JSON.stringify({ frameworkAttributeStyles, observations }));
+console.log(JSON.stringify(observations.map(item => ({ browser: item.browser, baselineEvents: item.baseline.events.length, nativeControls: item.nativeControls, arbitraryStyleBlocked: item.arbitraryStyleBlocked, announcer: item.announcer }))));

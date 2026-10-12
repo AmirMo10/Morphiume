@@ -74,7 +74,7 @@ services:
   app:
     <<: *runtime
     restart: unless-stopped
-    command: [pnpm, start]
+    command: [node, server.js]
     environment: *environment
     mem_limit: 1536m
     cpus: "1.5"
@@ -103,7 +103,7 @@ services:
   worker:
     <<: *runtime
     restart: unless-stopped
-    command: [pnpm, worker]
+    command: [node, --conditions=react-server, runtime/worker.mjs]
     environment:
       <<: *environment
       WORKER_HEARTBEAT_PATH: /tmp/morphiume-worker-heartbeat
@@ -131,7 +131,7 @@ services:
     <<: *runtime
     profiles: [maintenance]
     restart: "no"
-    command: [pnpm, db:migrate]
+    command: [node, --conditions=react-server, runtime/migrate.mjs]
     environment: *environment
     mem_limit: 384m
     cpus: "0.5"

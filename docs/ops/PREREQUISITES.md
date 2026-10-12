@@ -3,8 +3,8 @@
 | Item | Owner | Status | Obtain | Verify |
 | --- | --- | --- | --- | --- |
 | Private host/SSH | Coordinator | Audited 2026-10-12 | Existing verified SSH alias/key | Strict-host-key SSH; host fingerprint through console if it changes |
-| Build machine | Coordinator | Docker client present; Desktop startup requested | Local Linux Docker daemon or CI runner | `docker version`, buildx platform, actual pinned image build |
-| Staging DB/media storage | Ops | Contract prepared, not provisioned during audit | Dedicated staging paths and project | Mount/path assertions, ownership, persistent container recreation |
+| Build machine | Coordinator | Local daemon unavailable; first CI build passed, image scan failed | Off-server CI with minimal replacement image | Actual image commands, MFA/media, unchanged Grype gate and immutable digest |
+| Staging DB/media storage | Ops | Isolated DB provisioned and healthy; app media path prepared | Existing separate staging paths/project | Runtime/owner auth, persistent recreation and reserved mount checks passed; actual server media fixture pending |
 | Offsite encrypted backups | Business owner + Ops | Missing external destination and credential/key custody | Versioned object storage, distinct backup identity and offline recovery-key access | Upload/checksum/decrypt/restore from offsite; alert on failure |
 | Domain/DNS/trusted TLS | Business owner + Ops | Not provided; private IP for now | Owner-owned domain and DNS control, valid certificate | DNS/chain/renewal checks; Iran access evidence |
 | PSP merchant contract/sandbox | Business owner + Backend | Not provided | Actual provider account and official integration contract | Provider contract tests, amount/currency/callback/verify/reconciliation |

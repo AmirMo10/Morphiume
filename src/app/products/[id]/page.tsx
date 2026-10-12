@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { notFound, permanentRedirect } from "next/navigation";
 import type { Metadata } from "next";
 import { ProductView } from "@/components/catalog";
+import { productImages } from "@/components/product-images";
 import { CommerceError } from "@/contracts/commerce";
 import { getCommerce } from "@/server/runtime";
 
@@ -19,6 +20,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   const product = await publicProduct(id);
   if (id !== product.slug) permanentRedirect(`/products/${product.slug}`);
   const nonce = (await headers()).get("x-nonce") ?? undefined;
-  const productData = { "@context": "https://schema.org", "@type": "Product", name: product.name, description: product.description, brand: { "@type": "Brand", name: "Morphiume" }, ...(product.imageUrl ? { image: product.imageUrl } : {}), offers: product.variants.map(variant => ({ "@type": "Offer", sku: variant.sku, price: variant.price.amountIrr, priceCurrency: "IRR", availability: variant.available > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock" })) };
+  const images = productImages(product);
+  const productData = { "@context": "https://schema.org", "@type": "Product", name: product.name, description: product.description, brand: { "@type": "Brand", name: "Morphiume" }, ...(images.length ? { image: [...new Set(images.map(image => image.url))] } : {}), offers: product.variants.map(variant => ({ "@type": "Offer", sku: variant.sku, price: variant.price.amountIrr, priceCurrency: "IRR", availability: variant.available > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock" })) };
   return <main id="main" className="page"><nav className="breadcrumbs" aria-label="مسیر صفحه"><Link href="/products">عطرها</Link><span aria-hidden="true">/</span><span><bdi>{product.name}</bdi></span></nav><ProductView key={product.id} id={product.id} initialProduct={product} /><script type="application/ld+json" nonce={nonce} dangerouslySetInnerHTML={{ __html: JSON.stringify(productData).replace(/</g, "\\u003c") }} /></main>;
 }

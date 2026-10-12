@@ -14,7 +14,9 @@
 | https://registry.npmjs.org/pg/latest | 8.23.1 |
 | https://registry.npmjs.org/react/latest | 19.3.0 |
 | https://api.github.com/repos/gitleaks/gitleaks/releases/latest | 8.30.1، digest آرشیو Windows/Linux؛ دانلود Windows و اسکن واقعی تاریخچه |
-| https://api.github.com/repos/anchore/grype/releases/latest | 0.120.1، digest آرشیو Linux برای CI؛ اجرای container هنوز ثبت نشده |
+| https://api.github.com/repos/anchore/grype/releases/latest | 0.120.1، digest آرشیو Linux؛ تصویر اولیه واقعاً gate high را رد کرد، بدون انتشار |
+| https://raw.githubusercontent.com/anchore/grype/v0.120.1/cmd/grype/cli/options/grype.go | flags دقیق output/file/fail-on برای گزارش JSON و gate ثابت بررسی شدند |
+| https://github.com/tafakoritech/Provinces-and-Cities-of-Iran-Dataset | snapshot MIT pin/hash، ۳۱ استان/۱۱۱۹ شهر صریح؛ پوشش رسمی/ارسال ادعا نمی‌شود؛ docs/LOCATIONS |
 | https://github.com/actions/checkout و actions/setup-node | v6 با commitهای remote tag مشاهده‌شده و SHA ثابت در workflow |
 | https://w3c.github.io/webappsec-csp/#unsafe-hashes-usage | پیش‌نویس CSP3 و hash دقیق style attribute؛ همراه source واقعی Next16.4 و آزمون دو موتور |
 

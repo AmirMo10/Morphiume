@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-12T11:20:37.334Z",
+  "generatedAt": "2026-10-12T11:23:29.136Z",
   "scope": "anonymous catalog only",
   "frameworkAttributeStyles": [
     {
@@ -106,6 +106,42 @@
         "events": [],
         "inlineStyleCount": 0
       },
+      "markupIsolation": [
+        {
+          "transform": "without-stylesheets",
+          "events": []
+        },
+        {
+          "transform": "without-svg",
+          "events": []
+        },
+        {
+          "transform": "without-controls",
+          "events": []
+        },
+        {
+          "transform": "without-images",
+          "events": []
+        }
+      ],
+      "nativeControls": [
+        {
+          "kind": "checkbox",
+          "events": []
+        },
+        {
+          "kind": "select",
+          "events": []
+        },
+        {
+          "kind": "button",
+          "events": []
+        },
+        {
+          "kind": "search-placeholder",
+          "events": []
+        }
+      ],
       "inlineStyles": [
         {
           "tag": "NEXT-ROUTE-ANNOUNCER",
@@ -235,6 +271,74 @@
         ],
         "inlineStyleCount": 0
       },
+      "markupIsolation": [
+        {
+          "transform": "without-stylesheets",
+          "events": [
+            {
+              "directive": "style-src-attr",
+              "blocked": "inline",
+              "source": "",
+              "line": 1,
+              "sample": ""
+            }
+          ]
+        },
+        {
+          "transform": "without-svg",
+          "events": [
+            {
+              "directive": "style-src-attr",
+              "blocked": "inline",
+              "source": "",
+              "line": 1,
+              "sample": ""
+            }
+          ]
+        },
+        {
+          "transform": "without-controls",
+          "events": []
+        },
+        {
+          "transform": "without-images",
+          "events": [
+            {
+              "directive": "style-src-attr",
+              "blocked": "inline",
+              "source": "",
+              "line": 1,
+              "sample": ""
+            }
+          ]
+        }
+      ],
+      "nativeControls": [
+        {
+          "kind": "checkbox",
+          "events": []
+        },
+        {
+          "kind": "select",
+          "events": [
+            {
+              "directive": "style-src-attr",
+              "blocked": "inline",
+              "source": "",
+              "line": 1,
+              "sample": ""
+            }
+          ]
+        },
+        {
+          "kind": "button",
+          "events": []
+        },
+        {
+          "kind": "search-placeholder",
+          "events": []
+        }
+      ],
       "inlineStyles": [
         {
           "tag": "NEXT-ROUTE-ANNOUNCER",

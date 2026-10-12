@@ -12,6 +12,12 @@ test("T20: public Persian pages remain usable at 320px with keyboard and reduced
     await expect(page.locator("html")).toHaveAttribute("lang", "fa");
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    if (route === "/products") {
+      await page.getByRole("combobox", { name: "مرتب‌سازی", exact: true }).selectOption("price_asc");
+      await expect(page.getByRole("combobox", { name: "مرتب‌سازی", exact: true })).toHaveValue("price_asc");
+      await page.getByRole("combobox", { name: "مرتب‌سازی", exact: true }).selectOption("price_desc");
+      await expect(page.getByRole("combobox", { name: "مرتب‌سازی", exact: true })).toHaveValue("price_desc");
+    }
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
     expect(await page.evaluate(() => matchMedia("(prefers-reduced-motion: reduce)").matches)).toBe(true);
     await page.keyboard.press("Tab");

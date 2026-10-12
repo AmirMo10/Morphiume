@@ -7,6 +7,7 @@
 secrets/
 node_modules/
 .next/
+dist-runtime/
 .local/
 *.tsbuildinfo
 test-results/

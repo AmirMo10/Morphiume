@@ -2,6 +2,10 @@
 
 وضعیت: ابزار و سناریو آماده؛ بار واقعی هنوز اجرا نشده است. وجود harness ظرفیت ۲۰۰ خریدار را اثبات نمی‌کند. نتیجهٔ واقعی اجرای بعدی، نسخهٔ Git، تغییرات محلی و محدودیت‌ها باید به این فایل اضافه شود.
 
+شاهد اجرای مستقل collector، ۲۰۲۶-۱۰-۱۲ ساعت 11:43:56 UTC: `node tests/load/collect-metrics.mjs --duration=15` موفق و یک sample واقعی از سرور گرفت. فقط کانتینر DB حاضر بود: CPU=0.05%، memory=42.37MiB/1.25GiB؛ app/worker هنوز راه‌اندازی نشده بودند. PG یک اتصال active و یک lock relation granted نشان داد؛ outbox از آزمون‌های قبلی ۹۱ pending با سن بیشینهٔ ۵۸۲۱ ثانیه داشت. این **baseline قبل از load** است، نه ظرفیت یا سلامت worker. JSONL زیر test-results/load نادیده‌گرفته‌شده ذخیره شد و query/PII/secrets ندارد.
+
+گام بعد پس از تصویر معتبر staging و تأیید هماهنگ‌کننده: T25 واقعی روی SSH tunnel3100 با flag `QA_RETAIN_RESTORE_FIXTURE=1` و کنترل‌کلید واقعی staging؛ سپس fixture خصوصی `.local/restore-acceptance.json` شامل customer phone/order/product/media SHA برای عملیات restore اختصاصی به عامل Ops تحویل می‌شود. media این fixture باید واقعاً روی سرور ایجاد شود؛ media مربوط به تست Windowslocalhost3000 روی دیسک سرور نیست. بعد از آن، prepare200accounts/products، smoke دو VU، ۲۰ دقیقه plateau200، RPS مستقل، collector و ledger validation اجرا می‌شوند. هیچ‌کدام هنوز اجراشده معرفی نمی‌شوند.
+
 سناریوی بستهٔ `vu`: افزایش از صفر به ۵۰ در یک دقیقه، سپس ۲۰۰ در دو دقیقه، **۲۰ دقیقهٔ کامل** بار پایدار و دو دقیقه کاهش. سفرها ۸۰٪ مرور، ۱۰٪ جست‌وجو، ۸٪ سبد و ۲٪ خرید با حدود ۱۵ ثانیه فاصلهٔ ناوبری هستند. خرید فقط کنترل‌شده و بدون انتقال پول است. ۲۰۰ حساب بومی BetterAuth در مرحلهٔ آماده‌سازی داده ساخته می‌شوند؛ این کار از handler واقعی کتابخانه و OTP واقعی آزمایشی در فرایند fixture استفاده می‌کند و اندازه‌گیری ظرفیت پیامک یا ورود HTTP محسوب نمی‌شود. هیچ محدودیت HTTP محیط اجرا خاموش یا تغییر داده نمی‌شود و IP جعلی ساخته نمی‌شود.
 
 سناریوی `rps` مستقل است: arrival rate از ۱۰ به ۲۰، ۴۰، ۸۰ و ۱۲۰ درخواست در ثانیه می‌رود؛ هر iteration فقط یک درخواست کاتالوگ دارد. تعداد VU با RPS یکی نیست. سناریوی `smoke` دو VU، ۵۰ ثانیه و حداقل تلاش خرید اولیه برای هر VU دارد؛ این smoke نتیجهٔ ظرفیت نیست.
@@ -26,6 +30,8 @@ $env:LOAD_BASE_URL='http://localhost:3100' # SSH tunnel به staging؛ در گز
 node --conditions=react-server --import tsx tests/load/prepare-fixture.ts
 $env:K6_BIN=(Resolve-Path .local/k6/k6-v2.3.0-windows-amd64/k6.exe).Path
 pnpm test:load --mode=smoke
+# دستور زیر در ترمینال جدا، از generator اجرا شود؛ خروجی بدون query/PII است
+node tests/load/collect-metrics.mjs --duration=2700
 pnpm test:load --mode=vu
 node --conditions=react-server --import tsx tests/load/validate-ledger.ts
 pnpm test:load --mode=rps

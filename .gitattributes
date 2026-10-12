@@ -8,5 +8,7 @@
 *.conf text eol=lf
 *.json text eol=lf
 *.svg text eol=lf
+*.sql text eol=lf
 docs/spec/Morphiume_Codex_Master_Prompt.txt -text
 public/brand/fonts/OFL.txt -text whitespace=-blank-at-eol
+src/lib/iran-locations.LICENSE.txt -text

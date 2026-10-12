@@ -1,0 +1,15 @@
+{
+  "repository": "https://github.com/tafakoritech/Provinces-and-Cities-of-Iran-Dataset",
+  "commit": "e00e125d10259f6f3a5e4802cd336cef89258222",
+  "sourceFile": "cities.json",
+  "sourceSha256": "9e5794795917a650e549d724f4656aa0d17146b7d4217e74289ecd6bcf715609",
+  "provinceSourceFile": "provinces.json",
+  "provinceSourceSha256": "ec960eb63c828cd34d75b0f57b4665781a7407ee808e7382d752bf9852c88713",
+  "license": "MIT",
+  "licenseSha256": "1a3576c17e6c769bf5bde9d996c0194abf6b9b6c7f9ef9f254ccd015dcfdee52",
+  "outputSha256": "8cd5bbeaa8e824e072a990a2321ca7039994cb80964a462b8ed842e58fa2b2ff",
+  "provinceCount": 31,
+  "cityCount": 1119,
+  "normalization": "NFC, Persian yeh/kaf, collapsed whitespace; explicit city/province records linked by province_id",
+  "authority": "Community snapshot. Current official administrative divisions and carrier coverage are not independently verified."
+}

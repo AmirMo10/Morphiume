@@ -3,6 +3,7 @@
 .codex
 node_modules
 .next
+dist-runtime
 .env*
 **/.env*
 **/.local

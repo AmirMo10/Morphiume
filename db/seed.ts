@@ -14,10 +14,11 @@ async function seed(){
     // Clearly marked sample, never an assertion about Morphiume's actual products.
     const productId="00000000-0000-4000-8000-000000000001",variantId="00000000-0000-4000-8000-000000000002";
     await client.query("INSERT INTO product(id,name,slug,description,concentration,family,top_notes,heart_notes,base_notes,image_url,status,search_key) VALUES($1,'عطر نمونهٔ آزمایشی','sample-test-perfume','این کالا فقط برای آزمایش فروشگاه است و محصول واقعی Morphiume نیست.','آزمایشی','نمونه','[\"نمونه\"]','[]','[]','/assets/sample-perfume.svg','draft','عطر نمونه آزمایشی') ON CONFLICT(id) DO NOTHING",[productId]);
+    await client.query("INSERT INTO product_image(product_id,position,url,alt) SELECT id,0,image_url,name FROM product WHERE id=$1 AND image_url='/assets/sample-perfume.svg' ON CONFLICT(product_id,position) DO NOTHING",[productId]);
     await client.query("INSERT INTO variant(id,product_id,sku,volume_ml,price_irr) VALUES($1,$2,'TEST-50',50,1000000) ON CONFLICT(id) DO NOTHING",[variantId,productId]);
     await client.query("INSERT INTO inventory_balance(variant_id,on_hand) VALUES($1,10) ON CONFLICT DO NOTHING",[variantId]);
     await client.query("INSERT INTO inventory_ledger(id,variant_id,operation_key,on_hand_delta,reserved_delta,reason) VALUES($1,$2,'seed:test-50',10,0,'clearly marked test fixture') ON CONFLICT(operation_key) DO NOTHING",[randomUUID(),variantId]);
-    await client.query("COMMIT");console.log("Staging fixture seeded as draft.");
+    await client.query("COMMIT");console.log("Staging fixture seed completed; existing edits retained.");
   }catch(error){await client.query("ROLLBACK");throw error;}finally{client.release();await pool.end();}
 }
 void seed().catch((error:unknown)=>{console.error(error instanceof Error ? error.message : "Seed failed");process.exitCode=1;});

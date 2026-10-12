@@ -1,7 +1,7 @@
 import "server-only";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import type { Pool, PoolClient } from "pg";
-import { CommerceError, type Actor, type AddressInput, type BulkEditDto, type BulkEditInput, type CartDto, type CheckoutDto, type CheckoutInput, type DeploymentEnvironment, type OrderDto, type Permission, type ProductDto, type ProductInput, type QuoteDto, type Role } from "../../contracts/commerce";
+import { CommerceError, type Actor, type AddressInput, type BulkEditDto, type BulkEditInput, type CartDto, type CheckoutDto, type CheckoutInput, type DeploymentEnvironment, type OrderDto, type Permission, type ProductDto, type ProductImage, type ProductInput, type QuoteDto, type Role } from "../../contracts/commerce";
 import type { PaymentProvider, PaymentContext } from "../payments/provider";
 import { MAX_MONEY_IRR, moneyDto, normalizeDigits, normalizeIranPhone, percentageDiscount, parseIrr, tomanToIrr } from "./money";
 import { ROLE_PERMISSIONS } from "./permissions";
@@ -27,6 +27,7 @@ function addressInput(input: AddressInput): AddressInput {
 }
 function validateProduct(input: ProductInput) {
   boundedString(input.name,"نام محصول",160); boundedString(input.description,"توضیح",10000,0);
+  boundedString(input.concentration,"غلظت",80,0);boundedString(input.family,"خانوادهٔ رایحه",80,0);
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(input.slug) || input.slug.length > 160) fail("VALIDATION","نشانی محصول معتبر نیست.");
   if (!input.variants?.length || input.variants.length > 20) fail("VALIDATION","حداقل یک حجم و حداکثر بیست حجم لازم است.");
   for (const variant of input.variants) {
@@ -35,7 +36,14 @@ function validateProduct(input: ProductInput) {
     if (variant.initialStock !== undefined && (!Number.isInteger(variant.initialStock) || variant.initialStock < 0 || variant.initialStock > 100000)) fail("VALIDATION","موجودی معتبر نیست.");
   }
   for (const notes of [input.topNotes,input.heartNotes,input.baseNotes]) if (!Array.isArray(notes) || notes.length > 30 || notes.some((note) => typeof note !== "string" || note.length > 120)) fail("VALIDATION","نت‌های رایحه معتبر نیستند.");
-  if (input.imageUrl && (!input.imageUrl.startsWith("/media/") && !input.imageUrl.startsWith("/assets/"))) fail("VALIDATION","تصویر را از رسانه‌های فروشگاه انتخاب کنید.");
+  if(input.images!==undefined){
+    if(!Array.isArray(input.images) || input.images.length>10)fail("VALIDATION","حداکثر ده تصویر برای محصول انتخاب کنید.");
+    for(const image of input.images){
+      if(!image || typeof image!=="object")fail("VALIDATION","تصویر معتبر نیست.");
+      boundedString(image.url,"نشانی تصویر",128);boundedString(image.alt,"توضیح تصویر",240);
+      if(image.variantSku!==undefined && image.variantSku!==null && (typeof image.variantSku!=="string" || !input.variants.some((variant)=>variant.sku===image.variantSku)))fail("VALIDATION","تصویر را به یکی از حجم‌های همین محصول متصل کنید.");
+    }
+  }
 }
 
 export interface CommerceOptions {
@@ -87,14 +95,19 @@ export function createCommerce(options: CommerceOptions) {
   async function enqueue(db: Connection, type: string, key: string, payload: object) {
     await db.query("INSERT INTO outbox_job(id,type,dedupe_key,payload) VALUES($1,$2,$3,$4::jsonb) ON CONFLICT(dedupe_key) DO NOTHING",[randomUUID(),type,key,JSON.stringify(payload)]);
   }
-  async function productDto(db: Connection, row: Row,loadedVariants?:Row[]): Promise<ProductDto> {
+  const readyGallerySql="SELECT pi.*,v.sku AS variant_sku FROM product_image pi LEFT JOIN variant v ON v.id=pi.variant_id LEFT JOIN media m ON m.id=pi.media_id WHERE pi.product_id=ANY($1::uuid[]) AND ($2::boolean OR pi.media_id IS NOT NULL) AND (pi.media_id IS NULL OR (m.status='ready' AND m.mime_type='image/webp')) ORDER BY pi.product_id,pi.position";
+  async function productDto(db: Connection, row: Row,loadedVariants?:Row[],loadedImages?:Row[]): Promise<ProductDto> {
     const variants = loadedVariants ?? await query(db,"SELECT v.*,i.on_hand-i.reserved AS available FROM variant v JOIN inventory_balance i ON i.variant_id=v.id WHERE v.product_id=$1 AND v.active ORDER BY v.volume_ml",[row.id]);
-    return { id:text(row,"id"), name:text(row,"name"), slug:text(row,"slug"), description:text(row,"description"), concentration:text(row,"concentration"), family:text(row,"family"), topNotes:row.top_notes as string[], heartNotes:row.heart_notes as string[], baseNotes:row.base_notes as string[], imageUrl:row.image_url as string|null, status:row.status as ProductDto["status"], version:number(row,"version"), variants:variants.map((variant)=>({id:text(variant,"id"),sku:text(variant,"sku"),volumeMl:number(variant,"volume_ml"),price:moneyDto(text(variant,"price_irr")),available:number(variant,"available")})) };
+    const imageRows=loadedImages ?? await query(db,readyGallerySql,[[row.id],deploymentEnv!=="live"]);
+    const images:ProductImage[]=imageRows.map((image)=>({url:text(image,"url"),alt:text(image,"alt"),variantSku:image.variant_sku as string|null}));
+    const primary=images.find((image)=>!image.variantSku) ?? images[0];
+    return { id:text(row,"id"), name:text(row,"name"), slug:text(row,"slug"), description:text(row,"description"), concentration:text(row,"concentration"), family:text(row,"family"), topNotes:row.top_notes as string[], heartNotes:row.heart_notes as string[], baseNotes:row.base_notes as string[], imageUrl:primary?.url ?? null,images, status:row.status as ProductDto["status"], version:number(row,"version"), variants:variants.map((variant)=>({id:text(variant,"id"),sku:text(variant,"sku"),volumeMl:number(variant,"volume_ml"),price:moneyDto(text(variant,"price_irr")),available:number(variant,"available")})) };
   }
   async function productsDto(db:Connection,rows:Row[]):Promise<ProductDto[]>{
     if(!rows.length)return [];
     const variants=await query(db,"SELECT v.*,i.on_hand-i.reserved AS available FROM variant v JOIN inventory_balance i ON i.variant_id=v.id WHERE v.product_id=ANY($1::uuid[]) AND v.active ORDER BY v.volume_ml",[rows.map((row)=>row.id)]);
-    return Promise.all(rows.map((row)=>productDto(db,row,variants.filter((variant)=>variant.product_id===row.id))));
+    const images=await query(db,readyGallerySql,[rows.map((row)=>row.id),deploymentEnv!=="live"]);
+    return Promise.all(rows.map((row)=>productDto(db,row,variants.filter((variant)=>variant.product_id===row.id),images.filter((image)=>image.product_id===row.id))));
   }
   async function listProducts(filter: { search?: string; family?: string; available?: boolean } = {}): Promise<ProductDto[]> {
     const search = normalizeSearch(filter.search ?? "").slice(0,120);
@@ -111,8 +124,25 @@ export function createCommerce(options: CommerceOptions) {
     return productDto(pool,row);
   }
   async function writeProduct(db: PoolClient, actor: Actor, id: string, input: ProductInput, existing?: Row) {
+    const images:ProductImage[]=input.images===undefined ? (input.imageUrl ? [{url:input.imageUrl,alt:input.name.trim(),variantSku:null}] : []) : input.images.map((image)=>({url:image.url,alt:image.alt.trim(),variantSku:image.variantSku ?? null}));
+    if(existing?.status==="published" && (!images.length || !input.description.trim() || !input.concentration.trim() || !input.family.trim()))fail("VALIDATION","برای حذف تصویر یا اطلاعات ضروری، ابتدا محصول را از انتشار خارج کنید.");
+    const mediaUrls=[...new Set(images.filter((image)=>image.url!=="/assets/sample-perfume.svg").map((image)=>image.url))].sort();
+    for(const image of images){
+      if(image.url==="/assets/sample-perfume.svg"){if(deploymentEnv==="live")fail("VALIDATION","تصویر آزمایشی در محیط واقعی مجاز نیست.");}
+      else if(!/^\/media\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.webp$/.test(image.url))fail("VALIDATION","یک تصویر پردازش‌شدهٔ فروشگاه انتخاب کنید.");
+    }
+    const readyMedia=await query(db,"SELECT id,public_path,created_by FROM media WHERE public_path=ANY($1::text[]) AND status='ready' AND mime_type='image/webp' ORDER BY id FOR SHARE",[mediaUrls]);
+    const approved=existing ? await query(db,"SELECT url FROM product_image WHERE product_id=$1",[id]) : [];
+    const owner=await one(db,"SELECT user_id FROM role_membership WHERE user_id=$1 AND role='owner'",[actor.userId]);
+    for(const image of images){
+      if(image.url==="/assets/sample-perfume.svg")continue;
+      const media=readyMedia.find((row)=>row.public_path===image.url && image.url===`/media/${text(row,"id")}.webp`);
+      if(!media)fail("VALIDATION","تصویر آماده یا متعلق به رسانه‌های فروشگاه نیست.");
+      if(!owner && media.created_by!==actor.userId && !approved.some((row)=>row.url===image.url))fail("FORBIDDEN","برای افزودن تصویر جدید، تصویر خودتان را بارگذاری کنید.",403);
+    }
+    const primary=images.find((image)=>!image.variantSku) ?? images[0];
     const searchKey = normalizeSearch([input.name,input.family,input.description,...input.topNotes,...input.heartNotes,...input.baseNotes].join(" "));
-    const values = [input.name.trim(),input.slug,input.description,input.concentration,input.family,JSON.stringify(input.topNotes),JSON.stringify(input.heartNotes),JSON.stringify(input.baseNotes),input.imageUrl ?? null,searchKey,id];
+    const values = [input.name.trim(),input.slug,input.description,input.concentration,input.family,JSON.stringify(input.topNotes),JSON.stringify(input.heartNotes),JSON.stringify(input.baseNotes),primary?.url ?? null,searchKey,id];
     if (existing) await db.query("UPDATE product SET name=$1,slug=$2,description=$3,concentration=$4,family=$5,top_notes=$6::jsonb,heart_notes=$7::jsonb,base_notes=$8::jsonb,image_url=$9,search_key=$10,version=version+1,updated_at=now() WHERE id=$11",values);
     else await db.query("INSERT INTO product(name,slug,description,concentration,family,top_notes,heart_notes,base_notes,image_url,search_key,id) VALUES($1,$2,$3,$4,$5,$6::jsonb,$7::jsonb,$8::jsonb,$9,$10,$11)",values);
     const prior = await query(db,"SELECT * FROM variant WHERE product_id=$1",[id]);
@@ -127,6 +157,14 @@ export function createCommerce(options: CommerceOptions) {
       }
     }
     for (const variant of prior) if (!input.variants.some((v)=>v.sku === variant.sku)) await db.query("UPDATE variant SET active=false WHERE id=$1",[variant.id]);
+    const activeVariants=await query(db,"SELECT id,sku FROM variant WHERE product_id=$1 AND active",[id]);
+    await db.query("DELETE FROM product_image WHERE product_id=$1",[id]);
+    for(const [position,image] of images.entries()){
+      const variant=image.variantSku ? activeVariants.find((row)=>row.sku===image.variantSku) : undefined;
+      if(image.variantSku && !variant)fail("VALIDATION","حجم مرتبط با تصویر معتبر نیست.");
+      const media=readyMedia.find((row)=>row.public_path===image.url);
+      await db.query("INSERT INTO product_image(product_id,position,url,alt,variant_id,media_id) VALUES($1,$2,$3,$4,$5,$6)",[id,position,image.url,image.alt,variant?.id ?? null,media?.id ?? null]);
+    }
     await audit(db,actor,existing ? "product.updated" : "product.created","product",id,"admin form");
     return productDto(db,(await one(db,"SELECT * FROM product WHERE id=$1",[id]))!);
   }
@@ -135,7 +173,7 @@ export function createCommerce(options: CommerceOptions) {
     validateProduct(input); return transaction(async(db)=>{ await assertActor(db,actor,"catalog.write"); const row=await one(db,"SELECT * FROM product WHERE id=$1 FOR UPDATE",[id]); if (!row) return fail("NOT_FOUND","محصول پیدا نشد.",404); if (row.version !== expectedVersion) fail("CONFLICT","محصول تغییر کرده است. نسخهٔ تازه را بررسی کنید.",409); return writeProduct(db,actor,id,input,row); });
   }
   async function publishProduct(actor: Actor,id: string,expectedVersion: number) {
-    return transaction(async(db)=>{ await assertActor(db,actor,"catalog.write"); const row=await one(db,"SELECT * FROM product WHERE id=$1 FOR UPDATE",[id]); if (!row) return fail("NOT_FOUND","محصول پیدا نشد.",404); if (row.version!==expectedVersion) fail("CONFLICT","نسخهٔ محصول تغییر کرده است.",409); const variants=await query(db,"SELECT id FROM variant WHERE product_id=$1 AND active",[id]); if (!row.description || !row.concentration || !row.family || !row.image_url || !variants.length) fail("VALIDATION","اطلاعات محصول و تصویر را پیش از انتشار کامل کنید."); await db.query("UPDATE product SET status='published',version=version+1,updated_at=now() WHERE id=$1",[id]); await audit(db,actor,"product.published","product",id,"publish"); return productDto(db,(await one(db,"SELECT * FROM product WHERE id=$1",[id]))!); });
+    return transaction(async(db)=>{ await assertActor(db,actor,"catalog.write"); const row=await one(db,"SELECT * FROM product WHERE id=$1 FOR UPDATE",[id]); if (!row) return fail("NOT_FOUND","محصول پیدا نشد.",404); if (row.version!==expectedVersion) fail("CONFLICT","نسخهٔ محصول تغییر کرده است.",409); const variants=await query(db,"SELECT id FROM variant WHERE product_id=$1 AND active",[id]); const images=await query(db,readyGallerySql,[[id],deploymentEnv!=="live"]); if (!row.description || !row.concentration || !row.family || !images.length || !variants.length) fail("VALIDATION","اطلاعات محصول و تصویر را پیش از انتشار کامل کنید."); await db.query("UPDATE product SET status='published',version=version+1,updated_at=now() WHERE id=$1",[id]); await audit(db,actor,"product.published","product",id,"publish"); return productDto(db,(await one(db,"SELECT * FROM product WHERE id=$1",[id]))!); });
   }
   async function cartAccess(db: Connection,id: string,guestToken: string,actor?: Actor,lock=false) {
     if (actor) await assertActor(db,actor);
@@ -424,7 +462,7 @@ export function createCommerce(options: CommerceOptions) {
   async function listCollections(actor?:Actor){
     if(actor)await assertActor(pool,actor,"catalog.write");
     const collections=await query(pool,"SELECT * FROM collection WHERE $1::boolean OR published ORDER BY name",[!!actor]);
-    return Promise.all(collections.map(async(row)=>({...row,products:await Promise.all((await query(pool,"SELECT p.* FROM collection_product cp JOIN product p ON p.id=cp.product_id WHERE cp.collection_id=$1 AND ($2::boolean OR p.status='published') ORDER BY cp.position",[row.id,!!actor])).map((p)=>productDto(pool,p)))})));
+    return Promise.all(collections.map(async(row)=>({...row,products:await productsDto(pool,await query(pool,"SELECT p.* FROM collection_product cp JOIN product p ON p.id=cp.product_id WHERE cp.collection_id=$1 AND ($2::boolean OR p.status='published') ORDER BY cp.position",[row.id,!!actor]))})));
   }
   async function saveCollection(actor:Actor,input:{id?:string;name:string;slug:string;description:string;published:boolean;productIds:string[];expectedVersion?:number}){
     boundedString(input.name,"نام مجموعه",160);boundedString(input.description,"توضیح",5000,0);if(!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(input.slug) || input.productIds.length>300 || new Set(input.productIds).size!==input.productIds.length)fail("VALIDATION","مجموعه معتبر نیست.");

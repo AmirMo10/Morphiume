@@ -3,14 +3,15 @@ export type MoneyDto = { amountIrr: string; currency: "IRR" };
 export type Actor = { userId: string; sessionId: string; kind: "customer" | "admin" };
 export type Role = "owner" | "product_manager" | "fulfillment" | "support" | "finance";
 export type Permission = "catalog.write" | "inventory.write" | "orders.read" | "orders.fulfill" | "refunds.write" | "roles.write" | "content.write";
+export type ProductImage = { url: string; alt: string; variantSku?: string | null };
 export type ProductInput = {
   name: string; slug: string; description: string; concentration: string; family: string;
   topNotes: string[]; heartNotes: string[]; baseNotes: string[];
-  imageUrl?: string; variants: { sku: string; volumeMl: number; priceToman: string; initialStock?: number }[];
+  imageUrl?: string; images?: ProductImage[]; variants: { sku: string; volumeMl: number; priceToman: string; initialStock?: number }[];
 };
 export type ProductDto = {
   id: string; name: string; slug: string; description: string; concentration: string; family: string;
-  topNotes: string[]; heartNotes: string[]; baseNotes: string[]; imageUrl: string | null;
+  topNotes: string[]; heartNotes: string[]; baseNotes: string[]; imageUrl: string | null; images: ProductImage[];
   status: "draft" | "published" | "archived"; version: number;
   variants: { id: string; sku: string; volumeMl: number; price: MoneyDto; available: number }[];
 };

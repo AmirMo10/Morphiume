@@ -51,7 +51,7 @@ services:
     cpus: "1.5"
     pids_limit: 128
     stop_grace_period: 30s
-    command: [pnpm, start]
+    command: [node, server.js]
     ports: ["127.0.0.1:3002:3000"]
     environment:
       NODE_ENV: production

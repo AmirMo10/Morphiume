@@ -21,11 +21,11 @@ docker buildx build --platform linux/amd64 --file deploy/staging/Dockerfile --bu
 docker image inspect morphiume:REVIEWED_COMMIT --format '{{.Id}}'
 ```
 
-Substitute the reviewed commit tag. The image must contain app, worker, tsx and migrations and must be validated before transfer. Registry publication needs coordinator authorization; alternatively `docker save --output deploy/staging/.local/release.tar morphiume:REVIEWED_COMMIT`, SHA-256 the file, transfer through SSH to a protected staging directory and verify checksum before `docker load --input`. Set `MORPHIUME_IMAGE` to the exact loaded `sha256:<image-id>` or reviewed registry `image@sha256:<digest>`, not a moving tag. Do not pass production secrets to builds. An offline build is not promised without complete verified package/base-image caches.
+Substitute the reviewed commit tag. The image contains Next standalone, static/public assets, bundled worker/migration/seed JS, their traced dependency closure and migration SQL. It runs direct Node commands without package managers or build tools. Validate actual migration/seed, read-only app/worker readiness, native auth/media flows and the image scan before transfer. Registry publication needs coordinator authorization; alternatively `docker save --output deploy/staging/.local/release.tar morphiume:REVIEWED_COMMIT`, SHA-256 the file, transfer through SSH to a protected staging directory and verify checksum before `docker load --input`. Set `MORPHIUME_IMAGE` to the exact loaded `sha256:<image-id>` or reviewed registry `image@sha256:<digest>`, not a moving tag. Do not pass production secrets to builds. An offline build is not promised without complete verified package/base-image caches.
 
 ## First protected staging release
 
-Before fast-forward, use `reconcile-checkout.py VERIFIED_COMMIT` in inspection mode after fetching the published commit. It accepts only the three audited original staging file hashes and compares each with the published file, preserving differences in its manifest. `--apply` relocates those exact known originals under root-only `/srv/morphiume/staging/checkout-handoff/<id>` and performs an ordinary fast-forward. Unknown/unreviewed work makes it stop. Do not use blanket clean/reset. The initial server checkout has three untracked files that otherwise conflict with newly published source.
+The initial three untracked staging files were hash-checked, preserved under root-only `/srv/morphiume/staging/checkout-handoff/acbe5ce890be43c391b11c03bc1fc20b` and reconciled with published commit7f403a9834aee3f392d182d58f37b1ee12cb56a0. The ordinary fast-forward completed with a clean checkout. For future updates, inspect status and fast-forward only to the coordinator's verified published commit; unknown work must be preserved/reviewed. `reconcile-checkout.py` remains a narrowly scoped helper for the original audited files, not a general cleanup command.
 
 After reviewed source reaches `/opt/morphiume`, execute on the server:
 
@@ -45,7 +45,7 @@ This verifies source/image identity, takes a deployment lock, validates quietly,
 
 ```sh
 cd /opt/morphiume
-docker compose --project-name morphiume-staging --env-file /etc/morphiume-staging/deploy.env -f deploy/staging/compose.yaml run --rm --no-deps migrate pnpm db:seed
+docker compose --project-name morphiume-staging --env-file /etc/morphiume-staging/deploy.env -f deploy/staging/compose.yaml run --rm --no-deps migrate node --conditions=react-server runtime/seed.mjs
 ```
 
 Access from Windows through `ssh -N -L 127.0.0.1:3100:127.0.0.1:3001 morphiume-deploy` and open `http://localhost:3100`. Verify mock controls require authorized admin access, T24 live mocks fail, and the complete T25 journey. Recheck port3000/3001/5432/6379 externally and host IPv4/IPv6 listeners; verify the reserved PostgreSQL mount device and contents still match the audit. Test graceful worker stop and retry/idempotent recovery of outstanding jobs, not merely a running container.

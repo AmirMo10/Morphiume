@@ -69,7 +69,8 @@ test("T01/T12/T17/T19/T20/T21/T23/T25: real admin product → guest purchase →
     await page.getByLabel("موجودی اولیه (عدد)").fill("۳");
     await page.getByLabel("بارگذاری تصویر واقعی محصول", { exact: true }).setInputFiles({ name: "qa-ui-image.png", mimeType: "image/png", buffer: png });
     await expect(page.getByText("تصویر پردازش شد و به فرم محصول اضافه شد.", { exact: true })).toBeVisible();
-    await expect(page.getByLabel("نشانی تصویر محصول", { exact: true })).toHaveValue(/^\/media\/[0-9a-f-]{36}\.webp$/);
+    await expect(page.locator(".gallery-editor-list .gallery-image-path bdi")).toHaveText(/^\/media\/[0-9a-f-]{36}\.webp$/);
+    await expect(page.getByLabel("توضیح تصویر ۱", { exact: true })).toHaveValue(productName);
     await page.getByRole("button", { name: "پیش‌نمایش", exact: true }).click();
     await expect(page.getByText("پیش‌نمایش خصوصی پیش‌نویس", { exact: false })).toBeVisible();
     await page.getByRole("button", { name: "ذخیرهٔ تغییرات", exact: true }).click();

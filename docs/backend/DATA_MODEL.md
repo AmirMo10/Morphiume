@@ -5,7 +5,7 @@
 | Module | Tables and relations |
 |---|---|
 | Identity | user → session/account/two_factor; current role_membership; session → admin_grant; verification_challenge atomic customer OTP; encrypted test-only mock_sms_delivery; database auth_rate_limit |
-| Catalog | product → variant → inventory_balance; media processing metadata; collection ↔ product; immutable historical order items refer to variants; bulk_operation stores actor/key/fingerprint/result for atomic price/stock edits |
+| Catalog | product → variant → inventory_balance; product_image ordered gallery references ready media and optional same-product variant; media processing metadata; collection ↔ product; immutable historical order items refer to variants; bulk_operation stores actor/key/fingerprint/result for atomic price/stock edits |
 | Cart/account | opaque-digest cart → cart_item; verified customer owns claimed cart, address and wishlist_item |
 | Checkout | orders → order_item snapshots, inventory_reservation, payment_attempt; actor/operation/key checkout_idempotency |
 | Payments | payment_attempt → unique payment_receipt and payment_event; independent controlled mock_provider_transaction |
@@ -24,3 +24,5 @@ Shipment: preparing → shipped → delivered; preparing → cancelled through a
 Refund: pending/processing → succeeded after operator-recorded evidence; failed releases refund budget. The current UI can request and record manual refunds; no arbitrary full/partial PSP refund capability is claimed. Outbox pending → running lease → completed, or pending retry; repeated failures → dead for operator handling.
 
 All timestamps use timestamptz/UTC. Dates with no time must remain separate when shipping policies add calendar promises. No brand/legal/tax facts are inferred from schema defaults.
+
+Migration integrity uses canonical LF source text. Only an exact historical CRLF hash of the same canonical SQL can be upgraded, conditionally under the migration advisory lock. `schema_migration_checksum_audit` records old/new checksums, database role, reason and time; normalization is explicitly logged. Changed statements, whitespace or removed content remain an error. No applied SQL is silently replaced.
