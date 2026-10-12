@@ -1,5 +1,9 @@
 # آزمون‌های واقعاً اجراشده
 
+تازه‌ترین CI منبع `538ff1c`: [run38275593404](https://github.com/AmirMo10/Morphiume/actions/runs/38275593404)،۱۵۰/۱۵۰ واحد/DB و۱۷/۱۸ مرورگر Linux؛ تمام ورود/OTP/خرید قبول شدند. تنها Firefox public-rtl با document-title خالی در axe شکست خورد؛ route/علت ثبت نشده و image skipped است. اصلاح تازهٔ صرفاً QA، عنوان دقیق/HTTP200/diagnostics محدود را به آزمون اضافه می‌کند؛ هیچ قاعدهٔ axe حذف نشده است. probe خواندنی شش صفحهٔ واقعی Chrome/WebKit در21.972s، HTTP200/عنوان دقیق/axe0 داشت؛ API client کنترل‌شده بود. دو fixture دیررس بازیابی و دو عنوانِ همیشه خالی رد شدند. این، بازتولید Firefox اصلی نیست.
+
+working tree بعدی: full تجارت۱۳۱/۱۳۱ در۱۵فایل،573.10s، صفر skip/error و fingerprint public ثابت؛ پس از آن فقط متن توقف پرداخت اصلاح شد. PUBLIC0010 در2.35s با checksum ثبت‌شده اعمال شد؛ هر۲۶جدول قدیمی ثابت و return_decision خالی بود. root گزارش مالی۴/۴PG در6.31s، واحد بازه/مبلغ۴/۴ در418ms و جلالی۳/۳ در353ms با۱۸۰ round-trip قبول شدند. آزمون جامع همین منبع در حال اجراست؛ build/مرورگر جدید، سرور، restore و بار همچنان نتیجه ندارند.
+
 آخرین شواهد قبل از checkpoint تازهٔ fixture مشتری: CI منبع `3f999fd`،۱۵۰/۱۵۰ واحد/DB و۱۴/۱۸ مرورگر Linux؛ چهار شکست WebKit و image skipped. سه send429 مشاهده شدند؛ status مورد چهارم ثبت نشده است. اصلاح ادمین پذیرفته‌شده باعث تضعیف محدودیت نشد.
 
 اصلاح صرفاً آزمون مشتری روی runtime منجمد48583: بازتولید بومی send429 با انتظار60.25s، حفظ فرم، send200، wrong-code400 و verify200 موفق شد. اجرای کامل Chrome/WebKit،۱۲/۱۲ در275.777459s؛۷۱ وضعیت امن، صفر skip/flaky/Playwrightretry. verify429 مشاهده‌شده با11.25s انتظار و خواندن کد جاری بدون resend به200 رسید. cleanup دقیق انجام شد. شرح و شاهد امن در `qa/CI_CUSTOMER_OTP_DIAGNOSTICS.md` است؛ Linux همین اصلاح هنوز اجرا نشده است.

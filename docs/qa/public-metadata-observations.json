@@ -1,0 +1,559 @@
+{
+  "startedAt": "2026-10-12T16:36:04.443Z",
+  "durationMs": 21972,
+  "runtimeBuild": "24244",
+  "runtimeSession": "48583",
+  "applicationCheckpoint": "76dfcd1",
+  "status": "passed",
+  "firefoxOriginalCause": "unclassified; route not captured; Windows engine unavailable",
+  "observations": [
+    {
+      "engine": "chromium",
+      "version": "154.0.8037.93",
+      "scope": "real SSR/RSC; controlled client APIs",
+      "interceptedApi": 6,
+      "blockedMutation": 0,
+      "routeResults": [
+        {
+          "alias": "products",
+          "httpStatus": 200,
+          "violationIds": []
+        },
+        {
+          "alias": "account",
+          "httpStatus": 200,
+          "violationIds": []
+        },
+        {
+          "alias": "admin-login",
+          "httpStatus": 200,
+          "violationIds": []
+        }
+      ],
+      "metadataStatuses": [
+        {
+          "alias": "products",
+          "phase": "navigation",
+          "httpStatus": 200,
+          "readiness": "observed",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "products",
+          "phase": "navigation",
+          "httpStatus": 200,
+          "readiness": "ready",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "products",
+          "phase": "sort-asc",
+          "httpStatus": 200,
+          "readiness": "observed",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "products",
+          "phase": "sort-asc",
+          "httpStatus": 200,
+          "readiness": "ready",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "products",
+          "phase": "sort-desc",
+          "httpStatus": 200,
+          "readiness": "observed",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "products",
+          "phase": "sort-desc",
+          "httpStatus": 200,
+          "readiness": "ready",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "products",
+          "phase": "before-axe",
+          "httpStatus": 200,
+          "readiness": "observed",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "products",
+          "phase": "before-axe",
+          "httpStatus": 200,
+          "readiness": "ready",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "products",
+          "phase": "after-axe",
+          "httpStatus": 200,
+          "readiness": "observed",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "products",
+          "phase": "after-axe",
+          "httpStatus": 200,
+          "readiness": "ready",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "account",
+          "phase": "navigation",
+          "httpStatus": 200,
+          "readiness": "observed",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "account",
+          "phase": "navigation",
+          "httpStatus": 200,
+          "readiness": "ready",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "account",
+          "phase": "before-axe",
+          "httpStatus": 200,
+          "readiness": "observed",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "account",
+          "phase": "before-axe",
+          "httpStatus": 200,
+          "readiness": "ready",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "account",
+          "phase": "after-axe",
+          "httpStatus": 200,
+          "readiness": "observed",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "account",
+          "phase": "after-axe",
+          "httpStatus": 200,
+          "readiness": "ready",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "admin-login",
+          "phase": "navigation",
+          "httpStatus": 200,
+          "readiness": "observed",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "admin-login",
+          "phase": "navigation",
+          "httpStatus": 200,
+          "readiness": "ready",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "admin-login",
+          "phase": "before-axe",
+          "httpStatus": 200,
+          "readiness": "observed",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "admin-login",
+          "phase": "before-axe",
+          "httpStatus": 200,
+          "readiness": "ready",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "admin-login",
+          "phase": "after-axe",
+          "httpStatus": 200,
+          "readiness": "observed",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "admin-login",
+          "phase": "after-axe",
+          "httpStatus": 200,
+          "readiness": "ready",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        }
+      ]
+    },
+    {
+      "engine": "chromium",
+      "scope": "isolated delayed-head fixture, not original Firefox reproduction",
+      "beforeViolationIds": [
+        "document-title"
+      ],
+      "afterViolationIds": [],
+      "blankRejected": true,
+      "persistentBlankViolationIds": [
+        "document-title"
+      ],
+      "metadataStatuses": [
+        {
+          "alias": "products",
+          "phase": "navigation",
+          "httpStatus": 200,
+          "readiness": "observed",
+          "titlePresent": false,
+          "expectedTitleMatches": false,
+          "readyState": "complete"
+        },
+        {
+          "alias": "products",
+          "phase": "navigation",
+          "httpStatus": 200,
+          "readiness": "ready",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "products",
+          "phase": "before-axe",
+          "httpStatus": 200,
+          "readiness": "observed",
+          "titlePresent": false,
+          "expectedTitleMatches": false,
+          "readyState": "complete"
+        },
+        {
+          "alias": "products",
+          "phase": "before-axe",
+          "httpStatus": 200,
+          "readiness": "failed",
+          "titlePresent": false,
+          "expectedTitleMatches": false,
+          "readyState": "complete"
+        }
+      ]
+    },
+    {
+      "engine": "webkit",
+      "version": "27.2",
+      "scope": "real SSR/RSC; controlled client APIs",
+      "interceptedApi": 6,
+      "blockedMutation": 0,
+      "routeResults": [
+        {
+          "alias": "products",
+          "httpStatus": 200,
+          "violationIds": []
+        },
+        {
+          "alias": "account",
+          "httpStatus": 200,
+          "violationIds": []
+        },
+        {
+          "alias": "admin-login",
+          "httpStatus": 200,
+          "violationIds": []
+        }
+      ],
+      "metadataStatuses": [
+        {
+          "alias": "products",
+          "phase": "navigation",
+          "httpStatus": 200,
+          "readiness": "observed",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "products",
+          "phase": "navigation",
+          "httpStatus": 200,
+          "readiness": "ready",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "products",
+          "phase": "sort-asc",
+          "httpStatus": 200,
+          "readiness": "observed",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "products",
+          "phase": "sort-asc",
+          "httpStatus": 200,
+          "readiness": "ready",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "products",
+          "phase": "sort-desc",
+          "httpStatus": 200,
+          "readiness": "observed",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "products",
+          "phase": "sort-desc",
+          "httpStatus": 200,
+          "readiness": "ready",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "products",
+          "phase": "before-axe",
+          "httpStatus": 200,
+          "readiness": "observed",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "products",
+          "phase": "before-axe",
+          "httpStatus": 200,
+          "readiness": "ready",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "products",
+          "phase": "after-axe",
+          "httpStatus": 200,
+          "readiness": "observed",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "products",
+          "phase": "after-axe",
+          "httpStatus": 200,
+          "readiness": "ready",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "account",
+          "phase": "navigation",
+          "httpStatus": 200,
+          "readiness": "observed",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "account",
+          "phase": "navigation",
+          "httpStatus": 200,
+          "readiness": "ready",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "account",
+          "phase": "before-axe",
+          "httpStatus": 200,
+          "readiness": "observed",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "account",
+          "phase": "before-axe",
+          "httpStatus": 200,
+          "readiness": "ready",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "account",
+          "phase": "after-axe",
+          "httpStatus": 200,
+          "readiness": "observed",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "account",
+          "phase": "after-axe",
+          "httpStatus": 200,
+          "readiness": "ready",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "admin-login",
+          "phase": "navigation",
+          "httpStatus": 200,
+          "readiness": "observed",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "admin-login",
+          "phase": "navigation",
+          "httpStatus": 200,
+          "readiness": "ready",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "admin-login",
+          "phase": "before-axe",
+          "httpStatus": 200,
+          "readiness": "observed",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "admin-login",
+          "phase": "before-axe",
+          "httpStatus": 200,
+          "readiness": "ready",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "admin-login",
+          "phase": "after-axe",
+          "httpStatus": 200,
+          "readiness": "observed",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "admin-login",
+          "phase": "after-axe",
+          "httpStatus": 200,
+          "readiness": "ready",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        }
+      ]
+    },
+    {
+      "engine": "webkit",
+      "scope": "isolated delayed-head fixture, not original Firefox reproduction",
+      "beforeViolationIds": [
+        "document-title"
+      ],
+      "afterViolationIds": [],
+      "blankRejected": true,
+      "persistentBlankViolationIds": [
+        "document-title"
+      ],
+      "metadataStatuses": [
+        {
+          "alias": "products",
+          "phase": "navigation",
+          "httpStatus": 200,
+          "readiness": "observed",
+          "titlePresent": false,
+          "expectedTitleMatches": false,
+          "readyState": "complete"
+        },
+        {
+          "alias": "products",
+          "phase": "navigation",
+          "httpStatus": 200,
+          "readiness": "ready",
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete"
+        },
+        {
+          "alias": "products",
+          "phase": "before-axe",
+          "httpStatus": 200,
+          "readiness": "observed",
+          "titlePresent": false,
+          "expectedTitleMatches": false,
+          "readyState": "complete"
+        },
+        {
+          "alias": "products",
+          "phase": "before-axe",
+          "httpStatus": 200,
+          "readiness": "failed",
+          "titlePresent": false,
+          "expectedTitleMatches": false,
+          "readyState": "complete"
+        }
+      ]
+    }
+  ]
+}

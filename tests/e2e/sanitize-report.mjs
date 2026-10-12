@@ -24,9 +24,23 @@ function safeAuthStatuses(annotations = []) {
   }
   return statuses;
 }
+function safeMetadataStatuses(annotations = []) {
+  const statuses = [];
+  for (const annotation of annotations) {
+    if (annotation.type !== "public-metadata-status") continue;
+    let item;
+    try { item = JSON.parse(annotation.description); } catch { continue; }
+    if (!item || typeof item !== "object" || Array.isArray(item)) continue;
+    if (!["products", "account", "admin-login"].includes(item.alias) || !["navigation", "sort-asc", "sort-desc", "before-axe", "after-axe"].includes(item.phase)) continue;
+    if (!(item.httpStatus === null || Number.isInteger(item.httpStatus) && item.httpStatus >= 100 && item.httpStatus <= 599) || typeof item.titlePresent !== "boolean" || typeof item.expectedTitleMatches !== "boolean") continue;
+    if (!["loading", "interactive", "complete"].includes(item.readyState) || !["observed", "ready", "failed"].includes(item.readiness)) continue;
+    statuses.push({ alias: item.alias, phase: item.phase, httpStatus: item.httpStatus, titlePresent: item.titlePresent, expectedTitleMatches: item.expectedTitleMatches, readyState: item.readyState, readiness: item.readiness });
+  }
+  return statuses;
+}
 function walk(suite) {
   for (const spec of suite.specs ?? []) for (const test of spec.tests ?? []) for (const result of test.results ?? []) {
-    tests.push({ title: spec.title, project: test.projectName, status: result.status, durationMs: result.duration, retry: result.retry, errorCount: result.errors?.length ?? 0, nativeAuthStatuses: safeAuthStatuses(test.annotations) });
+    tests.push({ title: spec.title, project: test.projectName, status: result.status, durationMs: result.duration, retry: result.retry, errorCount: result.errors?.length ?? 0, nativeAuthStatuses: safeAuthStatuses(test.annotations), publicMetadataStatuses: safeMetadataStatuses(test.annotations) });
   }
   for (const child of suite.suites ?? []) walk(child);
 }
