@@ -130,7 +130,7 @@ class Safety(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix='runtime-restore-path-', dir=c.OPS_ROOT / '.local') as location:
             root = Path(location).resolve()
             with patch.object(c, 'ROOT', root):
-                expected = root / 'restore' / 'morphiume-runtime-restore-20261012T000000Z-abcdef'
+                expected = root / 'restore' / 'morphiume-runtime-restore-20261012t000000z-abcdef'
                 self.assertEqual(restore.validate_restore_path(expected), expected)
                 valid_backup = root / 'backups' / '20261012T000000Z-abcdef12'
                 self.assertEqual(restore.validate_backup_path(valid_backup), valid_backup)

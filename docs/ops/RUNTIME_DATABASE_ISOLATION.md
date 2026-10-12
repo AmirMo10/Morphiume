@@ -1,5 +1,7 @@
 # Fresh protected runtime database proposal
 
+**Executed update, 2026-10-12 21:23:59 UTC:** coordinator completed the exact591ad fresh-runtime preparation and first accepted613 deployment. Independent read-only verification confirmed eleven migrations, limited owner/app roles, PUBLIC CONNECT revoked, app schema CREATEfalse, and original aggregate equality; observed original table/sequence/owned-object counts werezero and both new roles' original CONNECTfalse. Actual profile/files/limits and preserved mount are in [STAGING_RUNTIME_OBSERVATION.md](STAGING_RUNTIME_OBSERVATION.md). Historical proposal/pending statements below predate that authorized execution; no credentials/data/roles were changed by this observation.
+
 This is a reviewable plan, not an executed database or deployment change. The accepted-image gate and Backend's explicit end of the shared PostgreSQL quiescent regression window must both precede any cluster DDL/DML. Do not infer that the window ended from elapsed time or CI success. No original fixture row, queue event, credential or migration history is to be reset, copied into runtime, replayed or deleted.
 
 ## Boundaries and concrete names

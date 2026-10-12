@@ -17,7 +17,7 @@ RESTORE_DB = 'morphiume_staging_restore'
 RESTORE_OWNER = 'morphiume_restore_owner'
 RESTORE_APP = 'morphiume_restore_app'
 BACKUP_PATTERN = r'[0-9]{8}T[0-9]{6}Z-[a-f0-9]{8}'
-PROJECT_PATTERN = r'morphiume-runtime-restore-[0-9]{8}T[0-9]{6}Z-[a-f0-9]{6}'
+PROJECT_PATTERN = r'morphiume-runtime-restore-[0-9]{8}t[0-9]{6}z-[a-f0-9]{6}'
 MAX_MEDIA = 16 * 1024 ** 3
 
 
@@ -139,7 +139,7 @@ def main(args):
         required = 3 * manifest['databaseBytesEstimate'] + 2 * manifest['mediaBytes'] + 1024 ** 3
         if free.f_bavail * free.f_frsize < required:
             raise ValueError('Runtime filesystem lacks conservative restore headroom')
-        project = 'morphiume-runtime-restore-' + datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%SZ') + '-' + secrets.token_hex(3)
+        project = 'morphiume-runtime-restore-' + datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dt%H%M%Sz') + '-' + secrets.token_hex(3)
         root = validate_restore_path(c.ROOT / 'restore' / project)
         root.mkdir(mode=0o700)
         (root / 'postgres').mkdir(mode=0o700); os.chown(root / 'postgres', 999, 999)

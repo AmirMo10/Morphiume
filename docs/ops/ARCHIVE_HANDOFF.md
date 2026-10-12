@@ -1,5 +1,7 @@
 # Accepted image handoff to protected staging
 
+**Executed update, 2026-10-12 21:23:59 UTC:** coordinator published/adopted591ad Ops and bootstrapped protected613 app/worker successfully. Independent [read-only runtime observation](STAGING_RUNTIME_OBSERVATION.md) confirms immutable mapping/profile/UID/health/limits/DB boundary and preserved original data. Do not replay the earlier failed lookup/load or first-only setup; actual retained fixture/recovery/load/IP activation remain separate pending phases.
+
 This document's original integration observations are historical. Accepted613 now passed CI38300142070; root verified/transferred/loaded its archive, but old config-ID inspection failed, so no loaded marker/app exists. Use the [exact fresh3100/restore3101 handoff](ACCEPTED_IMAGE_BOOTSTRAP.md) and [new Ops-scoped engine-proof protocol](ENGINE_IMAGE_IDENTITY.md); do not use original integration deployment scripts for fresh runtime. Accepted source/config/registry-manifest/archive identities remain explicit and unchanged. This is protected synthetic staging with no public mock route or live credentials.
 
 ## Historical read-only integration baseline
