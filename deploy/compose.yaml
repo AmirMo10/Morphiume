@@ -1,0 +1,20 @@
+name: morphiume
+
+services:
+  app:
+    image: ${MORPHIUME_IMAGE:?Set MORPHIUME_IMAGE in /etc/morphiume/deploy.env}
+    init: true
+    restart: unless-stopped
+    env_file:
+      - /etc/morphiume/app.env
+    ports:
+      - "127.0.0.1:3000:${MORPHIUME_CONTAINER_PORT:-3000}"
+    mem_limit: ${MORPHIUME_MEMORY_LIMIT:-2g}
+    cpus: ${MORPHIUME_CPUS:-2.0}
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: local
+      options:
+        max-size: "10m"
+        max-file: "5"
