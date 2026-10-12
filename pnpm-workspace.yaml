@@ -1,0 +1,13 @@
+packages:
+  - .
+
+overrides:
+  '@esbuild-kit/core-utils>esbuild': 0.25.12
+
+allowBuilds:
+  esbuild: true
+  sharp: true
+  unrs-resolver: true
+
+minimumReleaseAgeExclude:
+  - zod@4.6.6

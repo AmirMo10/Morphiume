@@ -1,0 +1,250 @@
+{
+  "generatedAt": "2026-10-12T11:20:37.334Z",
+  "scope": "anonymous catalog only",
+  "frameworkAttributeStyles": [
+    {
+      "style": "position:absolute",
+      "hash": "sha256-/3kWSXHts8LrwfemLzY9W0tOv5I4eLIhrf0pT8cU0WI="
+    },
+    {
+      "style": "position:absolute;border:0;height:1px;margin:-1px;padding:0;width:1px;clip:rect(0 0 0 0);overflow:hidden;white-space:nowrap;word-wrap:normal",
+      "hash": "sha256-2v0wUgRiMnQqfAAERz6WCRNJ9EZeUWOvHSCDVMftC6Q="
+    }
+  ],
+  "observations": [
+    {
+      "browser": "chromium",
+      "version": "154.0.8037.93",
+      "baseline": {
+        "messages": [],
+        "events": [],
+        "styleCalls": [
+          {
+            "type": "cssText",
+            "value": "position:absolute"
+          },
+          {
+            "type": "cssText",
+            "value": "position:absolute;border:0;height:1px;margin:-1px;padding:0;width:1px;clip:rect(0 0 0 0);overflow:hidden;white-space:nowrap;word-wrap:normal"
+          }
+        ]
+      },
+      "announcer": {
+        "parentPosition": "absolute",
+        "childPosition": "absolute",
+        "width": "1px",
+        "height": "1px",
+        "border": "0px",
+        "overflow": "hidden"
+      },
+      "arbitraryStyleBlocked": true,
+      "expectedNegativeEvents": [
+        {
+          "directive": "style-src-attr",
+          "blocked": "inline",
+          "disposition": "enforce",
+          "source": "",
+          "line": 17,
+          "column": 164,
+          "sample": "",
+          "recentStyles": [
+            {
+              "type": "cssText",
+              "value": "position:absolute"
+            },
+            {
+              "type": "cssText",
+              "value": "position:absolute;border:0;height:1px;margin:-1px;padding:0;width:1px;clip:rect(0 0 0 0);overflow:hidden;white-space:nowrap;word-wrap:normal"
+            },
+            {
+              "type": "setAttribute",
+              "tag": "DIV",
+              "value": "color:rgb(1,2,3)"
+            }
+          ]
+        }
+      ],
+      "approvedProbe": [
+        {
+          "position": "absolute",
+          "width": "0px",
+          "height": "0px"
+        },
+        {
+          "position": "absolute",
+          "width": "1px",
+          "height": "1px"
+        }
+      ],
+      "approvedProbeEvents": [],
+      "cssomShadowProbe": {
+        "parentStyle": "position: absolute;",
+        "childStyle": "position: absolute; border: 0px; height: 1px; margin: -1px; padding: 0px; width: 1px; clip: rect(0px, 0px, 0px, 0px); overflow: hidden; white-space: nowrap; overflow-wrap: normal;",
+        "width": "1px",
+        "height": "1px"
+      },
+      "cssomShadowProbeEvents": [],
+      "serializedHashes": [
+        {
+          "style": "position: absolute;",
+          "hash": "sha256-32t0bJPIyxns/QqsW8RE3JGUERKnHL5RygHBgJvEanc="
+        },
+        {
+          "style": "position: absolute; border: 0px; height: 1px; margin: -1px; padding: 0px; width: 1px; clip: rect(0px, 0px, 0px, 0px); overflow: hidden; white-space: nowrap; overflow-wrap: normal;",
+          "hash": "sha256-W5We/oMPhbbNLn0CLyW3vpupRXWyEdAeTI+cDFTkH3U="
+        }
+      ],
+      "emptyDocumentControl": {
+        "events": [],
+        "inlineStyleCount": 0
+      },
+      "nativeSearchControl": {
+        "events": [],
+        "inlineStyleCount": 0
+      },
+      "fullMarkupWithoutScripts": {
+        "events": [],
+        "inlineStyleCount": 0
+      },
+      "inlineStyles": [
+        {
+          "tag": "NEXT-ROUTE-ANNOUNCER",
+          "style": "position: absolute;"
+        },
+        {
+          "tag": "DIV",
+          "style": "position: absolute; border: 0px; height: 1px; margin: -1px; padding: 0px; width: 1px; clip: rect(0px, 0px, 0px, 0px); overflow: hidden; white-space: nowrap; overflow-wrap: normal;"
+        }
+      ]
+    },
+    {
+      "browser": "webkit",
+      "version": "27.2",
+      "baseline": {
+        "messages": [
+          {
+            "message": "Refused to apply a stylesheet because its hash, its nonce, or 'unsafe-inline' does not appear in the style-src directive of the Content Security Policy.",
+            "suggestedHashes": []
+          }
+        ],
+        "events": [
+          {
+            "directive": "style-src-attr",
+            "blocked": "inline",
+            "disposition": "enforce",
+            "source": "",
+            "line": 1,
+            "column": 1,
+            "sample": "",
+            "recentStyles": []
+          }
+        ],
+        "styleCalls": [
+          {
+            "type": "cssText",
+            "value": "position:absolute"
+          },
+          {
+            "type": "cssText",
+            "value": "position:absolute;border:0;height:1px;margin:-1px;padding:0;width:1px;clip:rect(0 0 0 0);overflow:hidden;white-space:nowrap;word-wrap:normal"
+          }
+        ]
+      },
+      "announcer": {
+        "parentPosition": "absolute",
+        "childPosition": "absolute",
+        "width": "1px",
+        "height": "1px",
+        "border": "0px",
+        "overflow": "hidden"
+      },
+      "arbitraryStyleBlocked": true,
+      "expectedNegativeEvents": [
+        {
+          "directive": "style-src-attr",
+          "blocked": "inline",
+          "disposition": "enforce",
+          "source": "web-inspector://bootstrap.js",
+          "line": 33,
+          "column": 168,
+          "sample": "",
+          "recentStyles": [
+            {
+              "type": "cssText",
+              "value": "position:absolute"
+            },
+            {
+              "type": "cssText",
+              "value": "position:absolute;border:0;height:1px;margin:-1px;padding:0;width:1px;clip:rect(0 0 0 0);overflow:hidden;white-space:nowrap;word-wrap:normal"
+            },
+            {
+              "type": "setAttribute",
+              "tag": "DIV",
+              "value": "color:rgb(1,2,3)"
+            }
+          ]
+        }
+      ],
+      "approvedProbe": [
+        {
+          "position": "absolute",
+          "width": "0px",
+          "height": "0px"
+        },
+        {
+          "position": "absolute",
+          "width": "1px",
+          "height": "1px"
+        }
+      ],
+      "approvedProbeEvents": [],
+      "cssomShadowProbe": {
+        "parentStyle": "position: absolute;",
+        "childStyle": "position: absolute; border: 0px; height: 1px; margin: -1px; padding: 0px; width: 1px; clip: rect(0px, 0px, 0px, 0px); overflow: hidden; white-space: nowrap; overflow-wrap: normal;",
+        "width": "1px",
+        "height": "1px"
+      },
+      "cssomShadowProbeEvents": [],
+      "serializedHashes": [
+        {
+          "style": "position: absolute;",
+          "hash": "sha256-32t0bJPIyxns/QqsW8RE3JGUERKnHL5RygHBgJvEanc="
+        },
+        {
+          "style": "position: absolute; border: 0px; height: 1px; margin: -1px; padding: 0px; width: 1px; clip: rect(0px, 0px, 0px, 0px); overflow: hidden; white-space: nowrap; overflow-wrap: normal;",
+          "hash": "sha256-W5We/oMPhbbNLn0CLyW3vpupRXWyEdAeTI+cDFTkH3U="
+        }
+      ],
+      "emptyDocumentControl": {
+        "events": [],
+        "inlineStyleCount": 0
+      },
+      "nativeSearchControl": {
+        "events": [],
+        "inlineStyleCount": 0
+      },
+      "fullMarkupWithoutScripts": {
+        "events": [
+          {
+            "directive": "style-src-attr",
+            "blocked": "inline",
+            "source": "",
+            "line": 1,
+            "sample": ""
+          }
+        ],
+        "inlineStyleCount": 0
+      },
+      "inlineStyles": [
+        {
+          "tag": "NEXT-ROUTE-ANNOUNCER",
+          "style": "position: absolute;"
+        },
+        {
+          "tag": "DIV",
+          "style": "position: absolute; border: 0px; height: 1px; margin: -1px; padding: 0px; width: 1px; clip: rect(0px, 0px, 0px, 0px); overflow: hidden; white-space: nowrap; overflow-wrap: normal;"
+        }
+      ]
+    }
+  ]
+}

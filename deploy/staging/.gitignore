@@ -1,0 +1,7 @@
+.local/
+*.dump
+*.tar
+*.tar.gz
+*.age
+*.log
+release-metadata.json

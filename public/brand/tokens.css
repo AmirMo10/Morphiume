@@ -1,0 +1,47 @@
+/* Morphiume: portable tokens; map to the application's styling system. */
+@font-face {
+  font-family: "Vazirmatn";
+  src: url("/brand/fonts/Vazirmatn[wght].woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+}
+:root {
+  --font-body: "Vazirmatn", Tahoma, sans-serif;
+  --color-canvas: #F6F2EB;
+  --color-surface: #FFFDFA;
+  --color-ink: #20211F;
+  --color-muted: #62645E;
+  --color-brand: #5C2333;
+  --color-on-brand: #F6F2EB;
+  --color-brand-hover: #471A28;
+  --color-border-subtle: #D8D1C7;
+  --color-border-control: #85867E;
+  --color-success: #256348;
+  --color-danger: #A12F3D;
+  --color-warning: #765312;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-24: 96px;
+  --content-max: 1280px;
+  --reading-max: 640px;
+  --gutter: 16px;
+  --control-min-height: 48px;
+  --target-min: 44px;
+  --radius-control: 2px;
+  --radius-dialog: 6px;
+  --duration-feedback: 140ms;
+  --duration-drawer: 220ms;
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+}
+@media (min-width: 640px) { :root { --gutter: 24px; } }
+@media (min-width: 1024px) { :root { --gutter: 40px; } }
+@media (prefers-reduced-motion: reduce) {
+  :root { --duration-feedback: 0ms; --duration-drawer: 0ms; }
+}

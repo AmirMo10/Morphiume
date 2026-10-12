@@ -1,0 +1,43 @@
+{
+  "generatedAt": "2026-10-12T11:12:19.084Z",
+  "startedAt": "2026-10-12T11:11:10.517Z",
+  "durationMs": 68415.631,
+  "expected": 4,
+  "unexpected": 0,
+  "skipped": 0,
+  "flaky": 0,
+  "tests": [
+    {
+      "title": "T01/T12/T17/T19/T20/T21/T23/T25: real admin product → guest purchase → mock verification → stock → owned tracking",
+      "project": "chromium",
+      "status": "passed",
+      "durationMs": 23986,
+      "retry": 0,
+      "errorCount": 0
+    },
+    {
+      "title": "T01/T12/T17/T19/T20/T21/T23/T25: real admin product → guest purchase → mock verification → stock → owned tracking",
+      "project": "webkit",
+      "status": "passed",
+      "durationMs": 33479,
+      "retry": 0,
+      "errorCount": 0
+    },
+    {
+      "title": "T20: public Persian pages remain usable at 320px with keyboard and reduced motion",
+      "project": "chromium",
+      "status": "passed",
+      "durationMs": 2875,
+      "retry": 0,
+      "errorCount": 0
+    },
+    {
+      "title": "T20: public Persian pages remain usable at 320px with keyboard and reduced motion",
+      "project": "webkit",
+      "status": "passed",
+      "durationMs": 5326,
+      "retry": 0,
+      "errorCount": 0
+    }
+  ]
+}

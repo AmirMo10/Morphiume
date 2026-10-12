@@ -13,6 +13,10 @@
 | https://registry.npmjs.org/drizzle-orm/latest | stable 0.45.4؛ از rc استفاده نمی‌شود |
 | https://registry.npmjs.org/pg/latest | 8.23.1 |
 | https://registry.npmjs.org/react/latest | 19.3.0 |
+| https://api.github.com/repos/gitleaks/gitleaks/releases/latest | 8.30.1، digest آرشیو Windows/Linux؛ دانلود Windows و اسکن واقعی تاریخچه |
+| https://api.github.com/repos/anchore/grype/releases/latest | 0.120.1، digest آرشیو Linux برای CI؛ اجرای container هنوز ثبت نشده |
+| https://github.com/actions/checkout و actions/setup-node | v6 با commitهای remote tag مشاهده‌شده و SHA ثابت در workflow |
+| https://w3c.github.io/webappsec-csp/#unsafe-hashes-usage | پیش‌نویس CSP3 و hash دقیق style attribute؛ همراه source واقعی Next16.4 و آزمون دو موتور |
 
 CLI محلی: `codex --version` → `0.162.0-alpha.17.2`؛ `codex features list` → `multi_agent stable true`. Desktop tool → `26.1007.21434`, build `13901`, channel `prod`, update `up_to_date`. این مشاهده به معنای stable بودن CLI alpha یا جدیدترین نسخهٔ جهانی نیست.
 

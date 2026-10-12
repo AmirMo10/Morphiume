@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="800" viewBox="0 0 640 800" role="img" aria-labelledby="title desc">
+  <title id="title">تصویر نمونهٔ توسعه</title><desc id="desc">این تصویر، تصویر واقعی محصول نیست.</desc>
+  <rect width="640" height="800" fill="#F6F2EB"/>
+  <rect x="88" y="88" width="464" height="624" rx="4" fill="none" stroke="#C9BFB1"/>
+  <path d="M280 255h80v70h-80zm-40 85h160v140H240z" fill="none" stroke="#7B2739" stroke-width="3"/>
+  <text x="320" y="555" text-anchor="middle" font-family="Tahoma, sans-serif" font-size="22" fill="#252320" direction="rtl">تصویر نمونهٔ توسعه</text>
+  <text x="320" y="592" text-anchor="middle" font-family="Tahoma, sans-serif" font-size="20" fill="#655E54" direction="rtl">تصویر واقعی محصول نیست</text>
+</svg>

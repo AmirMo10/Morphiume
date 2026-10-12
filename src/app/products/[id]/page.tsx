@@ -1,0 +1,24 @@
+import Link from "next/link";
+import { cache } from "react";
+import { headers } from "next/headers";
+import { notFound, permanentRedirect } from "next/navigation";
+import type { Metadata } from "next";
+import { ProductView } from "@/components/catalog";
+import { CommerceError } from "@/contracts/commerce";
+import { getCommerce } from "@/server/runtime";
+
+const publicProduct = cache(async (id: string) => { try { return await getCommerce().getProduct(id); } catch (error) { if (error instanceof CommerceError && error.code === "NOT_FOUND") notFound(); throw error; } });
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const product = await publicProduct(id);
+  const canonical = process.env.PUBLIC_SITE_URL ? new URL(`/products/${product.slug}`, process.env.PUBLIC_SITE_URL).toString() : undefined;
+  return { title: product.name, description: product.description.slice(0, 180), ...(canonical ? { alternates: { canonical } } : {}) };
+}
+export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const product = await publicProduct(id);
+  if (id !== product.slug) permanentRedirect(`/products/${product.slug}`);
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
+  const productData = { "@context": "https://schema.org", "@type": "Product", name: product.name, description: product.description, brand: { "@type": "Brand", name: "Morphiume" }, ...(product.imageUrl ? { image: product.imageUrl } : {}), offers: product.variants.map(variant => ({ "@type": "Offer", sku: variant.sku, price: variant.price.amountIrr, priceCurrency: "IRR", availability: variant.available > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock" })) };
+  return <main id="main" className="page"><nav className="breadcrumbs" aria-label="مسیر صفحه"><Link href="/products">عطرها</Link><span aria-hidden="true">/</span><span><bdi>{product.name}</bdi></span></nav><ProductView key={product.id} id={product.id} initialProduct={product} /><script type="application/ld+json" nonce={nonce} dangerouslySetInnerHTML={{ __html: JSON.stringify(productData).replace(/</g, "\\u003c") }} /></main>;
+}

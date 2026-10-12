@@ -1,0 +1,10 @@
+import { spawnSync } from "node:child_process";
+import { resolve } from "node:path";
+const binary=process.platform === "win32" ? resolve(".local/scanners/gitleaks.exe") : "gitleaks";
+const patch=spawnSync("git",["diff","--cached","--no-ext-diff"],{encoding:"utf8",maxBuffer:32*1024*1024});
+if(patch.status!==0) throw new Error("Could not read staged diff");
+const result=spawnSync(binary,["stdin","--redact","--no-banner"],{input:patch.stdout,encoding:"utf8",maxBuffer:1024*1024});
+if(result.error) throw new Error("Pinned Gitleaks executable is unavailable");
+process.stdout.write(result.stdout);
+process.stderr.write(result.stderr);
+process.exitCode=result.status??1;

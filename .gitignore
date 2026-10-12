@@ -5,3 +5,11 @@
 *.key
 *ed25519
 secrets/
+node_modules/
+.next/
+.local/
+*.tsbuildinfo
+test-results/
+playwright-report/
+artifacts/
+.playwright-cli/

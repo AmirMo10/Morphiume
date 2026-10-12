@@ -1,0 +1,16 @@
+{
+  "reviewDate": "2026-10-12",
+  "reviewer": "actual /root/persian_editor specialist",
+  "environment": { "baseUrl": "http://localhost:3000", "nodeEnv": "production", "deploymentEnv": "test", "browser": "Codex IAB", "viewport": { "width": 320, "height": 740 } },
+  "browserObservations": [
+    { "path": "/products", "clientWidth": 305, "scrollWidth": 305, "state": "empty catalog", "lang": "fa", "dir": "rtl" },
+    { "path": "/account", "clientWidth": 305, "scrollWidth": 305, "state": "anonymous phone sign-in; old buyer heading", "lang": "fa", "dir": "rtl", "phoneType": "tel", "phoneInputMode": "tel", "phoneDirection": "ltr", "tabAfterPhone": "request-code button" },
+    { "path": "/pages/shipping", "clientWidth": 305, "scrollWidth": 305, "state": "approved content not yet published" },
+    { "path": "/admin/login", "clientWidth": 320, "scrollWidth": 320, "state": "password sign-in", "emailDirection": "ltr", "passwordDirection": "ltr", "passwordType": "password" }
+  ],
+  "formatterAssertions": { "exitCode": 0, "phoneForms": 8, "numericScripts": 3, "postalLeadingZero": true, "searchNormalization": true, "tomanInputStyles": 3, "exactTomanConversion": true, "displayExample": "۱٬۲۹۰٬۰۰۰ تومان", "tehranMidnight": { "before": "۱۹ مهر ۱۴۰۵", "after": "۲۰ مهر ۱۴۰۵" } },
+  "couponFormatterAssertions": { "exitCode": 0, "validDateTimes": 4, "invalidDateTimes": 5, "validPercentages": 4, "invalidPercentages": 5, "tehranRoundTrip": true, "historicalDstGapRejected": true },
+  "scopedVerification": { "eslintExitCode": 0, "typescriptExitCode": 0, "typescriptMode": "ignoreConfig; ES2022; bundler; three copy modules", "officialSkillValidationExitCode": 0, "evidenceJsonParsed": true },
+  "providedQaScreenshotsReviewed": ["docs/qa/screenshots/owned-order-chromium-320.png", "docs/qa/screenshots/owned-order-webkit-320.png"],
+  "notClaimed": ["final rebuilt-page retest", "browser input-value preservation", "real mobile hardware", "zoom", "screen reader", "three engine QA", "T25 full purchase", "real PSP/SMS", "WCAG certification"]
+}

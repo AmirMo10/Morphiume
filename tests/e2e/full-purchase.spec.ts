@@ -1,0 +1,175 @@
+import { createHash, randomInt, randomUUID } from "node:crypto";
+import { mkdir, writeFile } from "node:fs/promises";
+import { expect, test } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
+import { hashPassword } from "better-auth/crypto";
+import pg from "pg";
+import sharp from "sharp";
+import { totpForUri } from "../integration/auth/helpers";
+
+test("T01/T12/T17/T19/T20/T21/T23/T25: real admin product → guest purchase → mock verification → stock → owned tracking", async ({ browser, page, baseURL }, info) => {
+  const target = new URL(process.env.DATABASE_URL!);
+  if (!process.env.MOCK_CONTROL_SECRET || process.env.PAYMENT_PROVIDER !== "mock" || !target.pathname.endsWith("morphiume_staging")) throw new Error("QA refuses unisolated ecommerce fixture configuration");
+  const pool = new pg.Pool({ connectionString: target.toString(), max: 2 });
+  const fixture = randomUUID(), adminId = randomUUID(), email = `qa-${fixture}@fixture.invalid`, password = `Qa-${randomUUID()}-Password!`;
+  const slug = `qa-${fixture}`, productName = `آزمون مستقل Morphiume ${fixture.slice(0, 8)}`;
+  const customerPhone = `+989${String(randomInt(0, 1_000_000_000)).padStart(9, "0")}`;
+  const otherPhone = `+989${String(randomInt(0, 1_000_000_000)).padStart(9, "0")}`;
+  const customer = await browser.newContext({ baseURL, viewport: { width: 390, height: 844 }, reducedMotion: "reduce" });
+  const buyer = await customer.newPage();
+  let productId: string | undefined;
+  let retainCustomer = false;
+  try {
+    await pool.query('INSERT INTO "user"(id,name,email,email_verified) VALUES($1,\'QA browser admin\',$2,true)', [adminId, email]);
+    await pool.query("INSERT INTO account(id,user_id,account_id,provider_id,password) VALUES($1,$2,$2,'credential',$3)", [randomUUID(), adminId, await hashPassword(password)]);
+    await pool.query("INSERT INTO role_membership(user_id,role) VALUES($1,'owner')", [adminId]);
+    await page.goto("/admin/login");
+    await page.getByLabel("ایمیل مدیر").fill(email);
+    await page.getByLabel("رمز عبور", { exact: true }).fill(password);
+    await page.getByRole("button", { name: "ورود و ادامه", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "راه‌اندازی تأیید دومرحله‌ای" })).toBeVisible();
+    await page.getByRole("button", { name: "ساخت کلید رمزساز" }).click();
+    const secret = await page.getByLabel("کلید حساب", { exact: true }).inputValue();
+    await page.getByLabel("کد شش‌رقمی برنامهٔ رمزساز").fill(totpForUri(`otpauth://totp/Morphiume?secret=${secret}`));
+    await page.getByRole("button", { name: "تأیید و ورود به مدیریت", exact: true }).click();
+    await expect(page).toHaveURL(/\/admin$/);
+    const png = await sharp({ create: { width: 8, height: 8, channels: 4, background: "#F6F2EB" } }).png().toBuffer();
+    const media = await page.context().request.post("/api/admin/media", { headers: { Origin: baseURL! }, multipart: { file: { name: "qa-test-fixture.png", mimeType: "image/png", buffer: png } } });
+    expect(media.status()).toBe(201);
+    const uploaded = (await media.json()).data as { id: string; url: string; width: number; height: number };
+    expect(uploaded.url).toMatch(/^\/media\/[0-9a-f-]{36}\.webp$/);
+    const derived = await customer.request.get(uploaded.url);
+    expect(derived.status()).toBe(200);
+    expect(derived.headers()["content-type"]).toBe("image/webp");
+    expect((await sharp(await derived.body()).metadata()).format).toBe("webp");
+    expect((await customer.request.get(`/media/private/${uploaded.id}`)).status()).toBe(404);
+    expect((await customer.request.post("/api/admin/media", { headers: { Origin: baseURL! }, multipart: { file: { name: "qa.png", mimeType: "image/png", buffer: png } } })).status()).toBe(401);
+    const tooWide = await sharp({ create: { width: 6001, height: 1, channels: 3, background: "#FFFFFF" } }).png().toBuffer();
+    const tooManyPixels = await sharp({ create: { width: 4500, height: 4500, channels: 3, background: "#FFFFFF" } }).png().toBuffer();
+    for (const file of [
+      { name: "qa-malformed.png", mimeType: "image/png", buffer: Buffer.from("QA invalid raster fixture") },
+      { name: "qa-wrong-mime.jpg", mimeType: "image/jpeg", buffer: png },
+      { name: "qa-not-supported.svg", mimeType: "image/svg+xml", buffer: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"/>') },
+      { name: "qa-too-wide.png", mimeType: "image/png", buffer: tooWide },
+      { name: "qa-pixels.png", mimeType: "image/png", buffer: tooManyPixels },
+      { name: "qa-too-large.png", mimeType: "image/png", buffer: Buffer.alloc(4 * 1024 * 1024 + 1) },
+    ]) {
+      const rejected = await page.context().request.post("/api/admin/media", { headers: { Origin: baseURL! }, multipart: { file } });
+      expect([400, 413], file.name).toContain(rejected.status());
+    }
+    await page.goto("/admin/products/new");
+    await page.getByLabel("نام محصول", { exact: true }).fill(productName);
+    await page.getByLabel("نامک صفحه", { exact: true }).fill(slug);
+    await page.getByLabel("غلظت عطر", { exact: true }).fill("نمونهٔ QA");
+    await page.getByLabel("خانوادهٔ رایحه", { exact: true }).fill("آزمایشی");
+    await page.getByLabel("توضیح محصول", { exact: true }).fill("این محصول فقط دادهٔ آزمون است؛ برای فروش واقعی ساخته نشده است. متن فارسی بلند و عبارت Latin QA برای بررسی جهت نوشتار.");
+    await page.getByLabel("شناسهٔ تنوع (SKU)").fill(`QA-${fixture}`);
+    await page.getByLabel("حجم (میلی‌لیتر)").fill("۵۰");
+    await page.getByLabel("قیمت (تومان)").fill("۱۲۳۴۵۶");
+    await page.getByLabel("موجودی اولیه (عدد)").fill("۳");
+    await page.getByLabel("بارگذاری تصویر واقعی محصول", { exact: true }).setInputFiles({ name: "qa-ui-image.png", mimeType: "image/png", buffer: png });
+    await expect(page.getByText("تصویر پردازش شد و به فرم محصول اضافه شد.", { exact: true })).toBeVisible();
+    await expect(page.getByLabel("نشانی تصویر محصول", { exact: true })).toHaveValue(/^\/media\/[0-9a-f-]{36}\.webp$/);
+    await page.getByRole("button", { name: "پیش‌نمایش", exact: true }).click();
+    await expect(page.getByText("پیش‌نمایش خصوصی پیش‌نویس", { exact: false })).toBeVisible();
+    await page.getByRole("button", { name: "ذخیرهٔ تغییرات", exact: true }).click();
+    await expect(page).toHaveURL(/\/admin\/products\/[0-9a-f-]+$/);
+    productId = page.url().split("/").at(-1)!;
+    await mkdir("docs/qa/screenshots", { recursive: true });
+    await page.screenshot({ path: `docs/qa/screenshots/admin-product-draft-${info.project.name}.png`, fullPage: true });
+    await page.getByRole("button", { name: "انتشار محصول", exact: true }).click();
+    await expect(page.getByText("محصول منتشر شد.", { exact: true })).toBeVisible();
+    await buyer.goto(`/products/${productId}`);
+    await expect(buyer.getByRole("heading", { name: productName, exact: true })).toBeVisible();
+    await expect(buyer.locator("html")).toHaveAttribute("lang", "fa");
+    await expect(buyer.locator("html")).toHaveAttribute("dir", "rtl");
+    await expect(buyer.getByText("۱۲۳٬۴۵۶ تومان", { exact: true }).first()).toBeVisible();
+    const catalogAxe = await new AxeBuilder({ page: buyer }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+    expect(catalogAxe.violations).toEqual([]);
+    await buyer.screenshot({ path: `docs/qa/screenshots/product-${info.project.name}-390.png`, fullPage: true });
+    await buyer.getByRole("button", { name: "افزودن به سبد خرید", exact: true }).click();
+    await expect(buyer.getByText("محصول به سبد خرید افزوده شد.", { exact: false }).first()).toBeVisible();
+    await buyer.goto("/cart");
+    await expect(buyer.getByText(productName, { exact: true })).toBeVisible();
+    await buyer.reload();
+    await expect(buyer.getByText(productName, { exact: true })).toBeVisible();
+    await buyer.goto("/checkout");
+    for (const [label, value] of [["نام گیرنده", "گیرندهٔ آزمایشی QA"], ["شمارهٔ تماس گیرنده", "۰۹۱۲۱۲۳۴۵۶۷"], ["استان", "استان آزمایشی"], ["شهر", "شهر آزمایشی"], ["نشانی کامل", "نشانی صرفاً آزمایشی QA، برای ارسال واقعی معتبر نیست."], ["پلاک", "۱۲"], ["کدپستی ده‌رقمی", "۱۲۳۴۵۶۷۸۹۰"]] as const) await buyer.getByLabel(label, { exact: true }).fill(value);
+    await buyer.getByRole("button", { name: "ادامه و انتخاب روش ارسال", exact: true }).click();
+    await buyer.getByLabel("شمارهٔ همراه خریدار", { exact: true }).fill(customerPhone);
+    await buyer.route("**/api/auth/phone-number/send-otp", route => route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ code: "SERVICE_UNAVAILABLE", message: "QA controlled unavailable SMS response" }) }), { times: 1 });
+    await buyer.getByRole("button", { name: "دریافت کد تأیید", exact: true }).click();
+    await expect(buyer.locator(".phone-form [role=alert]")).toBeVisible();
+    await expect(buyer.getByLabel("شمارهٔ همراه خریدار", { exact: true })).toHaveValue(customerPhone);
+    expect(await buyer.evaluate(() => JSON.parse(sessionStorage.getItem("morphiume-checkout-address")!).recipient)).toBe("گیرندهٔ آزمایشی QA");
+    await buyer.getByRole("button", { name: "دریافت کد تأیید", exact: true }).click();
+    await expect(buyer.getByLabel("کد تأیید را وارد کنید.", { exact: true })).toBeVisible();
+    const inbox = await customer.request.get(`/api/test/otp?phone=${encodeURIComponent(customerPhone)}`, { headers: { "x-morphiume-test-secret": process.env.MOCK_CONTROL_SECRET! } });
+    expect(inbox.ok()).toBe(true);
+    const otp = (await inbox.json()).data.code as string;
+    await buyer.getByLabel("کد تأیید را وارد کنید.", { exact: true }).fill(otp);
+    await buyer.getByRole("button", { name: "تأیید شماره", exact: true }).click();
+    await expect(buyer.getByText("شمارهٔ خریدار تأیید شده است.", { exact: true })).toBeVisible();
+    await buyer.getByRole("checkbox", { name: /مبلغ و.*شرایط خرید/ }).check();
+    await buyer.getByRole("button", { name: /^پرداخت / }).click();
+    await expect(buyer).toHaveURL(/\/test\/payments\//);
+    const mockUrl = buyer.url();
+    await buyer.getByRole("button", { name: "آزمایش وضعیت نامشخص", exact: true }).click();
+    await expect(buyer).toHaveURL(/\/orders\/[0-9a-f-]+$/);
+    await expect(buyer.getByText("پرداخت هنوز تأیید نشده است. نتیجه از همین صفحه قابل پیگیری است.", { exact: true })).toBeVisible();
+    expect((await pool.query("SELECT on_hand,reserved FROM inventory_balance WHERE variant_id IN(SELECT id FROM variant WHERE product_id=$1)", [productId])).rows[0]).toEqual({ on_hand: 3, reserved: 1 });
+    await buyer.goto(mockUrl);
+    await buyer.getByRole("button", { name: "ثبت نتیجهٔ موفق آزمایشی", exact: true }).click();
+    await expect(buyer).toHaveURL(/\/orders\/[0-9a-f-]+$/);
+    const orderId = buyer.url().split("/").at(-1)!;
+    await expect(buyer.getByText("پرداخت تأیید شد.", { exact: true })).toBeVisible();
+    const balance = (await pool.query("SELECT on_hand,reserved FROM inventory_balance WHERE variant_id IN(SELECT id FROM variant WHERE product_id=$1)", [productId])).rows[0];
+    expect(balance).toEqual({ on_hand: 2, reserved: 0 });
+    expect((await pool.query("SELECT count(*)::int AS n FROM payment_receipt WHERE order_id=$1", [orderId])).rows[0].n).toBe(1);
+    expect((await pool.query("SELECT count(*)::int AS n FROM shipment WHERE order_id=$1", [orderId])).rows[0].n).toBe(1);
+    const financial = (await pool.query("SELECT unit_price_irr::text AS price FROM order_item WHERE order_id=$1", [orderId])).rows[0];
+    expect(financial.price).toBe("1234560");
+    await page.goto(`/admin/orders/${orderId}`);
+    await page.getByLabel("شرکت ارسال", { exact: true }).fill("شرکت ارسال آزمایشی QA");
+    await page.getByLabel("کد رهگیری", { exact: true }).fill(`QA-TRACK-${fixture.slice(0, 8)}`);
+    await page.getByRole("button", { name: "ثبت اطلاعات ارسال", exact: true }).click();
+    await expect(page.getByText("اطلاعات ارسال ثبت شد.", { exact: true })).toBeVisible();
+    await buyer.reload();
+    await expect(buyer.getByText(`QA-TRACK-${fixture.slice(0, 8)}`, { exact: true })).toBeVisible();
+    const privateResponse = await customer.request.get(`/api/orders/${orderId}`);
+    expect(privateResponse.headers()["cache-control"]).toContain("no-store");
+    const foreign = await browser.newContext({ baseURL });
+    const denied = await foreign.request.get(`/api/orders/${orderId}`);
+    expect([401, 404]).toContain(denied.status());
+    expect((await foreign.request.post("/api/auth/phone-number/send-otp", { headers: { Origin: baseURL! }, data: { phoneNumber: otherPhone } })).status()).toBe(200);
+    const otherInbox = await foreign.request.get(`/api/test/otp?phone=${encodeURIComponent(otherPhone)}`, { headers: { "x-morphiume-test-secret": process.env.MOCK_CONTROL_SECRET! } });
+    const otherCode = (await otherInbox.json()).data.code as string;
+    expect((await foreign.request.post("/api/auth/phone-number/verify", { headers: { Origin: baseURL! }, data: { phoneNumber: otherPhone, code: otherCode } })).status()).toBe(200);
+    expect((await foreign.request.get(`/api/orders/${orderId}`)).status()).toBe(404);
+    await foreign.close();
+    await buyer.setViewportSize({ width: 320, height: 640 });
+    await mkdir("docs/qa/screenshots", { recursive: true });
+    await buyer.screenshot({ path: `docs/qa/screenshots/owned-order-${info.project.name}-320.png`, fullPage: true });
+    const overflow = await buyer.evaluate(() => ({ width: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth, elements: [...document.querySelectorAll("body *")].map(el => ({ tag: el.tagName, cls: el.className, left: el.getBoundingClientRect().left, right: el.getBoundingClientRect().right, width: el.getBoundingClientRect().width })).filter(el => el.left < -1 || el.right > document.documentElement.clientWidth + 1).slice(0, 20) }));
+    await info.attach("rtl-overflow", { body: JSON.stringify(overflow), contentType: "application/json" });
+    await info.attach("browser-version", { body: browser.version(), contentType: "text/plain" });
+    await expect.poll(() => buyer.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+    await buyer.keyboard.press("Tab");
+    expect(await buyer.evaluate(() => document.activeElement?.tagName)).not.toBe("BODY");
+    const orderAxe = await new AxeBuilder({ page: buyer }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+    expect(orderAxe.violations).toEqual([]);
+    if (process.env.QA_RETAIN_RESTORE_FIXTURE === "1" && info.project.name === "chromium") {
+      if (!process.env.E2E_BASE_URL || new URL(baseURL!).port !== "3100") throw new Error("Retained restore fixture must be created through the actual staging SSH tunnel, not local Windows media storage");
+      await mkdir(".local", { recursive: true });
+      await writeFile(".local/restore-acceptance.json", JSON.stringify({ fixtureId: fixture, createdAt: new Date().toISOString(), baseURL, phone: customerPhone, orderId, productId, media: [{ url: uploaded.url, sha256: createHash("sha256").update(await derived.body()).digest("hex") }], expected: { paymentStatus: "paid", stockOnHand: 2, stockReserved: 0, receipts: 1, shipments: 1, trackingCode: `QA-TRACK-${fixture.slice(0, 8)}`, unitPriceIrr: "1234560" } }), { mode: 0o600 });
+      retainCustomer = true;
+    }
+  } finally {
+    if (productId && !retainCustomer) await pool.query("UPDATE product SET status='archived' WHERE id=$1", [productId]);
+    const disablePhones = retainCustomer ? [otherPhone] : [customerPhone, otherPhone];
+    await pool.query('UPDATE "user" SET disabled=true WHERE id=$1 OR phone_number=ANY($2::text[])', [adminId, disablePhones]);
+    await pool.query("DELETE FROM session WHERE user_id IN(SELECT id FROM \"user\" WHERE id=$1 OR phone_number=ANY($2::text[]))", [adminId, disablePhones]);
+    await customer.close();
+    await pool.end();
+  }
+});

@@ -1,0 +1,13 @@
+# Capacity evidence and measurement plan
+
+No load or performance test has yet been completed by Ops. The audited deployment host is 4 CPU / 4.8 GiB RAM. The master prompt proposes 4 vCPU / 8 GiB for an initial server and 8 vCPU / 16 GiB total as a first 200-concurrent-user candidate. Neither is a capacity guarantee. Builds, browser tests and load generation belong on separate hardware.
+
+The initial traffic model is 200 virtual users, a navigation every 15 seconds, three dynamic requests per navigation, approximately 40 dynamic requests/second. Image traffic, cache hits and prefetch must be measured separately; 200 VU does not mean 200 RPS.
+
+QA should run a protected optimized production build with `DEPLOYMENT_ENV=staging`, controlled mock adapters and synthetic data. Start at small load, ramp to 200 VU, hold at least 20 minutes, then ramp down. Suggested journey mix is 80% browsing, 10% search, 8% cart, 2% checkout with realistic think time. Run a separate arrival-rate/RPS test to locate saturation. Never load-test a real PSP or SMS service without explicit provider permission.
+
+Collect p50/p95/p99 and throughput by route, unexpected failures (target <0.5%), expected business failures such as stock 409 separately, CPU/memory/swap/OOM/restarts, DB pool waiting/connection count/locks/slow queries, worker oldest-pending-event age and queue depth, image bytes and warm/cold cache hit behavior. Suggested internal p95 targets are read <500ms and order creation <1000ms excluding PSP time, with zero finance/stock violations. Validate last-unit competition, coupon limits and provider disruption as separate correctness scenarios.
+
+Every report records date, exact commit/image digest, hardware and shared/dedicated vCPU status, dataset, pool/resource configuration, generator location, scenario/version, cache state, thresholds, actual output and limitations. Do not replace field Core Web Vitals evidence with a Lighthouse score. Proposed p75 targets are LCP<=2.5s, INP<=200ms, CLS<=0.1; field measurements follow an authorized live release.
+
+`deploy/staging/monitor.py --duration 1800 --interval 15 --output /srv/morphiume/staging/metrics/ACTUAL_RUN.jsonl` is prepared for the external Windows generator run. It records UTC/load average/available RAM/swap, container CPU/memory/PIDs, DB connections/active/lock waiting, pending/dead jobs/oldest age and aggregate order/receipt/shipment counts. No request text, customer data or secret configuration is collected. Start it immediately before the actual load run and retain its root-only evidence with the k6 summary; prepared instrumentation is not an executed capacity test.

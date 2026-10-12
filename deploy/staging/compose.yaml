@@ -1,0 +1,155 @@
+name: morphiume-staging
+
+x-runtime: &runtime
+  image: ${MORPHIUME_IMAGE:?Set the tested immutable MORPHIUME_IMAGE in staging deploy.env}
+  platform: linux/amd64
+  user: "1001:1001"
+  init: true
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+  pids_limit: 128
+  stop_grace_period: 30s
+  tmpfs:
+    - /tmp:rw,noexec,nosuid,size=128m,uid=1001,gid=1001,mode=1777
+  logging:
+    driver: local
+    options: {max-size: "10m", max-file: "5"}
+
+x-environment: &environment
+  NODE_ENV: production
+  DEPLOYMENT_ENV: staging
+  PAYMENT_PROVIDER: mock
+  SMS_PROVIDER: mock
+  APP_BASE_URL: http://localhost:3100
+  MEDIA_ROOT: /app/media
+  MORPHIUME_RUNTIME_CONFIG: /run/secrets/runtime_config
+
+services:
+  db:
+    image: postgres:18.6-bookworm@sha256:afc7e2d441324c0388fa80c3d24f733b4194a4eb7f47dd8ee2b08eb1a24a647c
+    platform: linux/amd64
+    user: "999:999"
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 1280m
+    cpus: "1.5"
+    pids_limit: 128
+    shm_size: 128m
+    stop_grace_period: 60s
+    environment:
+      POSTGRES_DB: morphiume_staging
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_bootstrap_password
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256 --data-checksums
+      PGDATA: /var/lib/postgresql/18/docker
+    command: [postgres, -c, max_connections=60, -c, shared_buffers=256MB]
+    volumes:
+      - type: bind
+        source: /srv/morphiume/staging/postgres
+        target: /var/lib/postgresql
+        bind: {create_host_path: false}
+      - type: bind
+        source: /opt/morphiume/deploy/staging/initdb.sh
+        target: /docker-entrypoint-initdb.d/10-morphiume.sh
+        read_only: true
+        bind: {create_host_path: false}
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m,uid=999,gid=999,mode=1777
+      - /var/run/postgresql:rw,nosuid,size=16m,uid=999,gid=999,mode=3775
+    secrets: [db_bootstrap_password, db_owner_password, db_app_password]
+    networks: [database]
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U postgres -d morphiume_staging"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+    logging:
+      driver: local
+      options: {max-size: "10m", max-file: "5"}
+
+  app:
+    <<: *runtime
+    restart: unless-stopped
+    command: [pnpm, start]
+    environment: *environment
+    mem_limit: 1536m
+    cpus: "1.5"
+    ports: ["127.0.0.1:3001:3000"]
+    networks: [database, edge]
+    depends_on:
+      db: {condition: service_healthy}
+    secrets:
+      - source: app_runtime
+        target: runtime_config
+    volumes:
+      - type: bind
+        source: /srv/morphiume/staging/media
+        target: /app/media
+        bind: {create_host_path: false}
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=128m,uid=1001,gid=1001,mode=1777
+      - /app/.next/cache:rw,nosuid,size=128m,uid=1001,gid=1001,mode=0750
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:3000/api/health/ready',{signal:AbortSignal.timeout(4000)}).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 4
+      start_period: 60s
+
+  worker:
+    <<: *runtime
+    restart: unless-stopped
+    command: [pnpm, worker]
+    environment:
+      <<: *environment
+      WORKER_HEARTBEAT_PATH: /tmp/morphiume-worker-heartbeat
+    mem_limit: 384m
+    cpus: "0.5"
+    networks: [database]
+    depends_on:
+      db: {condition: service_healthy}
+    secrets:
+      - source: worker_runtime
+        target: runtime_config
+    volumes:
+      - type: bind
+        source: /srv/morphiume/staging/media
+        target: /app/media
+        bind: {create_host_path: false}
+    healthcheck:
+      test: [CMD, node, -e, "try{process.exit(Date.now()-require('node:fs').statSync('/tmp/morphiume-worker-heartbeat').mtimeMs<90000?0:1)}catch{process.exit(1)}"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+
+  migrate:
+    <<: *runtime
+    profiles: [maintenance]
+    restart: "no"
+    command: [pnpm, db:migrate]
+    environment: *environment
+    mem_limit: 384m
+    cpus: "0.5"
+    networks: [database]
+    depends_on:
+      db: {condition: service_healthy}
+    secrets:
+      - source: migration_runtime
+        target: runtime_config
+
+networks:
+  database: {internal: true}
+  edge: {}
+
+secrets:
+  db_bootstrap_password: {file: /etc/morphiume-staging/db_bootstrap_password}
+  db_owner_password: {file: /etc/morphiume-staging/db_owner_password}
+  db_app_password: {file: /etc/morphiume-staging/db_app_password}
+  app_runtime: {file: /etc/morphiume-staging/app.json}
+  worker_runtime: {file: /etc/morphiume-staging/worker.json}
+  migration_runtime: {file: /etc/morphiume-staging/migration.json}

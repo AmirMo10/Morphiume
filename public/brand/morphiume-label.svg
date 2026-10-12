@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 200" role="img" aria-labelledby="title">
+  <title id="title">Morphiume label identity</title>
+  <g transform="translate(37 39)"><g fill="none" stroke="#20211F" stroke-width="3.6" stroke-linecap="square" stroke-linejoin="round">
+  <path d="M14 84V22L37 65L60 22V84"/>
+  <path d="M103 42C87 42 80 50 80 64S87 86 103 86S126 78 126 64S119 42 103 42Z"/>
+  <path d="M146 84V43M146 56C151 46 159 42 170 44"/>
+  <path d="M188 105V43M188 54C198 36 227 39 227 63C227 88 199 94 188 74"/>
+  <path d="M248 84V22M248 55C252 39 283 35 283 58V84"/>
+  <path d="M306 43V84"/>
+  <path d="M329 43V67C329 91 365 89 365 65V43M365 68V84"/>
+  <path d="M387 84V43M387 55C391 39 416 38 416 56V84M416 55C420 39 445 38 445 56V84"/>
+  <path d="M469 62H506C508 38 469 35 466 61C463 86 490 93 506 79"/>
+</g><circle cx="306" cy="27" r="2.8" fill="#20211F"/></g>
+</svg>

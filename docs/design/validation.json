@@ -1,0 +1,120 @@
+{
+  "date": "2026-10-12",
+  "svgRendered": [
+    "concept-a-wordmark.svg",
+    "concept-b-monogram.svg",
+    "concept-c-curves.svg",
+    "favicon.svg",
+    "morphiume-label.svg",
+    "morphiume-mark-light.svg",
+    "morphiume-mark.svg",
+    "morphiume-wordmark-light.svg",
+    "morphiume-wordmark-wine.svg",
+    "morphiume-wordmark.svg"
+  ],
+  "faviconSizes": [
+    16,
+    32,
+    128
+  ],
+  "wordmarkWidth": 160,
+  "skillFrontMatter": "passed basic structural check",
+  "fontSignature": "wOF2",
+  "contrast": [
+    {
+      "foreground": "ink",
+      "background": "canvas",
+      "min": 4.5,
+      "actual": 14.49,
+      "passed": true
+    },
+    {
+      "foreground": "muted",
+      "background": "canvas",
+      "min": 4.5,
+      "actual": 5.37,
+      "passed": true
+    },
+    {
+      "foreground": "muted",
+      "background": "surface",
+      "min": 4.5,
+      "actual": 5.9,
+      "passed": true
+    },
+    {
+      "foreground": "onBrand",
+      "background": "brand",
+      "min": 4.5,
+      "actual": 10.8,
+      "passed": true
+    },
+    {
+      "foreground": "onBrand",
+      "background": "brandHover",
+      "min": 4.5,
+      "actual": 13.01,
+      "passed": true
+    },
+    {
+      "foreground": "brand",
+      "background": "canvas",
+      "min": 4.5,
+      "actual": 10.8,
+      "passed": true
+    },
+    {
+      "foreground": "success",
+      "background": "canvas",
+      "min": 4.5,
+      "actual": 6.36,
+      "passed": true
+    },
+    {
+      "foreground": "danger",
+      "background": "canvas",
+      "min": 4.5,
+      "actual": 6.3,
+      "passed": true
+    },
+    {
+      "foreground": "warning",
+      "background": "canvas",
+      "min": 4.5,
+      "actual": 6.24,
+      "passed": true
+    },
+    {
+      "foreground": "borderControl",
+      "background": "canvas",
+      "min": 3,
+      "actual": 3.3,
+      "passed": true
+    },
+    {
+      "foreground": "borderControl",
+      "background": "surface",
+      "min": 3,
+      "actual": 3.62,
+      "passed": true
+    }
+  ],
+  "sha256": {
+    "fonts/Vazirmatn[wght].woff2": "4e3fa217d38fdafc1fea4414ceb58ca5e662cf0ab5fa735a8c8c20e8b42cad92",
+    "fonts/OFL.txt": "17e355067c8284f47743a1ee3b1ef7ff684ff0601eda357f9353b10b3016ab31",
+    "concept-a-wordmark.svg": "1b2f8315738db444b9af88142426d426b5057e21eb4b1567a3f41dcd955cb2a7",
+    "concept-b-monogram.svg": "83594afbc11cd1beae9ae81ade92f8b8cd9584ceb5c2ce850fd09f2916974802",
+    "concept-c-curves.svg": "899a4cd663635a581c4de1cc313d9dec95420a30df77f39bab313cc8737d2745",
+    "favicon.svg": "4b73e88245f1651f95d1c8413c12b43c7a45a4bbbe868e7dd2734cf2e1b6e7da",
+    "morphiume-label.svg": "f61f72241d00f2d97339b70ef357b67bc6129965718fe283fe267284713a1304",
+    "morphiume-mark-light.svg": "2ded8c4c4f0d0139ac05fccf607194d16b693e83d7eb36ac40dce0fd8e7574f1",
+    "morphiume-mark.svg": "4c535e3dc2d952e8d6b37e407e2110db95f3c84fafefd3e635b2f5ba6c21eadd",
+    "morphiume-wordmark-light.svg": "2b5bf29f73dd814d6cc00aebb7a489cc733468e7fd6f47d142da19eb4a762789",
+    "morphiume-wordmark-wine.svg": "52ef4cd2738aea08c3423b9a482eae3e11d51b8ba168a11d20f6d58501f3c513",
+    "morphiume-wordmark.svg": "8545982a4a2e0b56f37c85ba36a2c8f385bef51ea947c8c74f1b7779aeb292fe"
+  },
+  "limits": [
+    "Application/browser/assistive-technology tests are not performed by this script",
+    "Trademark clearance not assessed"
+  ]
+}
