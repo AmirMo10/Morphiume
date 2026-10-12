@@ -1,7 +1,8 @@
 import { expect, type BrowserContext, type Page } from "@playwright/test";
 import type pg from "pg";
-import type { CartDto, CheckoutDto, CheckoutInput, OrderDto, QuoteDto } from "../../src/contracts/commerce";
+import type { CheckoutDto, CheckoutInput, OrderDto, QuoteDto } from "../../src/contracts/commerce";
 import type { PresentationDto, PresentationValue } from "../../src/contracts/presentation";
+import { claimCurrentCart, setCurrentCartQuantity } from "./cart-fixtures";
 
 export function editablePresentation(value: PresentationDto): PresentationValue {
   return { heroTitle: value.heroTitle, heroDescription: value.heroDescription, heroAction: value.heroAction, banner: value.banner, headerLinks: value.headerLinks, footerLinks: value.footerLinks, footerText: value.footerText, featuredProductIds: value.featuredProductIds, services: value.services, maintenance: value.maintenance };
@@ -10,8 +11,8 @@ export function editablePresentation(value: PresentationDto): PresentationValue 
 export async function controlledCheckout(customer: BrowserContext, baseURL: string, variantId: string, operationKey: string) {
   // POST adds to existing quantity; these independently controlled journeys
   // intentionally buy exactly one unit even when reusing an owned cart.
-  expect((await customer.request.put("/api/cart/items", { headers: { Origin: baseURL }, data: { variantId, quantity: 1 } })).status()).toBe(200);
-  const cart = (await (await customer.request.get("/api/cart")).json()).data as CartDto;
+  const current = await claimCurrentCart(customer, baseURL);
+  const cart = await setCurrentCartQuantity(customer, baseURL, variantId, 1, current);
   expect(cart.items).toHaveLength(1); expect(cart.items[0]?.variantId).toBe(variantId); expect(cart.items[0]?.quantity).toBe(1);
   const quoted = await customer.request.post("/api/checkout/quote", { headers: { Origin: baseURL }, data: { cartId: cart.id, cartVersion: cart.version } });
   expect(quoted.status()).toBe(200);

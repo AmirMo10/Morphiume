@@ -5,6 +5,7 @@ import type { ManualRefundFailureDto, ManualRefundFailureInput, MoneyDto, OrderD
 import { api, ApiError, errorMessage, money, Notice } from "./commerce-client";
 import { AdminReauthentication } from "./admin-reauth";
 import { hasPermission, useAdmin } from "./admin-shell";
+import { operationId } from "./operation-id";
 
 type Review = { refundId: string; orderNumber: string; amount: MoneyDto; input: ManualRefundFailureInput };
 export function ManualRefundFailure({ order, onChange }: { order: OrderDto; onChange: () => Promise<unknown> }) {
@@ -33,7 +34,7 @@ function FailureReview({ order, onChange }: { order: OrderDto; onChange: () => P
     const normalizedReason = reason.trim(), normalizedEvidence = evidence.trim();
     if (!normalizedReason || normalizedReason.length > 1000 || normalizedEvidence.length < 10 || normalizedEvidence.length > 1000) { setError("دلیل را تا ۱۰۰۰ نویسه و مدرک عدم انتقال وجه را از ۱۰ تا ۱۰۰۰ نویسه وارد کنید."); return; }
     const payload = JSON.stringify({ refundId, outcome, reason: normalizedReason, evidence: normalizedEvidence });
-    if (operation.current?.payload !== payload) operation.current = { payload, key: crypto.randomUUID() };
+    try { if (operation.current?.payload !== payload) operation.current = { payload, key: operationId() }; } catch (failure) { setError(errorMessage(failure)); return; }
     setReview({ refundId, orderNumber: order.orderNumber, amount: { ...refund.amount }, input: { outcome: "confirmed_non_transfer", reason: normalizedReason, evidence: normalizedEvidence, operationKey: operation.current.key } });
     setFresh(false); setDialogError(""); setRound(previous => previous + 1); dialog.current?.showModal();
   };

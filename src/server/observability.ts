@@ -91,7 +91,7 @@ export function finishRequest(response: Response, errorCode?: string, failureCat
   if (!current) return response;
   const headers = new Headers(response.headers);
   headers.set("X-Request-ID", current.requestId);
-  const allowedCodes = new Set(["VALIDATION", "UNAUTHENTICATED", "FORBIDDEN", "MFA_REQUIRED", "RATE_LIMITED", "NOT_FOUND", "CONFLICT", "OUT_OF_STOCK", "PRICE_CHANGED", "PAYMENT_UNKNOWN", "NOT_ELIGIBLE", "CONFIGURATION", "INTERNAL"]);
+  const allowedCodes = new Set(["VALIDATION", "UNAUTHENTICATED", "FORBIDDEN", "MFA_REQUIRED", "RATE_LIMITED", "NOT_FOUND", "CONFLICT", "CART_CHANGED", "OUT_OF_STOCK", "PRICE_CHANGED", "PAYMENT_UNKNOWN", "NOT_ELIGIBLE", "CONFIGURATION", "INTERNAL"]);
   write({ event: "request.completed", requestId: current.requestId, route: current.route, method: current.method,
     status: response.status, durationMs: Math.max(0, Math.round(performance.now() - current.startedAt)), ...safeIds(current),
     ...(errorCode && allowedCodes.has(errorCode) ? { errorCode } : {}),

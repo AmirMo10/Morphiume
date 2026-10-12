@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { expect, test } from "@playwright/test";
 import type { CheckoutDto, OrderDto, QuoteDto } from "../../src/contracts/commerce";
 import { createAdmin, createProduct, disableUsers, isolatedPool, loginAdmin, loginCustomer, verifyAdminTotp } from "./acceptance-fixtures";
+import { claimCurrentCart } from "./cart-fixtures";
 
 function exposesPrice(value: unknown): boolean {
   if (!value || typeof value !== "object") return false;
@@ -91,8 +92,8 @@ test("T06/T07/T20: inventory-only native MFA cannot receive or mutate price thro
     expect((await buyer.request.get("/api/orders")).status()).toBe(401);
     expect((await buyer.request.post("/api/cart", { headers: { Origin: baseURL! }, data: { variantId: variant.id, quantity: 1 } })).status()).toBe(200);
     const customer = await loginCustomer(buyer, baseURL!); users.push(customer.userId);
-    const cart = (await (await buyer.request.get("/api/cart")).json()).data;
-    expect(cart.items).toHaveLength(1); expect(cart.items[0].quantity).toBe(1);
+    const cart = await claimCurrentCart(buyer, baseURL!);
+    expect(cart.items).toHaveLength(1); expect(cart.items[0]?.quantity).toBe(1);
     const address = { recipient: "گیرندهٔ مصنوعی آزمون مجوز QA", phone: "09121234567", province: "تهران", city: "تهران", address: "نشانی مصنوعی؛ ارسال واقعی انجام نمی‌شود.", plaque: "1", postalCode: "1234567890" };
     const quoted = await buyer.request.post("/api/checkout/quote", { headers: { Origin: baseURL! }, data: { cartId: cart.id, cartVersion: cart.version } });
     expect(quoted.status()).toBe(200);

@@ -1,6 +1,46 @@
 # آزمون‌های واقعاً اجراشده
 
+## پذیرش ثبت‌شدهٔ ۲۲:۴۲ UTC
+
+تازه۲۳:۰۸: workerdrill591 واقعی **94.640045s**، start22:58:21.843Z/end22:59:56.483Z؛ baselinehealthy0alerts، workerstop0.801138s/Exit0/OOM0، duringexit2/critical/exact1workeralert، resumeهمانworker5.803562s/onefiniteattempt، afterhealthy0alerts/ready200/HB1.9792409668s. app وmetadataPG/mount/profile/image/21Opsbyte ثابت و cacheprefixغایب بودند؛ هیچqueue/financialcleanup انجام نشد. Gitleaksconfigurationbinarygate۷/۷ واقعی، سهpublicpin مجاز و چهارbadvalue/pathcanary کشف‌شده؛ types/lint/whitespacecandidateCartقبول، اسکن نهایی/push جدا ثبت می‌شوند.
+
+تازه۲۲:۵۵: پذیرش نهاییCart/provider83effbe… رویbuild23099/server99612 **۳۸/۳۸،942.263819s**، آغاز22:33:18.565Z وskip/flaky/testretry0.۲۱۸statusبومی،۶429 باexactlyoneboundedobservedretry؛ دو400کدغلط ودو503کنترل‌شده. شاهد امنbrowser-cart-channel-final-whole.json، auditreadonlyچهار دستهٔ fixtureهرکدام0 و windowreleaseصریح؛ تاریخچهٔ مالی/موجودی/limiter پاک نشده است. RootCIpureجدید:۵۰/۵۰Node174.8151ms،۹/۹Python0.003s،۲۰/۲۰diagnostic293.8869ms. runnerاولtsx به‌علتtop-levelawait→CJS پیش از آزمون شکست خورد؛ nativeNode24runner صحیح قبول و CIهمان فرمان است. این scopeها باجامع۵۰۳ پیشین جمع نمی‌شوند.
+
+SREactualhealth: quartercore50s timeout/overall50.231034s/cgrouppeak32800768/OOM0/nohealthJSON؛ separatelyauthorizedonecore pass/overall18.801830s/child18.640249s/userCPU16.008956s/system0.514308s/RSS46080KiB/cgrouppeak53751808/alerts0/OOM0. فقطdirecthealth، نهfullscheduledservice یاcapacity. worker-onlydrill تازهGOدارد و نتیجه هنوزpending؛ timer/backupcycle نصب/اجرا نشده‌اند.
+
+سرور613/591: QA63927 **۶/۶33.8336788s**، شروع22:22:29.174Z و پایان22:23:03.008Z؛ ورود OTP200/attempt1 بدونretry، ownedorder/dedup/stock/tracking/mediaSHA موفق. Root6124 marker واقعی محافظت‌شده را ثبت کرد: RTO3333.396461s از اولین شکست21:27:29.611539Z، fixture-to-capture gap122.003162s با timestampsواقعیreadonly. Root35483exit0: restorepairمتوقف، داده محفوظ، کلید موقت دقیق حذف و runtimepairhealthy/ready200 در22:31:04.930595Z. timer/drill/privateIP/load و PITR/offsite هنوز پذیرفته نیستند.
+
+CIa899/run38314369665: verify۴۱۳/۴۱۳35files79.57s،۴۲/۴۲Linux8.5min؛ image۴۲/۴۲516.573928s باunexpected/skip/flaky0. artifact11777405981/19667bytes و دقیقاً۵عضو۱۹۲۸۸۷bytes مستقلاً استخراج شدند:۳MediumCVE-2025-60876/busyboxfamily1.37.0-r31/no fixversion؛ nativeTLS1.3+WebP قبول. این نتایج کارWIPجدید را اثبات نمی‌کنند.
+
+Cartfinalsource83effbe…: build23099/lint72967exit0/closure530/worker185.3KB/WindowsWebP واقعی؛ QAwhole38 جاری رویserver99612. predecessor19480targeted10/10 جداست. Bnewsource هنوز unwired/unmigrated: backendpure۳۰/۳۰589ms، Rootreport۶/۶434ms وtypes/scopedlint0؛۱۵PG suite صریحاً skip شد و اجراشده نیست. شمارها با۵۰۳globalقدیمی یا مرورگرها جمع نمی‌شوند. این بخش بر زمان‌های تاریخی پایین مقدم است.
+
+## نتیجهٔ معتبر ۲۲:۲۵ UTC، ۱۲ اکتبر ۲۰۲۶
+
+- build19480/cart: **۱۰/۱۰ Chromium/WebKit،294.933038s**، start22:14:34.897Z، retry/skip/flaky/unexpected0؛ observer اختیاری خاموش. پاسخ گم‌شده/کلید ثابت/replay پرداخت/موجودی/رسید/ارسال/تعویض حساب و gate نشست در این scope قبول‌اند. cleanup readonly همان scope: مدیرفعال0/محصولمتعلقآرشیونشده0. اصلاح تازهٔ persistent channel هنوز در این build نیست؛ controlled19 و baseline/fixed WebKit مقایسهٔ مستقل‌اند، whole38 و native نهایی pending.
+- corrected passive observer، اجرای مستقل Chrome **۱/۱،28.368791s**:294event/0drop/reject. اجرای قبلی observer **۱/۱،27.737844s** ولی DOM0 به‌علت scope serialization غلط؛ absence شاهد نبودن lifecycle نیست. هیچ‌کدام به شمار۱۰/۱۰ یا جامع۵۰۳ افزوده نمی‌شوند.
+- recovery923 canonical sourcea899: Root مستقل **۲۰/۲۰،1.468s** و SRE۲۰/۲۰1.682s؛ publish۱۳فایل/Gitleaks۸۲٫۸۷KB clean. Actual preflight76392 و forward98363 exit0؛ restore app+DB ready بدون worker. اولین QA30446 قبل native در shape baseline شکست خورد؛ محدود-role SQL، هر هفت شمارنده برابر و capturedUtc معتبر است. اصلاح قرارداد۹/۹ Python، قبول؛ bounded rerun63927 جاری، completed6/6 و marker/RTO هنوز ادعا نمی‌شوند.
+- CIa899/run38314369665 جاری؛ CI613 و25 پذیرفتهٔ تاریخی، cart/UUID/privacy/analytics WIP را اثبات نمی‌کنند. بندهای پایین تاریخچه‌اند و این بخش مقدم است.
+
+## نتیجهٔ تازهٔ ۲۱:۲۴ UTC، ۱۲ اکتبر ۲۰۲۶
+
+به‌روزرسانی۲۱:۳۹: اصلاح guest-form،۱۹/۱۹ کنترل‌شده و رگرسیون‌های مربوط را گذراند؛ build85404/lint83679exit0/server29607ready200. اجرای بومی6205 باز هم **۹/۱۰،300.990929s**،start21:33:34.509Z،skip/flaky/retry0 و یک Chrome account-switch failure دارد؛ علت تا تشخیص trace ادعا نمی‌شود. CI25 verify۴۱۳/۳۵فایل75.64s+۴۲/۴۲8.6min و image۴۲/۴۲8.7min پذیرفته‌اند؛ collector/cart جدید را اثبات نمی‌کنند. روی server613،ChromiumT25۱/۱15.216108s و physicalmediaSHA موفق؛ encryptedbackup کامل؛ restoreقبل ازcontainer/PG با invaliduppercaseComposeproject شکست خورد،partialretained و پذیرش بازیابی همچنانpending.
+
+- cart اصلاح‌شده build1434/server61844: **۹/۱۰،301.029727s**؛ unexpected1،skip/flaky/retry0. تنها Chrome در account-B send-OTP observer timeout داشت؛ fill/click موفق، هیچ درخواست OTP ثبت نشد، فیلد خالی شد. علت lifecycle نامشخص است. WebKit recovery/payment/stock/receipt/shipment/account-switch کامل قبول شد. cleanup/window release تأیید؛ T25/whole38 جدید اجرا نشده‌اند.
+- آزمون جامع همین حوزه پیش از اصلاح محدود catalog: **۵۰۳/۵۰۳،۳۹فایل،809.33s**. build1434 و lint18887 اصلاح catalog exit0. شمارهای مستقل و جامع جمع نمی‌شوند.
+- Ops-only main25e1b19،۲۶فایل/Gitleaks142.29KB بدون یافته؛ CI38308235787 verify موفق/image در جریان. پذیرش613 به cart جدید منتقل نمی‌شود.
+- سرور: adoption7472/prepare86160/deploy51706 همگی exit0. archive+OCI wire-layer+RootFS+config/source به proof محافظت‌شدهv2/immutableengineID تطبیق یافتند؛ namespace/roles/config جدا و bundled migration/seed/app/worker با SSHorigin3100 ایجاد شدند. baseline قبلی در prepare ثابت بود. native fixture،backup/restore،RTO،alert/timer،privateIP و ظرفیت هنوز آزموده نشده‌اند.
+
+گزارش تاریخی پایین با source/run خود حفظ می‌شود؛ این بخش بر ادعاهای زمانی قبلی مقدم است.
+
 ## آخرین پذیرش معتبر
+
+اولین پذیرش nativecart UI/API رویbuild39584/server74636: **۵/۱۰،210.445434s**؛API۴/۴ وWKgenericconflictUI قبول،سهChromeUI پس ازPOSTcart200 درaddsuccessnotice fail. WKguest،quoteobserver هنگامwait واقعیOTP429/47s timeoutشد(نقصfixtureمشاهده‌شده)؛WKloss/recovery،savedreplay201/keybody/mockpaid/ordernavigation موفق اماrecipientvisibility درline220fail وDOMclassificationpending. skipped/flaky/retries صفر؛ هنوزwhole جاری/قبول یاnativeUIfull ادعا نمی‌شود. FEdiagnostic فقطmaintainedclient+syntheticHTTP،نهappnativePG است. نتیجهٔ unit۵۰۳ وbuild مستقل با این۵failed مرورگر جایگزین نمی‌شود.
+
+اجرای جامع تازهٔ sourceCART/UUID/privacy: **۵۰۳/۵۰۳،۳۹فایل،809.33s،session54199،exit0**؛ build39584/closure530/WindowsWebP واقعی وglobal lint/types موفق. source منجمد ولی هنوزWIP است. production74636/localhost3000/schema11/ready200 تازه راه افتاد؛ targeted UI/API/native QA و whole دو موتور هنوز نتیجه ندارند. CI613 image نیز اکنون۴۲/۴۲ در8.4min/nativeworker/scan/promotion/export موفق دارد؛[CI_613_ACCEPTANCE.md](CI_613_ACCEPTANCE.md) هویت پذیرفته‌شده،سهMedium scan و شکستlookupconfigID پس ازDockerload سرور را ثبت می‌کند. تصویر source613،آزمون‌هایsource جدید را اثبات نمی‌کند.
+
+تازه‌ترین CI منتشرشده6130f4ed7ec090344a5a4a1937a65ef04572975b،[run38300142070](https://github.com/AmirMo10/Morphiume/actions/runs/38300142070)،verify موفق دارد: **۴۱۳/۴۱۳ در۳۵فایل،73.68s و۴۲/۴۲ سه موتور Linux،8.6min**؛ guideFirefox این بار قبول شد. علت شکست قبلی فقط با این عدم تکرار اثبات نمی‌شود. image build/scan موفق است، اما native/browser/worker تصویر و publish/export هنوز در جریان‌اند؛ برنامهٔ سرور هنوز مستقر نشده است.
+
+نسخهٔ CART فعلی هنوز WIP جدا از613 است: تجارت fullنهایی **۱۸۰/۱۸۰،۱۸فایل،739.50s،exit0**؛۱۵۴قبلی+۲۶cart،target۳۳/۳۳ در152.38s زیرمجموعه است. fullاول۱۷۷/۱۷۸ در733.33s با یک فرض قدیمی fixture lock نگه‌داری شده و حذف نشده است. Root actors/domain کنترل‌شدهٔ ingress19+obs10،۲۹/۲۹ در1.91s بدون SQL واقعی؛ readiness ابزار load۲۰/۲۰ در384ms با فایل‌های مصنوعی و types/scopedlint موفق. setupnative۲۰۰حساب/بار واقعی اجرا نشده؛ whole rootsession54199 اکنون جاری است و نتیجه‌ای از آن ادعا نمی‌شود.
 
 تشخیص دقیق CI fd74961: Firefox full-purchase در native **admin password sign-in** ابتدا429 با X-Retry-After7 و پس از7.351s دوباره429 بدون هر دو header retry گرفت؛ OTP مشتری علت این شکست نبود. WebKit shipping با TypeError از current.version شکست خورد چون پاسخ GET فاقد data بود؛ status آن GET ثبت نشده بود. Firefox rename مستقل500 داشت. هیچ server request.completed در log دریافت‌شده نیست؛ علت پاسخ‌های برنامه هنوز طبقه‌بندی نشده است.
 

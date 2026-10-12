@@ -103,7 +103,7 @@ test("T01/T12/T17/T19/T20/T21/T23/T25: real admin product → guest purchase →
     await nativeAuthAction(buyer, "customer-otp-send", () => buyer.getByRole("button", { name: "دریافت کد تأیید", exact: true }).click(), 503);
     await expect(buyer.locator(".phone-form [role=alert]")).toBeVisible();
     await expect(buyer.getByLabel("شمارهٔ همراه خریدار", { exact: true })).toHaveValue(customerPhone);
-    expect(await buyer.evaluate(() => JSON.parse(sessionStorage.getItem("morphiume-checkout-address")!).recipient)).toBe("گیرندهٔ آزمایشی QA");
+    expect(await buyer.evaluate(() => JSON.parse(sessionStorage.getItem("morphiume-checkout-draft-v2")!)?.address?.recipient)).toBe("گیرندهٔ آزمایشی QA");
     await nativeAuthAction(buyer, "customer-otp-send", () => buyer.getByRole("button", { name: "دریافت کد تأیید", exact: true }).click());
     await expect(buyer.getByLabel("کد تأیید را وارد کنید.", { exact: true })).toBeVisible();
     await nativeAuthAction(buyer, "customer-otp-wrong-code", async () => {
@@ -112,7 +112,7 @@ test("T01/T12/T17/T19/T20/T21/T23/T25: real admin product → guest purchase →
       await buyer.getByRole("button", { name: "تأیید شماره", exact: true }).click();
     }, 400);
     await expect(buyer.locator(".phone-form [role=alert]")).toBeVisible();
-    expect(await buyer.evaluate(() => JSON.parse(sessionStorage.getItem("morphiume-checkout-address")!).recipient)).toBe("گیرندهٔ آزمایشی QA");
+    expect(await buyer.evaluate(() => JSON.parse(sessionStorage.getItem("morphiume-checkout-draft-v2")!)?.address?.recipient)).toBe("گیرندهٔ آزمایشی QA");
     await nativeAuthAction(buyer, "customer-otp-verify", async () => {
       await buyer.getByLabel("کد تأیید را وارد کنید.", { exact: true }).fill(await controlledCustomerOtp(customer, customerPhone));
       await buyer.getByRole("button", { name: "تأیید شماره", exact: true }).click();

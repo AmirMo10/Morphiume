@@ -71,9 +71,9 @@ describe.skipIf(!enabled)("PostgreSQL transactional checkout pause",()=>{
     expect((await pending).error).toMatchObject({code:"NOT_ELIGIBLE",status:503});expect((await pool.query("SELECT id FROM orders WHERE user_id=$1",[fixture.customer.userId])).rows).toHaveLength(0);
   });
   it("holds enabled consent through checkout commit before a competing pause takes effect",async()=>{
-    const c=await fixture.cart(),blocker=await pool.connect();await blocker.query("BEGIN");await blocker.query('SELECT id FROM "user" WHERE id=$1 FOR UPDATE',[fixture.customer.userId]);
+    const c=await fixture.cart(),blocker=await pool.connect();await blocker.query("BEGIN");await blocker.query("SELECT id FROM cart WHERE id=$1 FOR UPDATE",[c.input.cartId]);
     const pending=fixture.commerce.createCheckout(fixture.customer,c.guestToken,c.input,c.key);let paused:Promise<void>|undefined;
-    try{await observeLock(pool,`TEST-isolated-${isolated.schema}`,'%SELECT id FROM "user" WHERE id=$1 FOR UPDATE%');paused=write(false);await observeLock(pool,`TEST-isolated-${isolated.schema}`,"SELECT pg_advisory_xact_lock(818003)%");await blocker.query("COMMIT");}finally{await blocker.query("ROLLBACK");blocker.release();}
+    try{await observeLock(pool,`TEST-isolated-${isolated.schema}`,"SELECT * FROM cart WHERE id=$1%FOR UPDATE%");paused=write(false);await observeLock(pool,`TEST-isolated-${isolated.schema}`,"SELECT pg_advisory_xact_lock(818003)%");await blocker.query("COMMIT");}finally{await blocker.query("ROLLBACK");blocker.release();}
     const created=await pending;await paused;expect(created.orderId).toBeTruthy();const next=await fixture.cart();await expect(fixture.commerce.createCheckout(fixture.customer,next.guestToken,next.input,next.key)).rejects.toMatchObject({code:"NOT_ELIGIBLE",status:503});
   });
   it("initializes a durable pre-pause attempt after provider work resumes",async()=>{

@@ -92,7 +92,7 @@ export type OrderDto = {
   returns: { id: string; kind: ReturnKind; reason: string; status: ReturnStatus; createdAt: string }[];
   refunds: { id: string; amount: MoneyDto; status: string; reason: string }[];
 };
-export type DomainErrorCode = "VALIDATION" | "UNAUTHENTICATED" | "FORBIDDEN" | "MFA_REQUIRED" | "NOT_FOUND" | "CONFLICT" | "OUT_OF_STOCK" | "PRICE_CHANGED" | "PAYMENT_UNKNOWN" | "NOT_ELIGIBLE" | "CONFIGURATION";
+export type DomainErrorCode = "VALIDATION" | "UNAUTHENTICATED" | "FORBIDDEN" | "MFA_REQUIRED" | "NOT_FOUND" | "CONFLICT" | "CART_CHANGED" | "OUT_OF_STOCK" | "PRICE_CHANGED" | "PAYMENT_UNKNOWN" | "NOT_ELIGIBLE" | "CONFIGURATION";
 export class CommerceError extends Error {
   constructor(public readonly code: DomainErrorCode, message: string, public readonly status = 400) { super(message); this.name = "CommerceError"; }
 }

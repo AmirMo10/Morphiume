@@ -48,10 +48,15 @@ export default function () {
   } else if (choice < 0.9) {
     get("/api/catalog/page?pageSize=24&search=QA", "GET search page"); get(`/api/products/${product}`, "GET product"); get("/api/settings", "GET public settings");
   } else {
-    get("/api/cart", "GET own cart");
-    const update = http.put(`${base}/api/cart/items`, JSON.stringify({ variantId: fixture.variantId, quantity: 1 }), { headers: common, tags: { name: "PUT cart item" } });
+    const currentResponse = get("/api/cart", "GET own cart");
+    if (currentResponse.status < 200 || currentResponse.status >= 300) return;
+    const current = currentResponse.json("data");
+    const claimedResponse = http.post(`${base}/api/cart/claim`, JSON.stringify({ cartId: current.id, expectedVersion: current.version }), { headers: common, tags: { name: "POST claim own cart" } });
+    if (!responseOk(claimedResponse)) return;
+    const claimed = claimedResponse.json("data");
+    const update = http.put(`${base}/api/cart/items`, JSON.stringify({ cartId: claimed.id, expectedVersion: claimed.version, variantId: fixture.variantId, quantity: 1 }), { headers: common, tags: { name: "PUT cart item" } });
     if (!responseOk(update)) return;
-    const cart = get("/api/cart", "GET own cart").json("data");
+    const cart = update.json("data");
     if (choice >= 0.98) {
       const address = { recipient: "گیرندهٔ آزمایشی ظرفیت QA", phone: "09121234567", province: "QA", city: "QA", address: "QA synthetic address only", plaque: "1", postalCode: "1234567890" };
       const quoted = http.post(`${base}/api/checkout/quote`, JSON.stringify({ cartId: cart.id, cartVersion: cart.version, address, shippingMethodId: "standard" }), { headers: common, tags: { name: "POST quote" } });

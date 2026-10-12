@@ -41,13 +41,23 @@ async function body(request: NextRequest, limit=128000) {
 function key(request: NextRequest) { return z.string().min(8).max(128).parse(request.headers.get("Idempotency-Key")); }
 function missing(): never { throw new CommerceError("NOT_FOUND", "این بخش پیدا نشد.", 404); }
 type CartState = { cart: Awaited<ReturnType<ReturnType<typeof getCommerce>["getCart"]>>; token: string; fresh: boolean; actor?: Actor };
+function cookieCart(request: NextRequest) {
+  const parts = request.cookies.get("morphiume-cart")?.value.split(".") ?? [];
+  const [cartId, token] = parts;
+  return parts.length === 2 && id.safeParse(cartId).success && token && /^[A-Za-z0-9_-]{40,60}$/.test(token) ? { cartId: cartId!, token } : undefined;
+}
+async function existingCartFor(request: NextRequest, cartId: string): Promise<CartState> {
+  const proof = cookieCart(request);
+  if (!proof || proof.cartId !== cartId) throw new CommerceError("CONFLICT", "سبد تغییر کرده است. نسخهٔ تازه را بررسی کنید.", 409);
+  const actor = await customerActor(request.headers, true);
+  return { cart: await getCommerce().getCart(cartId, proof.token, actor), token: proof.token, actor, fresh: false };
+}
 async function cartFor(request: NextRequest): Promise<CartState> {
   const commerce = getCommerce();
   const actor = await customerActor(request.headers, true);
-  const value = request.cookies.get("morphiume-cart")?.value;
-  const [cartId, token] = value?.split(".") ?? [];
-  if (id.safeParse(cartId).success && token && /^[A-Za-z0-9_-]{40,60}$/.test(token)) {
-    try { return { cart: await commerce.getCart(cartId!, token, actor), token, actor, fresh: false }; }
+  const proof = cookieCart(request);
+  if (proof) {
+    try { return { cart: await commerce.getCart(proof.cartId, proof.token, actor), token: proof.token, actor, fresh: false }; }
     catch (error) { if (!(error instanceof CommerceError) || ![401,403,404].includes(error.status)) throw error; }
   }
   const created = await commerce.createCart();
@@ -93,19 +103,30 @@ async function dispatch(request: NextRequest): Promise<Response> {
   if (route === "collections" && method === "GET") return success(await commerce.listCollections());
   if (route === "collections/page" && method === "GET") return success(await commerce.listCollectionsPage(collectionIndexPage.parse(pageQuery(request,["page","pageSize","search"]))));
   if (path[0] === "collections" && path.length === 3 && path[2] === "page" && method === "GET") return success(await commerce.getCollectionPage(z.string().min(1).max(160).parse(path[1]),collectionProductsPage.parse(pageQuery(request,productPageKeys))));
+  if (route === "cart/claim" && method === "POST") {
+    const actor = (await customerActor(request.headers))!;
+    const input = z.object({ cartId: id, expectedVersion: version }).strict().parse(await body(request));
+    const proof = cookieCart(request);
+    if (!proof || proof.cartId !== input.cartId) throw new CommerceError("CONFLICT", "سبد تغییر کرده است. نسخهٔ تازه را بررسی کنید.", 409);
+    return success(await commerce.claimCart(actor, input.cartId, proof.token, input.expectedVersion));
+  }
   if (route === "cart" || route === "cart/items" || route === "cart/coupon") {
-    const state = await cartFor(request);
-    if (method === "GET" && route === "cart") return cartResponse(state.cart, state);
+    const methods = route === "cart" ? ["GET", "POST", "PATCH"] : route === "cart/items" ? ["POST", "PUT", "DELETE"] : ["POST", "PATCH", "DELETE"];
+    if (!methods.includes(method)) return missing();
+    if (method === "GET") { const state = await cartFor(request); return cartResponse(state.cart, state); }
     const input = await body(request);
     if ((route === "cart" && method === "POST") || (route === "cart/items" && ["POST","PUT","DELETE"].includes(method))) {
-      const item = z.object({ variantId: id, quantity: z.number().int().min(0).max(20).optional() }).strict().parse(input);
+      const fields = z.object({ variantId: id, quantity: z.number().int().min(0).max(20).optional(), cartId: id.optional(), expectedVersion: version.optional() }).strict();
+      const item = (method === "POST" ? fields.refine(value => (value.cartId === undefined) === (value.expectedVersion === undefined)) : fields.extend({ cartId: id, expectedVersion: version })).parse(input);
+      const state = item.cartId ? await existingCartFor(request, item.cartId) : await cartFor(request);
       const prior = state.cart.items.find(row => row.variantId === item.variantId)?.quantity ?? 0;
       const quantity = method === "DELETE" ? 0 : method === "POST" ? prior + (item.quantity ?? 1) : (item.quantity ?? 0);
-      return cartResponse(await commerce.setCartItem(state.cart.id, state.token, item.variantId, quantity, state.cart.version, state.actor), state);
+      return cartResponse(await commerce.setCartItem(state.cart.id, state.token, item.variantId, quantity, item.expectedVersion ?? state.cart.version, state.actor), state);
     }
     if ((route === "cart" && method === "PATCH") || route === "cart/coupon") {
-      const data = z.object({ couponCode: z.string().max(40).nullable().optional(), code: z.string().max(40).optional() }).strict().parse(input);
-      return cartResponse(await commerce.setCartCoupon(state.cart.id, state.token, method === "DELETE" ? null : data.couponCode ?? data.code ?? null, state.cart.version, state.actor), state);
+      const data = z.object({ cartId: id, expectedVersion: version, couponCode: z.string().max(40).nullable().optional(), code: z.string().max(40).optional() }).strict().parse(input);
+      const state = await existingCartFor(request, data.cartId);
+      return cartResponse(await commerce.setCartCoupon(state.cart.id, state.token, method === "DELETE" ? null : data.couponCode ?? data.code ?? null, data.expectedVersion, state.actor), state);
     }
     return missing();
   }
@@ -118,8 +139,9 @@ async function dispatch(request: NextRequest): Promise<Response> {
   }
   if (route === "checkout" && method === "POST") {
     const actor = (await customerActor(request.headers))!;
-    const state = await cartFor(request);
-    const result = await commerce.createCheckout(actor, state.token, checkout.parse(await body(request)), key(request));
+    const input = checkout.parse(await body(request));
+    const proof = cookieCart(request);
+    const result = await commerce.createCheckout(actor, proof?.cartId === input.cartId ? proof.token : "", input, key(request));
     recordCommerceResponse("checkout.response", { orderId: result.orderId, paymentAttemptId: result.paymentAttemptId, outcome: result.paymentStatus });
     return success(result, 201);
   }

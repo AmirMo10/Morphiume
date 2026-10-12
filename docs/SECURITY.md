@@ -1,5 +1,7 @@
 # وضعیت امنیت و حدود شواهد
 
+در پذیرش Cart، Gitleaks دو بار publicaccessProfileSHA256 نسخه613 را در guardهای restore به‌اشتباه genericAPIkey یافت. `.gitleaks.toml` همهٔ قواعد پیش‌فرض را گسترش می‌دهد؛ تنها همان مقدار دقیق3a246e… در دو guard و یک گزارش JSON دقیق و با شرطAND مستثناست. هیچ rule/file/commit کلی غیرفعال نمی‌شود. `scripts/verify-gitleaks-config.mjs` با باینری واقعی، سه pinمجاز و چهار canaryغیرcredential را می‌سنجد: مقدار متفاوت، تغییر یک حرف و همان مقدار در مسیر دیگر همچنان کشف شدند؛ **۷/۷ واقعی** و scopedlint0. runnerاولdir به‌علت pathشامل پیشوند با git-relativepolicy سازگار نبود؛ هفت مخزن Git مستقلِ خصوصی runnerدرست‌اند. اسکن اولیه841.32KB دو falsepositive داشت؛ با pin/path دقیق همان محدوده بدون یافته شد. اسکن نهایی تمام checkpoint پس از افزودن همین config/gate دوباره ثبت می‌شود. [قالب رسمی Gitleaks](https://github.com/gitleaks/gitleaks#configuration) در۲۰۲۶-۱۰-۱۲ بررسی شد.
+
 نشست مشتری و مدیر، secret و cookie جدا دارند. OTP در DB hash می‌شود و صندوق Mock رمزگذاری‌شده است؛ انقضا، مصرف، سقف تلاش و فاصلهٔ ارسال در تراکنش کنترل می‌شوند. MFA واقعی TOTP و recovery بومی آزموده شدند. نقش/حساب/نشست در عملیات حساس از DB جاری خوانده می‌شوند؛ دادهٔ خصوصی no-store و mutation نیازمند Origin دقیق است.
 
 بارگذاری raster محدود decode و re-encode می‌شود؛ SVG ورودی قبول نیست و اصل فایل مسیر عمومی ندارد. CSP با nonce، منع frame/object و headerهای پایه در production build اعمال می‌شود. منبع قیمت، موجودی و صحت پرداخت فقط سرور است و اثرهای مالی/انبار با قید یکتا و تراکنش حفظ می‌شوند.

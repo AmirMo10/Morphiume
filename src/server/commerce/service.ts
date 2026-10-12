@@ -152,6 +152,14 @@ export function createCommerce(options: CommerceOptions) {
   async function assertReturnReviewer(db:PoolClient,actor:Actor,inventory:boolean){
     await assertOrdinaryAdmin(db,actor,inventory ? ["orders.fulfill","inventory.write"] : ["orders.fulfill"],true);
   }
+  async function assertCurrentCustomer(db:Connection,actor:Actor,lock=false){
+    if(actor.kind!=="customer")fail("FORBIDDEN","برای این کار وارد حساب مشتری شوید.",403);
+    const sql='SELECT u.id FROM "user" u JOIN session s ON s.user_id=u.id WHERE u.id=$1 AND s.id=$2 AND s.expires_at>clock_timestamp() AND NOT u.disabled AND u.phone_number_verified AND u.phone_number ~ $3';
+    const values=[actor.userId,actor.sessionId,"^\\+989[0-9]{9}$"];
+    if(!await one(db,sql+(lock ? " FOR SHARE OF u,s" : ""),values))fail("UNAUTHENTICATED","دوباره شمارهٔ همراه را تأیید و وارد حساب شوید.",401);
+    // Expiry is evaluated again after user/session share-lock waits, using wall time.
+    if(lock && !await one(db,sql,values))fail("UNAUTHENTICATED","دوباره شمارهٔ همراه را تأیید و وارد حساب شوید.",401);
+  }
   async function audit(db: Connection, actor: Actor, action: string, entityType: string, entityId: string, reason: string) {
     await db.query("INSERT INTO audit_event(id,actor_id,action,entity_type,entity_id,reason) VALUES($1,$2,$3,$4,$5,$6)",[randomUUID(),actor.userId,action,entityType,entityId,reason]);
   }
@@ -353,8 +361,9 @@ export function createCommerce(options: CommerceOptions) {
     return transaction(async(db)=>{ await assertOrdinaryAdmin(db,actor,["catalog.write"]); const row=await one(db,"SELECT * FROM product WHERE id=$1 FOR UPDATE",[id]); await assertOrdinaryAdmin(db,actor,["catalog.write"]); if (!row) return fail("NOT_FOUND","محصول پیدا نشد.",404); if (row.version!==expectedVersion) fail("CONFLICT","نسخهٔ محصول تغییر کرده است.",409); const variants=await query(db,"SELECT id FROM variant WHERE product_id=$1 AND active",[id]); const images=await query(db,readyGallerySql,[[id],deploymentEnv!=="live"]); if (!row.description || !row.concentration || !row.family || !images.length || !variants.length) fail("VALIDATION","اطلاعات محصول و تصویر را پیش از انتشار کامل کنید."); await db.query("UPDATE product SET status='published',version=version+1,updated_at=now() WHERE id=$1",[id]); await audit(db,actor,"product.published","product",id,"publish"); const result=await productDto(db,(await one(db,"SELECT * FROM product WHERE id=$1",[id]))!);await assertOrdinaryAdmin(db,actor,["catalog.write"],true);return result; });
   }
   async function cartAccess(db: Connection,id: string,guestToken: string,actor?: Actor,lock=false) {
-    if (actor) await assertActor(db,actor);
+    if(actor?.kind==="customer")await assertCurrentCustomer(db,actor);else if(actor)await assertActor(db,actor);
     const row=await one(db,`SELECT * FROM cart WHERE id=$1 AND ((user_id IS NULL AND guest_token_digest=$2) OR user_id=$3)${lock ? " FOR UPDATE" : ""}`,[id,digest(guestToken),actor?.userId ?? null]);
+    if(lock && actor?.kind==="customer")await assertCurrentCustomer(db,actor);
     if (!row) return fail("NOT_FOUND","سبد پیدا نشد.",404); return row;
   }
   async function cartDto(db: Connection,row: Row): Promise<CartDto> {
@@ -364,13 +373,28 @@ export function createCommerce(options: CommerceOptions) {
   }
   async function createCart() { const id=randomUUID(); const guestToken=randomBytes(32).toString("base64url"); await pool.query("INSERT INTO cart(id,guest_token_digest) VALUES($1,$2)",[id,digest(guestToken)]); return {guestToken,cart:await getCart(id,guestToken)}; }
   async function getCart(id: string,guestToken: string,actor?: Actor) { return cartDto(pool,await cartAccess(pool,id,guestToken,actor)); }
+  async function claimCart(actor:Actor,cartId:string,guestToken:string,expectedVersion:number):Promise<CartDto>{
+    if(!uuidShape.test(cartId) || typeof guestToken!=="string" || guestToken.length>128 || !Number.isSafeInteger(expectedVersion) || expectedVersion<1 || expectedVersion>2_147_483_647)fail("VALIDATION","اطلاعات سبد معتبر نیست.");
+    return transaction(async(db)=>{
+      // Cart first, then authorization rows: new checkout follows the same order.
+      await assertCurrentCustomer(db,actor);
+      const row=await cartAccess(db,cartId,guestToken,actor,true);
+      if(row.user_id===null){
+        if(row.version!==expectedVersion)fail("CONFLICT","سبد تغییر کرده است. دوباره سبد را بررسی کنید.",409);
+        await db.query("UPDATE cart SET user_id=$1,guest_token_digest=$2,version=version+1,updated_at=now() WHERE id=$3",[actor.userId,digest(randomBytes(32).toString("base64url")),cartId]);
+      }
+      // An owned replay returns current selections without clearing or bumping them.
+      const result=await cartDto(db,(await one(db,"SELECT * FROM cart WHERE id=$1",[cartId]))!);
+      await assertCurrentCustomer(db,actor,true);return result;
+    });
+  }
   async function setCartItem(id: string,guestToken: string,variantId: string,quantity: number,expectedVersion: number,actor?: Actor) {
     if (!Number.isInteger(quantity) || quantity<0 || quantity>20) fail("VALIDATION","تعداد کالا معتبر نیست.");
-    return transaction(async(db)=>{ const row=await cartAccess(db,id,guestToken,actor,true); if (row.version!==expectedVersion) fail("CONFLICT","سبد تغییر کرده است.",409); const variant=await one(db,"SELECT v.id FROM variant v JOIN product p ON p.id=v.product_id WHERE v.id=$1 AND v.active AND p.status='published'",[variantId]); if (!variant && quantity>0) fail("NOT_FOUND","این حجم در دسترس نیست.",404); if (quantity===0) await db.query("DELETE FROM cart_item WHERE cart_id=$1 AND variant_id=$2",[id,variantId]); else await db.query("INSERT INTO cart_item(cart_id,variant_id,quantity) VALUES($1,$2,$3) ON CONFLICT(cart_id,variant_id) DO UPDATE SET quantity=$3",[id,variantId,quantity]); await db.query("UPDATE cart SET version=version+1,updated_at=now() WHERE id=$1",[id]); return cartDto(db,(await one(db,"SELECT * FROM cart WHERE id=$1",[id]))!); });
+    return transaction(async(db)=>{ const row=await cartAccess(db,id,guestToken,actor,true); if (row.version!==expectedVersion) fail("CONFLICT","سبد تغییر کرده است.",409); const variant=await one(db,"SELECT v.id FROM variant v JOIN product p ON p.id=v.product_id WHERE v.id=$1 AND v.active AND p.status='published'",[variantId]); if (!variant && quantity>0) fail("NOT_FOUND","این حجم در دسترس نیست.",404); if (quantity===0) await db.query("DELETE FROM cart_item WHERE cart_id=$1 AND variant_id=$2",[id,variantId]); else await db.query("INSERT INTO cart_item(cart_id,variant_id,quantity) VALUES($1,$2,$3) ON CONFLICT(cart_id,variant_id) DO UPDATE SET quantity=$3",[id,variantId,quantity]); await db.query("UPDATE cart SET version=version+1,updated_at=now() WHERE id=$1",[id]); const result=await cartDto(db,(await one(db,"SELECT * FROM cart WHERE id=$1",[id]))!);if(actor?.kind==="customer")await assertCurrentCustomer(db,actor,true);return result; });
   }
   async function setCartCoupon(id:string,guestToken:string,code:string|null,expectedVersion:number,actor?:Actor) {
     const normalized=code ? boundedString(code.toUpperCase(),"کد تخفیف",40) : null;
-    return transaction(async(db)=>{const row=await cartAccess(db,id,guestToken,actor,true);if(row.version!==expectedVersion)fail("CONFLICT","سبد تغییر کرده است.",409);if(normalized && !await one(db,"SELECT code FROM coupon WHERE code=$1 AND active AND expires_at>now()",[normalized]))fail("VALIDATION","کد تخفیف معتبر نیست.");await db.query("UPDATE cart SET coupon_code=$1,version=version+1,updated_at=now() WHERE id=$2",[normalized,id]);return cartDto(db,(await one(db,"SELECT * FROM cart WHERE id=$1",[id]))!);});
+    return transaction(async(db)=>{const row=await cartAccess(db,id,guestToken,actor,true);if(row.version!==expectedVersion)fail("CONFLICT","سبد تغییر کرده است.",409);if(normalized && !await one(db,"SELECT code FROM coupon WHERE code=$1 AND active AND expires_at>now()",[normalized]))fail("VALIDATION","کد تخفیف معتبر نیست.");await db.query("UPDATE cart SET coupon_code=$1,version=version+1,updated_at=now() WHERE id=$2",[normalized,id]);const result=await cartDto(db,(await one(db,"SELECT * FROM cart WHERE id=$1",[id]))!);if(actor?.kind==="customer")await assertCurrentCustomer(db,actor,true);return result;});
   }
   async function calculateQuote(db: Connection,cart: CartDto,userId: string,policy:CommerceShippingPolicy,lockCoupon=false): Promise<QuoteDto> {
     if (!cart.items.length) fail("VALIDATION","سبد خرید خالی است.");
@@ -414,17 +438,21 @@ export function createCommerce(options: CommerceOptions) {
       // Presentation writers lock settings before actors. Hold the same shared
       // setting lock through commit, even when returning a durable replay.
       const enabled=await checkoutEnabled(db);
-      await assertActor(db,actor);
-      // Serialize per-customer reservation budgets across distinct carts/idempotency keys.
-      await db.query('SELECT id FROM "user" WHERE id=$1 FOR UPDATE',[actor.userId]);
+      await assertCurrentCustomer(db,actor);
       await db.query("INSERT INTO checkout_idempotency(user_id,operation,key,fingerprint) VALUES($1,'checkout',$2,$3) ON CONFLICT DO NOTHING",[actor.userId,key,fingerprint]);
       const idem=(await one(db,"SELECT * FROM checkout_idempotency WHERE user_id=$1 AND operation='checkout' AND key=$2 FOR UPDATE",[actor.userId,key]))!;
       if(idem.fingerprint!==fingerprint)fail("CONFLICT","شناسهٔ درخواست برای اطلاعات دیگری استفاده شده است.",409);
-      if(idem.order_id)return {orderId:text(idem,"order_id"),attemptId:text(idem,"attempt_id")};
+      if(idem.order_id){await assertCurrentCustomer(db,actor,true);return {orderId:text(idem,"order_id"),attemptId:text(idem,"attempt_id")};}
       if(!enabled)fail("NOT_ELIGIBLE","پذیرش سفارش جدید موقتاً متوقف است. بعداً دوباره تلاش کنید.",503);
       const policy=await shippingPolicy(db);
       if(input.policyVersion!==policy.policyVersion)fail("PRICE_CHANGED","سیاست فروش را دوباره بررسی کنید.",409);
-      const row=await cartAccess(db,input.cartId,guestToken,actor,true);if(row.version!==input.cartVersion)fail("CONFLICT","سبد تغییر کرده است.",409);
+      const row=await cartAccess(db,input.cartId,guestToken,actor,true);if(row.version!==input.cartVersion)fail("CART_CHANGED","سبد تغییر کرده است. دوباره سبد و مبلغ نهایی را بررسی کنید.",409);
+      // Cart -> customer matches claim/edit proof ordering and still serializes
+      // reservation budgets across distinct carts and existing payment retries.
+      // NO KEY UPDATE serializes budgets but permits another checkout's FK KEY
+      // SHARE from its staged idempotency row while it waits for this cart.
+      await db.query('SELECT id FROM "user" WHERE id=$1 FOR NO KEY UPDATE',[actor.userId]);
+      await assertCurrentCustomer(db,actor);
       const cart=await cartDto(db,row);const quote=await calculateQuote(db,cart,actor.userId,policy,true);
       if(quote.fingerprint!==input.quoteFingerprint)fail("PRICE_CHANGED","قیمت تغییر کرده است. مبلغ به‌روز را پیش از پرداخت بررسی کنید.",409);
       const active=await one(db,"SELECT count(*)::int AS count FROM orders o WHERE o.user_id=$1 AND EXISTS(SELECT 1 FROM inventory_reservation r WHERE r.order_id=o.id AND r.status='active')",[actor.userId]);if(number(active!,"count")>=3)fail("CONFLICT","ابتدا وضعیت پرداخت‌های قبلی را بررسی کنید.",409);
@@ -434,11 +462,13 @@ export function createCommerce(options: CommerceOptions) {
       await db.query("INSERT INTO orders(id,order_number,user_id,subtotal_irr,discount_irr,shipping_irr,tax_irr,total_irr,address_snapshot,policy_version,shipping_method_id,coupon_code) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb,$10,$11,$12)",[orderId,orderNumber,actor.userId,quote.subtotal.amountIrr,quote.discount.amountIrr,quote.shipping.amountIrr,quote.tax.amountIrr,quote.total.amountIrr,JSON.stringify(address),quote.policyVersion,"standard",cart.couponCode]);
       for(const item of cart.items){const variant=(await one(db,"SELECT sku FROM variant WHERE id=$1",[item.variantId]))!;await db.query("INSERT INTO order_item(id,order_id,variant_id,name,sku,volume_ml,quantity,unit_price_irr,line_total_irr) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)",[randomUUID(),orderId,item.variantId,item.name,variant.sku,item.volumeMl,item.quantity,item.unitPrice.amountIrr,(BigInt(item.unitPrice.amountIrr)*BigInt(item.quantity)).toString()]);await db.query("UPDATE inventory_balance SET reserved=reserved+$1 WHERE variant_id=$2",[item.quantity,item.variantId]);await db.query("INSERT INTO inventory_reservation(id,order_id,variant_id,quantity,expires_at) VALUES($1,$2,$3,$4,now()+$5*interval '1 minute')",[randomUUID(),orderId,item.variantId,item.quantity,reservationMinutes]);await db.query("INSERT INTO inventory_ledger(id,variant_id,order_id,operation_key,on_hand_delta,reserved_delta,reason) VALUES($1,$2,$3,$4,0,$5,'checkout_reserve')",[randomUUID(),item.variantId,orderId,`reserve:${orderId}:${item.variantId}`,item.quantity]);}
       if(cart.couponCode)await db.query("INSERT INTO coupon_redemption(id,coupon_code,user_id,order_id,status) VALUES($1,$2,$3,$4,'reserved')",[randomUUID(),cart.couponCode,actor.userId,orderId]);
-      await db.query("UPDATE cart SET user_id=$1,guest_token_digest=$2 WHERE id=$3",[actor.userId,digest(randomBytes(32).toString("base64url")),cart.id]);
       await db.query("INSERT INTO payment_attempt(id,order_id,provider,merchant_key,amount_irr) VALUES($1,$2,$3,$4,$5)",[attemptId,orderId,payments.name,merchantKey,quote.total.amountIrr]);
       await enqueue(db,"payment.initialize",`initialize:${attemptId}`,{attemptId});
       await db.query("UPDATE checkout_idempotency SET order_id=$1,attempt_id=$2 WHERE user_id=$3 AND operation='checkout' AND key=$4",[orderId,attemptId,actor.userId,key]);
-      await event(db,orderId,"order.created",`created:${orderId}`,actor.userId);await enqueue(db,"order.created",`order-created:${orderId}`,{orderId});return {orderId,attemptId};
+      await event(db,orderId,"order.created",`created:${orderId}`,actor.userId);await enqueue(db,"order.created",`order-created:${orderId}`,{orderId});
+      await db.query("DELETE FROM cart_item WHERE cart_id=$1",[cart.id]);
+      await db.query("UPDATE cart SET user_id=$1,guest_token_digest=$2,coupon_code=NULL,version=version+1,updated_at=now() WHERE id=$3",[actor.userId,digest(randomBytes(32).toString("base64url")),cart.id]);
+      await assertCurrentCustomer(db,actor,true);return {orderId,attemptId};
     });
     await initializeAttempt(ids.attemptId);return checkoutDto(ids.orderId,ids.attemptId);
   }
@@ -910,6 +940,6 @@ export function createCommerce(options: CommerceOptions) {
   }
   async function expireReservations(){return transaction(async(db)=>{const orders=await query(db,"SELECT o.id FROM orders o WHERE EXISTS(SELECT 1 FROM inventory_reservation r WHERE r.order_id=o.id AND r.status='active' AND r.expires_at<=now()) ORDER BY o.id FOR UPDATE SKIP LOCKED LIMIT 50");let count=0;for(const order of orders){const reservations=await query(db,"SELECT * FROM inventory_reservation WHERE order_id=$1 AND status='active' ORDER BY variant_id FOR UPDATE",[order.id]);await query(db,"SELECT variant_id FROM inventory_balance WHERE variant_id=ANY($1::uuid[]) ORDER BY variant_id FOR UPDATE",[reservations.map((r)=>r.variant_id)]);for(const reservation of reservations){await db.query("UPDATE inventory_balance SET reserved=reserved-$1 WHERE variant_id=$2",[reservation.quantity,reservation.variant_id]);await db.query("UPDATE inventory_reservation SET status='released' WHERE id=$1",[reservation.id]);await db.query("INSERT INTO inventory_ledger(id,variant_id,order_id,operation_key,on_hand_delta,reserved_delta,reason) VALUES($1,$2,$3,$4,0,$5,'reservation_expired') ON CONFLICT(operation_key) DO NOTHING",[randomUUID(),reservation.variant_id,order.id,`release:${reservation.id}`,-number(reservation,"quantity")]);count++;}await db.query("UPDATE coupon_redemption SET status='released' WHERE order_id=$1 AND status='reserved'",[order.id]);await event(db,text(order,"id"),"reservation.expired",`expired:${order.id}`);}return count;});}
   async function reconcileAttempt(attemptId:string){const attempt=await one(pool,"SELECT * FROM payment_attempt WHERE id=$1",[attemptId]);if(!attempt || attempt.status==="succeeded" || attempt.status==="failed")return;if(!attempt.authority)throw new Error("create result unknown; provider support reconciliation required");const inquiry=await payments.inquiry({...paymentContext(attempt),authority:text(attempt,"authority")});if(inquiry.kind==="unknown")throw new Error(`inquiry unknown: ${inquiry.code}`);if(inquiry.status==="PAID" || inquiry.status==="VERIFIED"){const verified=await verifyPayment(text(attempt,"authority"));if(verified.status==="unknown")throw new Error("verify remains unknown");}else if(inquiry.status==="IN_BANK")throw new Error("payment in progress");else if(inquiry.status==="FAILED")await pool.query("UPDATE payment_attempt SET status='failed',updated_at=now() WHERE id=$1 AND status<>'succeeded'",[attemptId]);}
-  return {listProducts,listProductsPage,listAdminProducts,listAdminProductsPage,listExportProducts,listSitemapProducts,listVariantsPage,resolvePublishedProducts,resolveProductRoute,getProduct,createProduct,updateProduct,publishProduct,archiveProduct,bulkEdit,createCart,getCart,setCartItem,setCartCoupon,quoteCheckout,createCheckout,retryPayment,initializeAttempt,verifyPayment,getOrder,listOrders,listOrdersPage,listExportOrders,recordShipment,adjustInventory,listInventory,getInventoryLedger,requestReturn,decideReturn,requestRefund,completeManualRefund,failManualRefund,listReceipts,saveAddress,listAddresses,deleteAddress,setWishlist,listWishlist,listCoupons,saveCoupon,listContent,saveContent,listCollections,listCollectionsPage,listAdminCollectionsPage,getCollectionPage,getAdminCollection,listSitemapCollections,saveCollection,importProducts,expireReservations,reconcileAttempt};
+  return {listProducts,listProductsPage,listAdminProducts,listAdminProductsPage,listExportProducts,listSitemapProducts,listVariantsPage,resolvePublishedProducts,resolveProductRoute,getProduct,createProduct,updateProduct,publishProduct,archiveProduct,bulkEdit,createCart,getCart,claimCart,setCartItem,setCartCoupon,quoteCheckout,createCheckout,retryPayment,initializeAttempt,verifyPayment,getOrder,listOrders,listOrdersPage,listExportOrders,recordShipment,adjustInventory,listInventory,getInventoryLedger,requestReturn,decideReturn,requestRefund,completeManualRefund,failManualRefund,listReceipts,saveAddress,listAddresses,deleteAddress,setWishlist,listWishlist,listCoupons,saveCoupon,listContent,saveContent,listCollections,listCollectionsPage,listAdminCollectionsPage,getCollectionPage,getAdminCollection,listSitemapCollections,saveCollection,importProducts,expireReservations,reconcileAttempt};
 }
 export type Commerce = ReturnType<typeof createCommerce>;

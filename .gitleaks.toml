@@ -1,0 +1,14 @@
+title = "Morphiume default rules with an exact public access-profile digest exception"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "generic-api-key"
+
+[[rules.allowlists]]
+description = "Public SHA256 of the accepted613 access profile in two restore guards and the exact worker-drill report; not an access credential"
+condition = "AND"
+regexTarget = "secret"
+regexes = ['''^3a246edfcd2b1fa6a6754ec848b479e12e12661a6b00947a9d39cf7821b82a1c$''']
+paths = ['''^tests/ops/restore-business-(contract\.mjs|remote\.py)$''', '''^docs/ops/WORKER_ALERT_DRILL_591\.json$''']

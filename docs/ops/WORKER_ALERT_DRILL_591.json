@@ -1,0 +1,211 @@
+{
+  "mode": "authorized-runtime-worker-alert-drill",
+  "startedUtc": "2026-10-12T22:58:21.843029+00:00",
+  "identities": {
+    "sourceCommit": "6130f4ed7ec090344a5a4a1937a65ef04572975b",
+    "testedPlatformConfig": "sha256:8a5600eeaafa7de6293aadc2807843f13b269244bb583e4d04e90295adbc1968",
+    "candidateManifestDigest": "sha256:d5bb24a403247f4d42345bef6c9b7b9788a84962c6f44336167af832e3d5f9be",
+    "archiveSha256": "d6df8cd57720187fddbc47c279d9df306cc41620d304b270716a87ab196b6cb9",
+    "opsSha256": "591ad92162d1747238db946c9a9a22724edde79627c6995a353c5064b39a77db",
+    "runtimeImageId": "sha256:ad5c0e3d9537e3380051d32528d2f07b9b804b5c9b73f1df7c2a69cc733a24c0",
+    "engineProofSha256": "c6f83e325dcae50f2f84bfac08b874850946f454325ba729bcc38953060bdad7",
+    "accessProfileSha256": "3a246edfcd2b1fa6a6754ec848b479e12e12661a6b00947a9d39cf7821b82a1c"
+  },
+  "healthProbeCaps": {
+    "cpuQuotaPercent": 100,
+    "memoryMaxBytes": 268435456,
+    "deadlineSeconds": 120,
+    "shutdownCapSeconds": 5
+  },
+  "failures": [],
+  "phases": {
+    "before": {
+      "health": {
+        "startedUtc": "2026-10-12T22:58:37.944151+00:00",
+        "completedUtc": "2026-10-12T22:58:56.585124+00:00",
+        "overallWallSeconds": 18.64097,
+        "healthWallSeconds": 18.490863,
+        "processUserCpuSeconds": 15.923203,
+        "processSystemCpuSeconds": 0.47484899999999997,
+        "peakRssKiB": 46592,
+        "cgroup": {
+          "memoryPeakBytes": 53739520,
+          "cpuUsageMicroseconds": 16458925,
+          "oom": 0,
+          "oomKill": 0
+        },
+        "systemdRunExit": 0,
+        "healthExit": 0,
+        "status": "healthy",
+        "alertCount": 0,
+        "alerts": [],
+        "appReadiness": 200,
+        "databaseHealthy": true
+      },
+      "containers": {
+        "app": {
+          "status": "running",
+          "running": true,
+          "health": "healthy",
+          "exitCode": 0,
+          "oomKilled": false,
+          "restartCount": 0,
+          "immutableImage": "sha256:ad5c0e3d9537e3380051d32528d2f07b9b804b5c9b73f1df7c2a69cc733a24c0",
+          "user": "1001:1001",
+          "sourceCommit": "6130f4ed7ec090344a5a4a1937a65ef04572975b"
+        },
+        "worker": {
+          "status": "running",
+          "running": true,
+          "health": "healthy",
+          "exitCode": 0,
+          "oomKilled": false,
+          "restartCount": 0,
+          "immutableImage": "sha256:ad5c0e3d9537e3380051d32528d2f07b9b804b5c9b73f1df7c2a69cc733a24c0",
+          "user": "1001:1001",
+          "sourceCommit": "6130f4ed7ec090344a5a4a1937a65ef04572975b"
+        }
+      },
+      "heartbeat": {
+        "ageSeconds": 3.67502099609375,
+        "uid": 1001,
+        "mode": "644",
+        "modifiedUtc": "2026-10-12T22:58:34.233Z"
+      }
+    },
+    "during": {
+      "health": {
+        "startedUtc": "2026-10-12T22:58:57.431973+00:00",
+        "completedUtc": "2026-10-12T22:59:16.026098+00:00",
+        "overallWallSeconds": 18.59414,
+        "healthWallSeconds": 18.437635,
+        "processUserCpuSeconds": 15.843863,
+        "processSystemCpuSeconds": 0.489372,
+        "peakRssKiB": 45824,
+        "cgroup": {
+          "memoryPeakBytes": 53424128,
+          "cpuUsageMicroseconds": 16441206,
+          "oom": 0,
+          "oomKill": 0
+        },
+        "systemdRunExit": 0,
+        "healthExit": 2,
+        "status": "critical",
+        "alertCount": 1,
+        "alerts": [
+          {
+            "severity": "critical",
+            "code": "runtime_service_unhealthy",
+            "observed": "worker"
+          }
+        ],
+        "appReadiness": 200,
+        "databaseHealthy": true
+      },
+      "containers": {
+        "app": {
+          "status": "running",
+          "running": true,
+          "health": "healthy",
+          "exitCode": 0,
+          "oomKilled": false,
+          "restartCount": 0,
+          "immutableImage": "sha256:ad5c0e3d9537e3380051d32528d2f07b9b804b5c9b73f1df7c2a69cc733a24c0",
+          "user": "1001:1001",
+          "sourceCommit": "6130f4ed7ec090344a5a4a1937a65ef04572975b"
+        },
+        "worker": {
+          "status": "exited",
+          "running": false,
+          "health": "unhealthy",
+          "exitCode": 0,
+          "oomKilled": false,
+          "restartCount": 0,
+          "immutableImage": "sha256:ad5c0e3d9537e3380051d32528d2f07b9b804b5c9b73f1df7c2a69cc733a24c0",
+          "user": "1001:1001",
+          "sourceCommit": "6130f4ed7ec090344a5a4a1937a65ef04572975b"
+        }
+      },
+      "heartbeatWhileStopped": "unavailable; last observed pre-stop metadata retained"
+    },
+    "after": {
+      "health": {
+        "startedUtc": "2026-10-12T22:59:37.858133+00:00",
+        "completedUtc": "2026-10-12T22:59:56.435818+00:00",
+        "overallWallSeconds": 18.577682,
+        "healthWallSeconds": 18.412768,
+        "processUserCpuSeconds": 15.841139,
+        "processSystemCpuSeconds": 0.4571,
+        "peakRssKiB": 46464,
+        "cgroup": {
+          "memoryPeakBytes": 53952512,
+          "cpuUsageMicroseconds": 16427770,
+          "oom": 0,
+          "oomKill": 0
+        },
+        "systemdRunExit": 0,
+        "healthExit": 0,
+        "status": "healthy",
+        "alertCount": 0,
+        "alerts": [],
+        "appReadiness": 200,
+        "databaseHealthy": true
+      },
+      "containers": {
+        "app": {
+          "status": "running",
+          "running": true,
+          "health": "healthy",
+          "exitCode": 0,
+          "oomKilled": false,
+          "restartCount": 0,
+          "immutableImage": "sha256:ad5c0e3d9537e3380051d32528d2f07b9b804b5c9b73f1df7c2a69cc733a24c0",
+          "user": "1001:1001",
+          "sourceCommit": "6130f4ed7ec090344a5a4a1937a65ef04572975b"
+        },
+        "worker": {
+          "status": "running",
+          "running": true,
+          "health": "healthy",
+          "exitCode": 0,
+          "oomKilled": false,
+          "restartCount": 0,
+          "immutableImage": "sha256:ad5c0e3d9537e3380051d32528d2f07b9b804b5c9b73f1df7c2a69cc733a24c0",
+          "user": "1001:1001",
+          "sourceCommit": "6130f4ed7ec090344a5a4a1937a65ef04572975b"
+        }
+      },
+      "heartbeat": {
+        "ageSeconds": 1.979240966796875,
+        "uid": 1001,
+        "mode": "644",
+        "modifiedUtc": "2026-10-12T22:59:35.847Z"
+      },
+      "sameWorkerContainer": true,
+      "sameAppContainer": true,
+      "originalPgContainerMetadataUnchanged": true,
+      "reservedMountGuardPassed": true
+    }
+  },
+  "persistentUnitInstalled": false,
+  "backupRun": false,
+  "scheduleApprovalWritten": false,
+  "seedOrMigrationRun": false,
+  "originalDatabaseWritten": false,
+  "workerResumeAttempts": 1,
+  "opsFilesVerified": 21,
+  "workerStopStartedUtc": "2026-10-12T22:58:56.585218+00:00",
+  "workerStopCompletedUtc": "2026-10-12T22:58:57.386345+00:00",
+  "workerStopWallSeconds": 0.801138,
+  "workerResumeStartedUtc": "2026-10-12T22:59:16.026360+00:00",
+  "workerResumeWallSeconds": 5.803562,
+  "workerResumeCompletedUtc": "2026-10-12T22:59:37.620185+00:00",
+  "completedUtc": "2026-10-12T22:59:56.483066+00:00",
+  "totalWallSeconds": 94.640045,
+  "cachePrefixStayedAbsent": true,
+  "workerResumed": true,
+  "passed": true,
+  "notificationDelivery": "local-only-tested-no-external-recipient",
+  "privateEvidenceSha256": "18fc0c807a156c9d7332d089c1674aea9cad4e32b41168452c716623a32f4860",
+  "sshExit": 0
+}

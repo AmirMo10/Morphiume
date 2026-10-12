@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import type { ProductDto, ProductResolutionDto } from "@/contracts/commerce";
-import { customerAuth } from "./auth-clients";
+import { CustomerSessionError, useCustomerSession } from "./customer-session";
 import { api, Empty, errorMessage, faNumber, Loading, Notice } from "./commerce-client";
 import { ProductTile } from "./catalog";
 import { usePagedData } from "./use-paged-data";
@@ -19,9 +19,9 @@ function useGuestWishlist() {
   return ids;
 }
 export function FavoriteButton({ productId }: { productId: string }) {
-  const session = customerAuth.useSession();
-  if (session.isPending) return <button className="text-button" disabled>در حال بررسی علاقه‌مندی…</button>;
-  return <FavoriteForActor key={`${session.data?.user.id ?? "guest"}:${productId}`} productId={productId} userId={session.data?.user.id} />;
+  const session = useCustomerSession();
+  if (session.pending) return <button className="text-button" disabled>در حال بررسی علاقه‌مندی…</button>;
+  return <FavoriteForActor key={`${session.scopeKey}:${productId}`} productId={productId} userId={session.ownerId ?? undefined} />;
 }
 function FavoriteForActor({ productId, userId }: { productId: string; userId?: string }) {
   const guest = useGuestWishlist();
@@ -32,9 +32,9 @@ function FavoriteForActor({ productId, userId }: { productId: string; userId?: s
   return <><button className="text-button" aria-pressed={selected} disabled={busy || (!!userId && server.loading)} onClick={toggle}>{selected ? "حذف از علاقه‌مندی‌ها" : "ذخیره در علاقه‌مندی‌ها"}</button>{(error || server.error) && <p className="field-error" role="alert">{error || server.error}</p>}</>;
 }
 export function WishlistContent() {
-  const session = customerAuth.useSession();
-  if (session.isPending) return <Loading label="در حال بررسی حساب…" />;
-  return <WishlistForActor key={session.data?.user.id ?? "guest"} userId={session.data?.user.id} />;
+  const session = useCustomerSession();
+  if (session.pending) return session.error ? <CustomerSessionError /> : <Loading label="در حال بررسی حساب…" />;
+  return <WishlistForActor key={session.scopeKey} userId={session.ownerId ?? undefined} />;
 }
 function WishlistForActor({ userId }: { userId?: string }) {
   const guest = useGuestWishlist();
@@ -47,7 +47,7 @@ function WishlistForActor({ userId }: { userId?: string }) {
     if (!userId || busy) return;
     const controller = new AbortController(); mergeController.current = controller;
     setBusy(true); setError(""); const transferred = new Set<string>();
-    try { for (let start = 0; start < guest.length && !controller.signal.aborted; start += 4) { const batch = guest.slice(start, start + 4); const results = await Promise.allSettled(batch.map(productId => api("/api/wishlist", { method: "POST", body: JSON.stringify({ productId, enabled: true }), signal: controller.signal }))); results.forEach((result, index) => { if (result.status === "fulfilled") transferred.add(batch[index]!); }); } const remaining = guest.filter(id => !transferred.has(id)); let currentIds = guest; try { currentIds = validIds(JSON.parse(snapshot())); } catch { /* Keep the original valid choices if storage changed to malformed data. */ } writeGuest(currentIds.filter(id => !transferred.has(id))); if (!controller.signal.aborted) { server.reload(); setNotice(remaining.length ? `${faNumber(transferred.size)} انتخاب منتقل شد. انتقال ${faNumber(remaining.length)} انتخاب انجام نشد و در این دستگاه باقی ماند.` : "علاقه‌مندی‌های این دستگاه به حساب منتقل شدند."); } }
+    try { for (let start = 0; start < guest.length && !controller.signal.aborted; start += 4) { const batch = guest.slice(start, start + 4); const results = await Promise.allSettled(batch.map(productId => api("/api/wishlist", { method: "POST", body: JSON.stringify({ productId, enabled: true }), signal: controller.signal }))); results.forEach((result, index) => { if (result.status === "fulfilled") transferred.add(batch[index]!); }); } if (controller.signal.aborted) return; const remaining = guest.filter(id => !transferred.has(id)); let currentIds = guest; try { currentIds = validIds(JSON.parse(snapshot())); } catch { /* Keep the original valid choices if storage changed to malformed data. */ } writeGuest(currentIds.filter(id => !transferred.has(id))); if (!controller.signal.aborted) { server.reload(); setNotice(remaining.length ? `${faNumber(transferred.size)} انتخاب منتقل شد. انتقال ${faNumber(remaining.length)} انتخاب انجام نشد و در این دستگاه باقی ماند.` : "علاقه‌مندی‌های این دستگاه به حساب منتقل شدند."); } }
     catch (e) { if (!controller.signal.aborted) setError(errorMessage(e)); }
     finally { if (!controller.signal.aborted) setBusy(false); }
   };

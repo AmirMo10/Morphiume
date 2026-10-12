@@ -10,6 +10,7 @@ import { ProductGallery } from "./product-gallery";
 import { ProductContentDetails, ProductIntro } from "./product-content-view";
 import { productImages } from "./product-images";
 import { FavoriteButton } from "./wishlist";
+import { useCustomerSession } from "./customer-session";
 import type { CatalogPageDto, ProductDto } from "@/contracts/commerce";
 import { api, Empty, errorMessage, faNumber, Loading, money, Notice, useCommerce } from "./commerce-client";
 
@@ -96,13 +97,35 @@ export function ProductView({ id, initialProduct }: { id: string; initialProduct
   const product = initialProduct ?? loadedProduct;
   const [selected, setSelected] = useState(initialProduct?.variants.find(v => v.available > 0)?.id ?? initialProduct?.variants[0]?.id ?? "");
   const [error, setError] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [added, setAdded] = useState(false);
-  const { refreshCart, announce } = useCommerce();
+  const identity = useCustomerSession();
+  const [addition, setAddition] = useState({ scopeKey: "", busy: false, added: false, error: "", refreshFailed: false });
+  const operation = useRef<{ scopeKey: string; controller: AbortController } | null>(null);
+  const { refreshCart, announce, ready } = useCommerce();
+  const feedback = !identity.pending && addition.scopeKey === identity.scopeKey ? addition : null;
+  const busy = addition.scopeKey === identity.scopeKey && addition.busy;
+  useEffect(() => () => { const active = operation.current; if (active?.scopeKey === identity.scopeKey) { active.controller.abort(); operation.current = null; } }, [identity.scopeKey]);
   const load = useCallback(() => { api<ProductDto>(`/api/products/${encodeURIComponent(id)}`).then(p => { setError(""); setProduct(p); setSelected(current => p.variants.some(v => v.id === current) ? current : p.variants.find(v => v.available > 0)?.id ?? p.variants[0]?.id ?? ""); }).catch(e => setError(errorMessage(e))); }, [id]);
   useEffect(() => { if (!initialProduct) load(); }, [load, initialProduct]);
   const variant = product?.variants.find(v => v.id === selected);
-  const add = async () => { if (!variant) return; setBusy(true); setError(""); setAdded(false); try { await api("/api/cart", { method: "POST", body: JSON.stringify({ variantId: variant.id, quantity: 1 }) }); await refreshCart(); setAdded(true); announce("محصول به سبد خرید افزوده شد."); } catch (e) { setError(errorMessage(e)); } finally { setBusy(false); } };
+  const add = async () => {
+    if (!variant || !ready || identity.pending || operation.current?.scopeKey === identity.scopeKey) return;
+    const active = { scopeKey: identity.scopeKey, controller: new AbortController() };
+    operation.current = active;
+    const current = () => operation.current === active && !active.controller.signal.aborted;
+    setAddition({ scopeKey: active.scopeKey, busy: true, added: false, error: "", refreshFailed: false });
+    try {
+      await api("/api/cart", { method: "POST", signal: active.controller.signal, body: JSON.stringify({ variantId: variant.id, quantity: 1 }) });
+      if (!current()) return;
+      // A successful additive mutation is known even if its follow-up read is interrupted.
+      setAddition({ scopeKey: active.scopeKey, busy: true, added: true, error: "", refreshFailed: false });
+      announce("محصول به سبد خرید افزوده شد.");
+      await refreshCart().catch(() => { if (current()) setAddition(previous => previous.scopeKey === active.scopeKey ? { ...previous, refreshFailed: true } : previous); });
+    } catch (failure) {
+      if (current()) setAddition({ scopeKey: active.scopeKey, busy: true, added: false, error: errorMessage(failure), refreshFailed: false });
+    } finally {
+      if (current()) { operation.current = null; setAddition(previous => previous.scopeKey === active.scopeKey ? { ...previous, busy: false } : previous); }
+    }
+  };
   if (!product) return error ? <Notice error>{error} <button className="text-button" onClick={load}>تلاش دوباره</button></Notice> : <Loading />;
-  return <><div className="product-detail"><ProductGallery product={product} variantSku={variant?.sku} eager /><div className="purchase-panel"><p className="eyebrow"><bdi>{product.family}</bdi></p><h1><bdi>{product.name}</bdi></h1>{product.concentration && <p className="muted"><bdi>{product.concentration}</bdi></p>}<ProductIntro content={product} /><fieldset className="volume-picker"><legend>انتخاب حجم</legend><div className="volume-options">{product.variants.map(v => <label className={selected === v.id ? "volume-option selected" : "volume-option"} key={v.id}><input type="radio" name="volume" value={v.id} checked={selected === v.id} onChange={() => { setSelected(v.id); setAdded(false); }} /><span>{faNumber(v.volumeMl)} میلی‌لیتر</span><small>{v.available > 0 ? "موجود" : "ناموجود"}</small></label>)}</div></fieldset>{variant && <><p className="product-price">{money(variant.price)}</p><p className={variant.available > 0 ? "stock-message" : "stock-message unavailable"}>{variant.available > 0 ? "این حجم موجود است." : "این حجم فعلاً موجود نیست."}</p></>}{error && <Notice error>{error}</Notice>}<button className="full-width" disabled={busy || !variant || variant.available <= 0} onClick={add}>{busy ? "در حال افزودن…" : "افزودن به سبد خرید"}</button>{added && <Notice silent>محصول به سبد خرید افزوده شد. <Link href="/cart" className="text-link">مشاهدهٔ سبد خرید</Link></Notice>}<FavoriteButton productId={product.id} /><div className="purchase-policies"><Link href="/pages/shipping">شرایط ارسال</Link><Link href="/pages/returns">شرایط مرجوعی</Link></div></div></div><ProductContentDetails content={product} />{[product.topNotes, product.heartNotes, product.baseNotes].some(notes => notes.length) && <section className="notes-section"><h2>لایه‌های رایحه</h2><div className="notes-grid">{([{ label: "نت‌های آغازین", values: product.topNotes }, { label: "نت‌های میانی", values: product.heartNotes }, { label: "نت‌های پایه", values: product.baseNotes }]).filter(n => n.values.length).map(n => <div key={n.label}><h3>{n.label}</h3><p>{n.values.map((note, index) => <span key={index}>{index > 0 ? "، " : ""}<bdi>{note}</bdi></span>)}</p></div>)}</div></section>}</>;
+  return <><div className="product-detail"><ProductGallery product={product} variantSku={variant?.sku} eager /><div className="purchase-panel"><p className="eyebrow"><bdi>{product.family}</bdi></p><h1><bdi>{product.name}</bdi></h1>{product.concentration && <p className="muted"><bdi>{product.concentration}</bdi></p>}<ProductIntro content={product} /><fieldset className="volume-picker"><legend>انتخاب حجم</legend><div className="volume-options">{product.variants.map(v => <label className={selected === v.id ? "volume-option selected" : "volume-option"} key={v.id}><input type="radio" name="volume" value={v.id} checked={selected === v.id} onChange={() => { setSelected(v.id); setAddition(previous => ({ ...previous, added: false, refreshFailed: false })); }} /><span>{faNumber(v.volumeMl)} میلی‌لیتر</span><small>{v.available > 0 ? "موجود" : "ناموجود"}</small></label>)}</div></fieldset>{variant && <><p className="product-price">{money(variant.price)}</p><p className={variant.available > 0 ? "stock-message" : "stock-message unavailable"}>{variant.available > 0 ? "این حجم موجود است." : "این حجم فعلاً موجود نیست."}</p></>}{error && <Notice error>{error}</Notice>}{feedback?.error && <Notice error>{feedback.error}</Notice>}<button className="full-width" disabled={busy || !ready || !variant || variant.available <= 0} onClick={add}>{busy ? "در حال افزودن…" : "افزودن به سبد خرید"}</button>{feedback?.added && <Notice silent>محصول به سبد خرید افزوده شد. <Link href="/cart" className="text-link">مشاهدهٔ سبد خرید</Link>{feedback.refreshFailed && <p>کالا به سبد افزوده شد؛ سبد تازه دریافت نشد. سبد خرید را بررسی کنید.</p>}</Notice>}<FavoriteButton productId={product.id} /><div className="purchase-policies"><Link href="/pages/shipping">شرایط ارسال</Link><Link href="/pages/returns">شرایط مرجوعی</Link></div></div></div><ProductContentDetails content={product} />{[product.topNotes, product.heartNotes, product.baseNotes].some(notes => notes.length) && <section className="notes-section"><h2>لایه‌های رایحه</h2><div className="notes-grid">{([{ label: "نت‌های آغازین", values: product.topNotes }, { label: "نت‌های میانی", values: product.heartNotes }, { label: "نت‌های پایه", values: product.baseNotes }]).filter(n => n.values.length).map(n => <div key={n.label}><h3>{n.label}</h3><p>{n.values.map((note, index) => <span key={index}>{index > 0 ? "، " : ""}<bdi>{note}</bdi></span>)}</p></div>)}</div></section>}</>;
 }

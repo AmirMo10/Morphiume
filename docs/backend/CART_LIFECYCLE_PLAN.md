@@ -2,6 +2,8 @@
 
 2026-10-12. Source inspection only while current application/runtime is frozen for QA. No source, schema, test, PostgreSQL, native-auth, worker or credential changes/calls were made. This is a proposed policy and acceptance contract, not implemented behavior or a new test result. Relevant specification: guest/account section10, cart section11, idempotency section15, private-state section17, T01/T09/T12/T25/T30; repository commerce skill/invariants apply.
 
+This paragraph and the observations below record the original pre-implementation review. The coordinator subsequently authorized the chosen domain policy after checkpoint `5b4a7987c2fe62ef82e56a4d16b63ac431d6324d`; current source contracts and actual domain evidence are in `CART_LIFECYCLE.md`. Root/frontend/native-browser integration has separate acceptance and is not proved by writing this plan.
+
 ## Observed current behavior
 
 | Step | Actual source behavior |

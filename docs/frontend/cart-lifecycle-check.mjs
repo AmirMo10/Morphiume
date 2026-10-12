@@ -1,0 +1,18 @@
+// Actual bounded browser-state helper; deterministic storage fixtures, not API/DB/native proof.
+import assert from "node:assert/strict";
+import { build } from "esbuild";
+import { createRequire } from "node:module";
+const built=await build({entryPoints:["src/components/cart-lifecycle.ts"],bundle:true,write:false,platform:"node",format:"cjs"}),module={exports:{}};new Function("require","module","exports",built.outputFiles[0].text)(createRequire(import.meta.url),module,module.exports);
+const helper=module.exports,values=new Map();globalThis.sessionStorage={getItem:key=>values.get(key)??null,setItem:(key,value)=>values.set(key,value),removeItem:key=>values.delete(key)};
+const cart="00000000-0000-4000-8000-000000000001",key="00000000-0000-4000-8000-000000000002",address={recipient:"GIFT_PRIVATE_A",phone:"+989130000000",province:"تهران",city:"تهران",address:"PRIVATE_ADDRESS_A",plaque:"۱",unit:"",postalCode:"۰۰۱۲۳۴۵۶۷۸"};
+try{
+ values.set("morphiume-checkout-address",JSON.stringify(address));assert.equal(helper.loadAddressDraft(cart,null),null);assert.equal(values.has("morphiume-checkout-address"),false);
+ helper.saveAddressDraft(cart,null,address);assert.deepEqual(helper.loadAddressDraft(cart,"owner-A"),address);assert.equal(JSON.parse(values.get("morphiume-checkout-draft-v2")).ownerId,"owner-A");assert.equal(helper.loadAddressDraft(cart,"owner-B"),null);assert.equal(values.has("morphiume-checkout-draft-v2"),false);
+ helper.saveAddressDraft(cart,"owner-A",address);assert.equal(helper.loadAddressDraft("other-cart","owner-A"),null);
+ assert.equal(helper.boundedAddress({...address,address:"x".repeat(2001)}),null);assert.equal(helper.boundedAddress({...address,recipient:42}),null);assert.deepEqual(helper.boundedAddress({...address,token:"never retain"}),address);
+ const pending={version:2,kind:"pending",ownerId:"owner-A",cartId:cart,key,input:{cartId:cart,cartVersion:7,address,shippingMethodId:"standard",quoteFingerprint:"fixture-fingerprint",policyVersion:"fixture-policy"}};
+ helper.saveCheckoutRecovery(pending);assert.deepEqual(helper.loadCheckoutRecovery("owner-A"),pending);assert.equal(helper.loadCheckoutRecovery("owner-B"),null);
+ helper.saveCheckoutRecovery(pending);helper.saveCheckoutRecovery({version:2,kind:"known",ownerId:"owner-A",cartId:cart,key,orderId:"controlled-order",paymentAttemptId:"controlled-attempt",paymentStatus:"unknown"});const serialized=values.get("morphiume-checkout-recovery-v2");assert.equal(serialized.includes("PRIVATE_ADDRESS_A"),false);assert.equal(serialized.includes("GIFT_PRIVATE_A"),false);assert.equal(helper.loadCheckoutRecovery("owner-A").kind,"known");
+ helper.clearCheckoutPrivateState();globalThis.sessionStorage={getItem(){throw new Error("storage unavailable")},setItem(){throw new Error("storage unavailable")},removeItem(){throw new Error("storage unavailable")}};helper.saveAddressDraft(cart,null,address);assert.deepEqual(helper.loadAddressDraft(cart,"owner-A"),address);helper.saveCheckoutRecovery(pending);assert.deepEqual(helper.loadCheckoutRecovery("owner-A"),pending);helper.clearCheckoutPrivateState();assert.equal(helper.loadCheckoutRecovery("owner-A"),null);assert.equal(helper.loadAddressDraft(cart,"owner-A"),null);
+ console.log(JSON.stringify({result:"PASS",scope:"actual helper/deterministic browser storage only",checks:["legacy unscoped data removed","same-cart first claim preserves recipient/phone/leading zero","other owner/cart rejected and cleared","bounded whitelist strips extra fields/nonstring/oversize","immutable pending input/key retained","known record retains IDs/state and no address","storage denial retains current memory; privacy clear removes both"]}));
+}finally{delete globalThis.sessionStorage;}

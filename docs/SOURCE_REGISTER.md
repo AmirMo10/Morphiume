@@ -4,6 +4,7 @@
 
 | منبع | استفاده/شاهد |
 |---|---|
+| https://github.com/gitleaks/gitleaks#configuration | مشاهده۲۰۲۶-۱۰-۱۲: useDefault=true و ruleallowlists/AND/secret+paths؛ exception فقط publicprofileSHAدقیق/دوguard و canaryباینری واقعی؛ هنوز اسکن جدید باید ثبت شود |
 | فایل صاحب پروژه در docs/spec | ۵۷۵ خط کامل؛ مشخصات اجرایی و T01–T30 |
 | https://learn.chatgpt.com/docs/agent-configuration/subagents | TOML مستقل با name/description/developer_instructions؛ سقف هم‌زمانی؛ متن Markdown واقعی بازیابی شد |
 | https://learn.chatgpt.com/docs/build-skills | discovery پوشهٔ .agents/skills و frontmatter |

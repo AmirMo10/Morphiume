@@ -1,0 +1,37 @@
+{
+  "mode": "one-capped-readonly-health-measurement",
+  "opsFilesVerified": 21,
+  "opsSha256": "591ad92162d1747238db946c9a9a22724edde79627c6995a353c5064b39a77db",
+  "cachePrefixStayedAbsent": true,
+  "transientUnit": "morphiume-runtime-health-baseline-20261013-f30795f675.service",
+  "capSeconds": 50,
+  "shutdownCapSeconds": 5,
+  "memoryMaxBytes": 268435456,
+  "cpuQuotaPercent": 25,
+  "overallWallSeconds": 50.231034,
+  "systemdRunExit": 1,
+  "childWallSeconds": null,
+  "peakRssKiB": null,
+  "healthExit": null,
+  "healthStatus": null,
+  "alertCount": null,
+  "alertCodes": null,
+  "cgroup": {
+    "memoryPeakBytes": 32800768,
+    "oom": 0,
+    "oomKill": 0
+  },
+  "unitState": {
+    "Result": "timeout",
+    "ExecMainCode": "2",
+    "ExecMainStatus": "15",
+    "LoadState": "loaded",
+    "ActiveState": "failed",
+    "SubState": "failed"
+  },
+  "privateEvidenceSha256": "7c15e1388e6b62e81fafe71ef5c44ff0af536260b2c314eb868cd792b3cad9df",
+  "sshExit": 0,
+  "healthReturned": false,
+  "retry": false,
+  "timerInstallationAccepted": false
+}

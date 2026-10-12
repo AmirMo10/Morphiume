@@ -1,0 +1,41 @@
+{
+  "mode": "separately-authorized-onecore-readonly-health-measurement",
+  "opsFilesVerified": 21,
+  "opsSha256": "591ad92162d1747238db946c9a9a22724edde79627c6995a353c5064b39a77db",
+  "cachePrefixStayedAbsent": true,
+  "transientUnit": "morphiume-runtime-health-onecore-20261013-6d14bbd495.service",
+  "capSeconds": 120,
+  "shutdownCapSeconds": 5,
+  "memoryMaxBytes": 268435456,
+  "cpuQuotaPercent": 100,
+  "overallWallSeconds": 18.80183,
+  "systemdRunExit": 0,
+  "childWallSeconds": 18.640249,
+  "processUserCpuSeconds": 16.008956,
+  "processSystemCpuSeconds": 0.514308,
+  "peakRssKiB": 46080,
+  "healthExit": 0,
+  "healthStatus": "healthy",
+  "alertCount": 0,
+  "alertCodes": [],
+  "cgroup": {
+    "memoryPeakBytes": 53751808,
+    "cpuUsageMicroseconds": 16547230,
+    "largestProcessSampledRssKiB": 33220,
+    "oom": 0,
+    "oomKill": 0
+  },
+  "unitState": {
+    "Result": "success",
+    "ExecMainCode": "0",
+    "ExecMainStatus": "0",
+    "LoadState": "not-found",
+    "ActiveState": "inactive",
+    "SubState": "dead"
+  },
+  "privateEvidenceSha256": "1f4238cbe214f6c3197ed8930e10de29584e3f2d966f0cac6f923d3c16588279",
+  "sshExit": 0,
+  "healthReturned": true,
+  "automaticRetry": false,
+  "timerInstallationAccepted": false
+}

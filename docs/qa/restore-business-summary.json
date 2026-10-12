@@ -1,0 +1,33 @@
+{
+  "mode": "six-business-checks-passed",
+  "startedAt": "2026-10-12T22:22:29.174Z",
+  "completedAt": "2026-10-12T22:23:03.008Z",
+  "durationMs": 33833.6788,
+  "checks": [
+    "native-login",
+    "owned-order",
+    "payment-dedup",
+    "stock-reservation",
+    "shipment-tracking",
+    "media-sha256"
+  ],
+  "nativeStatuses": [
+    {
+      "stage": "customer-otp-send",
+      "attempt": 1,
+      "status": 200,
+      "retryAfterSeconds": null,
+      "retryAfterHeader": "absent"
+    },
+    {
+      "stage": "customer-otp-verify",
+      "attempt": 1,
+      "status": 200,
+      "retryAfterSeconds": null,
+      "retryAfterHeader": "absent"
+    }
+  ],
+  "workerStarted": false,
+  "recoveryMarkerWritten": false,
+  "protectedResultSha256": "139f916c48f32308894025d002d91f287ff175d3e33549560c29344141aa3498"
+}

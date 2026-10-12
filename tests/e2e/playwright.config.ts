@@ -14,7 +14,9 @@ export default defineConfig({
   workers: 1,
   retries: 0,
   timeout: 120_000,
-  globalTimeout: 15 * 60_000,
+  // Coordinator-authorized budget for 19 cases/engine (38 local,57 CI),
+  // retaining unchanged individual action/assertion/native limits and retries.
+  globalTimeout: 25 * 60_000,
   forbidOnly: !!process.env.CI,
   outputDir: "../../test-results/browser",
   reporter: [["list"], ["json", { outputFile: "../../test-results/playwright.json" }], ["html", { outputFolder: "../../playwright-report", open: "never" }]],

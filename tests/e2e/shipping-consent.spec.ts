@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 import type { QuoteDto } from "../../src/contracts/commerce";
 import { createAdmin, createProduct, disableUsers, isolatedPool, loginAdmin, loginCustomer, verifyAdminTotp } from "./acceptance-fixtures";
 import { readSuccessObject } from "./safe-response";
+import { claimCurrentCart, setCurrentCartCoupon, setCurrentCartQuantity } from "./cart-fixtures";
 
 test("T07/T15/T19/T21/T23/T29: fresh native shipping approval resets checkout consent; notes, return and refund remain exact", async ({ browser, page, baseURL }) => {
   test.setTimeout(180_000);
@@ -40,6 +41,7 @@ test("T07/T15/T19/T21/T23/T29: fresh native shipping approval resets checkout co
     const variant = product.variants[0]!;
     await savePolicy("۲۵٬۰۰۰", "۲۰۰٬۰۰۰");
     expect((await customer.request.post("/api/cart", { headers: { Origin: baseURL! }, data: { variantId: variant.id, quantity: 1 } })).status()).toBe(200);
+    await claimCurrentCart(customer, baseURL!);
     await buyer.goto("/checkout");
     for (const [label, value] of [["نام گیرنده", "گیرندهٔ صرفاً آزمایشی QA"], ["شمارهٔ تماس گیرنده", "۰۹۱۲۱۲۳۴۵۶۷"], ["استان", "تهران"], ["شهر", "تهران"], ["نشانی کامل", "نشانی مصنوعی؛ این سفارش برای ارسال واقعی معتبر نیست."], ["پلاک", "۱۲"], ["کدپستی ده‌رقمی", "۱۲۳۴۵۶۷۸۹۰"]] as const) await buyer.getByLabel(label, { exact: true }).fill(value);
     const cityList = await buyer.getByLabel("شهر", { exact: true }).getAttribute("list");
@@ -147,9 +149,8 @@ test("T07/T15/T19/T21/T23/T29: fresh native shipping approval resets checkout co
     await page.getByRole("button", { name: "ذخیرهٔ کد تخفیف", exact: true }).click();
     await expect(page.getByText("کد تخفیف ذخیره شد.", { exact: true })).toBeVisible();
     expect((await pool.query("SELECT basis_points,usage_limit,per_user_limit FROM coupon WHERE code=$1", [couponCode])).rows[0]).toEqual({ basis_points: 1000, usage_limit: 2, per_user_limit: 1 });
-    expect((await customer.request.put("/api/cart/items", { headers: { Origin: baseURL! }, data: { variantId: variant.id, quantity: 1 } })).status()).toBe(200);
-    expect((await customer.request.post("/api/cart/coupon", { headers: { Origin: baseURL! }, data: { code: couponCode } })).status()).toBe(200);
-    const cart = (await (await customer.request.get("/api/cart")).json()).data;
+    const selected = await setCurrentCartQuantity(customer, baseURL!, variant.id, 1);
+    const cart = await setCurrentCartCoupon(customer, baseURL!, couponCode, selected);
     const quoteResponse = await customer.request.post("/api/checkout/quote", { headers: { Origin: baseURL! }, data: { cartId: cart.id, cartVersion: cart.version } });
     expect(quoteResponse.status()).toBe(200);
     const quote = (await quoteResponse.json()).data as QuoteDto;
