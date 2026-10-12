@@ -1,5 +1,9 @@
 # شواهد پذیرش T01–T30
 
+آخرین پذیرش واقعی build96266/server1792/schema11: **۱۲spec،۱۴case در هر موتور و مجموع۲۸/۲۸ Chrome/WebKit در۶۲۷٫۰۸۰۳۵۳s موفق**؛ آغاز `2026-10-12T18:50:25.575Z` و unexpected/skipped/flaky/Playwrightretry صفر. [browser-product-content-combined.json](browser-product-content-combined.json) و [browser-summary.json](browser-summary.json) اجرای جاری‌اند؛ [browser-product-content-targeted.json](browser-product-content-targeted.json) اجرای مستقل۶/۶ در۸۳٫۸۵۹۷۵۵s است و با۲۸ جمع نمی‌شود. [PRODUCT_CONTENT_PREPARED_QA.md](PRODUCT_CONTENT_PREPARED_QA.md) پذیرش اجراشدهٔ متن محصول/CSV،۲۰۵خواندن نشست بدون تغییر سهمیه، HTTPget-session شارژشده و لغو مجوز بومی هنگام انتظار قفل را ثبت می‌کند. Global هماهنگ‌کننده۴۰۱/۴۰۱ در۳۴فایل و۶۹۵٫۸۵s جداست. نتیجه28 به معنی تکمیل همهT01–T30 نیست؛ شاهد stage/restore/capacity/FirefoxLinux جدید هنوز باقی است.
+
+## تاریخچه و دامنهٔ ماتریس
+
 آخرین شاهد منسجم، build89652/server36884/schema10: **۱۱spec/۲۲case Chrome/WebKit در۵۶۰٫۹۸۰۱۱۰s موفق**، skipped/flaky/retry صفر؛ [NEW_SOURCE_QA.md](NEW_SOURCE_QA.md) دامنهٔ جدید collection/presentation/return/refund/report/native HTTP و شواهد امن را ثبت می‌کند. اجرای۲۲case به معنی تکمیل همهٔ T01–T30 نیست. جدول و شرح‌های زیر تاریخچهٔ دامنه‌های قبلی‌اند؛ پذیرش فعلی Firefox Linux/image، stage، restore و capacity هنوز کامل نیست. guard دقیق دوDB اکنون فعال و۴۸آزمون خالص آن مستقل موفق‌اند؛ نتیجهٔ global۲۲۸ هماهنگ‌کننده پیش از همین فایل guard است.
 
 این ماتریس وضعیت واقعی تا ۲۰۲۶-۱۰-۱۲ را ثبت می‌کند. آزمون‌های QA روی source درحال‌کار پس از commit فاز صفر `b01c09f` اجرا شده‌اند؛ build مرورگر Windows production بوده و DB آزمایشی از SSH tunnel متصل است. نتیجهٔ build نهایی و Git نهایی باید توسط هماهنگ‌کننده در TEST_REPORT ثبت شود. «جزئی» یعنی کل سناریو ثابت نشده است؛ این جدول گواهی ASVS، ظرفیت یا انتشار واقعی نیست.

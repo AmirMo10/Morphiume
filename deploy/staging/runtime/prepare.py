@@ -71,7 +71,9 @@ def main(args):
         c.write_private(c.CONFIG / 'connections.json', json.dumps(connections) + '\n')
         c.write_private(c.CONFIG / 'bootstrap.env', bootstrap)
         c.write_private(c.CONFIG / 'backup-recipients.txt', recipient)
-        c.write_private(c.CONFIG / 'deploy.env', f'MORPHIUME_IMAGE={args.config_id}\nMORPHIUME_OPS_ROOT={frozen_ops}\n')
+        profile = c.make_profile(report, 'ssh-localhost', configs)
+        c.select_profile(profile)
+        c.write_private(c.CONFIG / 'deploy.env', c.compose_environment(args.config_id, frozen_ops, profile))
         for name in ('backups', 'restore', 'metrics'):
             (c.ROOT / name).mkdir(mode=0o700)
         (c.ROOT / 'media').mkdir(mode=0o750)

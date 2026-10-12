@@ -32,6 +32,15 @@ function searchInput(value:unknown):string{return value===undefined ? "" : norma
 function literalSearch(value:string):string{return value.replace(/[\\%_]/g,"\\$&");}
 const uuidShape=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 function validateSlug(value:unknown){if(typeof value!=="string" || value.length>160 || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value) || uuidShape.test(value))fail("VALIDATION","نشانی صفحه معتبر نیست؛ از نامی کوتاه با حروف لاتین کوچک استفاده کنید.");}
+const productCopyFields=[
+  ["shortDescription","short_description","معرفی کوتاه",600],
+  ["careInstructions","care_instructions","اطلاعات نگهداری",4000],
+  ["approvedWarnings","approved_warnings","هشدارهای تأییدشده",4000],
+] as const;
+function productCopy(value:unknown,label:string,maximum:number){
+  if(typeof value!=="string" || value.length>maximum || value.includes("\0"))fail("VALIDATION",`${label} معتبر نیست.`);
+  return value.trim();
+}
 function addressInput(input: AddressInput): AddressInput {
   const postalCode = normalizeDigits(input.postalCode ?? "");
   if (!/^[0-9]{10}$/.test(postalCode)) fail("VALIDATION","کدپستی باید ده رقم باشد.");
@@ -40,6 +49,7 @@ function addressInput(input: AddressInput): AddressInput {
 function validateProduct(input: ProductInput) {
   boundedString(input.name,"نام محصول",160); boundedString(input.description,"توضیح",10000,0);
   boundedString(input.concentration,"غلظت",80,0);boundedString(input.family,"خانوادهٔ رایحه",80,0);
+  for(const [field,,label,maximum] of productCopyFields)if(input[field]!==undefined)productCopy(input[field],label,maximum);
   validateSlug(input.slug);
   if (!input.variants?.length || input.variants.length > 20) fail("VALIDATION","حداقل یک حجم و حداکثر بیست حجم لازم است.");
   for (const variant of input.variants) {
@@ -129,15 +139,18 @@ export function createCommerce(options: CommerceOptions) {
     if(!current)fail("FORBIDDEN","اجازهٔ انجام این کار را ندارید.",403);
     if(current.factor_fresh!==true)fail("MFA_REQUIRED","برای این عملیات، تأیید دومرحله‌ای تازه لازم است.",403);
   }
-  async function assertReturnReviewer(db:PoolClient,actor:Actor,inventory:boolean){
+  async function assertOrdinaryAdmin(db:Connection,actor:Actor,requiredPermissions:readonly Permission[],lock=false){
     const baseSql='SELECT s.id FROM session s JOIN "user" u ON u.id=s.user_id JOIN admin_grant g ON g.session_id=s.id WHERE s.id=$1 AND u.id=$2 AND NOT u.disabled AND u.two_factor_enabled AND s.expires_at>clock_timestamp() AND g.expires_at>clock_timestamp()';
-    if(actor.kind!=="admin" || !await one(db,baseSql+" FOR SHARE OF s,u,g",[actor.sessionId,actor.userId]))fail("FORBIDDEN","اجازهٔ ثبت این تصمیم را ندارید.",403);
-    const roles=await query(db,"SELECT role FROM role_membership WHERE user_id=$1 FOR SHARE",[actor.userId]);
+    if(actor.kind!=="admin" || !await one(db,baseSql+(lock ? " FOR SHARE OF s,u,g" : ""),[actor.sessionId,actor.userId]))fail("FORBIDDEN","اجازهٔ ثبت این تغییر را ندارید.",403);
+    const roles=await query(db,`SELECT role FROM role_membership WHERE user_id=$1${lock ? " FOR SHARE" : ""}`,[actor.userId]);
     const permissions=new Set(roles.flatMap(row=>ROLE_PERMISSIONS[text(row,"role") as Role] ?? []));
-    if(!permissions.has("orders.fulfill") || (inventory && !permissions.has("inventory.write")))fail("FORBIDDEN","اجازهٔ ثبت این تصمیم را ندارید.",403);
-    // Ordinary fulfillment requires a live enabled MFA grant, without adding a
+    if(!requiredPermissions.every(permission=>permissions.has(permission)))fail("FORBIDDEN","اجازهٔ ثبت این تغییر را ندارید.",403);
+    // Ordinary catalog/fulfillment requires a live enabled MFA grant, without a
     // financial five-minute freshness rule. Recheck wall-clock validity after waits.
-    if(!await one(db,baseSql,[actor.sessionId,actor.userId]))fail("FORBIDDEN","اجازهٔ ثبت این تصمیم را ندارید.",403);
+    if(!await one(db,baseSql,[actor.sessionId,actor.userId]))fail("FORBIDDEN","اجازهٔ ثبت این تغییر را ندارید.",403);
+  }
+  async function assertReturnReviewer(db:PoolClient,actor:Actor,inventory:boolean){
+    await assertOrdinaryAdmin(db,actor,inventory ? ["orders.fulfill","inventory.write"] : ["orders.fulfill"],true);
   }
   async function audit(db: Connection, actor: Actor, action: string, entityType: string, entityId: string, reason: string) {
     await db.query("INSERT INTO audit_event(id,actor_id,action,entity_type,entity_id,reason) VALUES($1,$2,$3,$4,$5,$6)",[randomUUID(),actor.userId,action,entityType,entityId,reason]);
@@ -154,7 +167,7 @@ export function createCommerce(options: CommerceOptions) {
     const imageRows=loadedImages ?? await query(db,readyGallerySql,[[row.id],deploymentEnv!=="live"]);
     const images:ProductImage[]=imageRows.map((image)=>({url:text(image,"url"),alt:text(image,"alt"),variantSku:image.variant_sku as string|null}));
     const primary=images.find((image)=>!image.variantSku) ?? images[0];
-    return { id:text(row,"id"), name:text(row,"name"), slug:text(row,"slug"), description:text(row,"description"), concentration:text(row,"concentration"), family:text(row,"family"), topNotes:row.top_notes as string[], heartNotes:row.heart_notes as string[], baseNotes:row.base_notes as string[], imageUrl:primary?.url ?? null,images, status:row.status as ProductDto["status"], version:number(row,"version"), variants:variants.map((variant)=>({id:text(variant,"id"),sku:text(variant,"sku"),volumeMl:number(variant,"volume_ml"),price:moneyDto(text(variant,"price_irr")),available:number(variant,"available")})) };
+    return { id:text(row,"id"), name:text(row,"name"), slug:text(row,"slug"), description:text(row,"description"), shortDescription:String(row.short_description ?? ""),careInstructions:String(row.care_instructions ?? ""),approvedWarnings:String(row.approved_warnings ?? ""), concentration:text(row,"concentration"), family:text(row,"family"), topNotes:row.top_notes as string[], heartNotes:row.heart_notes as string[], baseNotes:row.base_notes as string[], imageUrl:primary?.url ?? null,images, status:row.status as ProductDto["status"], version:number(row,"version"), variants:variants.map((variant)=>({id:text(variant,"id"),sku:text(variant,"sku"),volumeMl:number(variant,"volume_ml"),price:moneyDto(text(variant,"price_irr")),available:number(variant,"available")})) };
   }
   async function productsDto(db:Connection,rows:Row[]):Promise<ProductDto[]>{
     if(!rows.length)return [];
@@ -275,7 +288,7 @@ export function createCommerce(options: CommerceOptions) {
     });
   }
   async function resolveProductRoute(slugOrId:string):Promise<ProductRouteDto>{return productRoute(slugOrId);}
-  async function writeProduct(db: PoolClient, actor: Actor, id: string, input: ProductInput, existing?: Row) {
+  async function writeProduct(db: PoolClient, actor: Actor, id: string, input: ProductInput, existing?: Row,deferredMediaProofs?:(()=>Promise<void>)[]) {
     const images:ProductImage[]=input.images===undefined ? (input.imageUrl ? [{url:input.imageUrl,alt:input.name.trim(),variantSku:null}] : []) : input.images.map((image)=>({url:image.url,alt:image.alt.trim(),variantSku:image.variantSku ?? null}));
     if(existing?.status==="published" && (!images.length || !input.description.trim() || !input.concentration.trim() || !input.family.trim()))fail("VALIDATION","برای حذف تصویر یا اطلاعات ضروری، ابتدا محصول را از انتشار خارج کنید.");
     const mediaUrls=[...new Set(images.filter((image)=>image.url!=="/assets/sample-perfume.svg").map((image)=>image.url))].sort();
@@ -285,19 +298,28 @@ export function createCommerce(options: CommerceOptions) {
     }
     const readyMedia=await query(db,"SELECT id,public_path,created_by FROM media WHERE public_path=ANY($1::text[]) AND status='ready' AND mime_type='image/webp' ORDER BY id FOR SHARE",[mediaUrls]);
     const approved=existing ? await query(db,"SELECT url FROM product_image WHERE product_id=$1",[id]) : [];
-    const owner=await one(db,"SELECT user_id FROM role_membership WHERE user_id=$1 AND role='owner'",[actor.userId]);
-    for(const image of images){
-      if(image.url==="/assets/sample-perfume.svg")continue;
-      const media=readyMedia.find((row)=>row.public_path===image.url && image.url===`/media/${text(row,"id")}.webp`);
-      if(!media)fail("VALIDATION","تصویر آماده یا متعلق به رسانه‌های فروشگاه نیست.");
-      if(!owner && media.created_by!==actor.userId && !approved.some((row)=>row.url===image.url))fail("FORBIDDEN","برای افزودن تصویر جدید، تصویر خودتان را بارگذاری کنید.",403);
+    async function mediaPermission(){
+      const owner=await one(db,"SELECT user_id FROM role_membership WHERE user_id=$1 AND role='owner'",[actor.userId]);
+      for(const image of images){
+        if(image.url==="/assets/sample-perfume.svg")continue;
+        const media=readyMedia.find((row)=>row.public_path===image.url && image.url===`/media/${text(row,"id")}.webp`);
+        if(!media)fail("VALIDATION","تصویر آماده یا متعلق به رسانه‌های فروشگاه نیست.");
+        if(!owner && media.created_by!==actor.userId && !approved.some((row)=>row.url===image.url))fail("FORBIDDEN","برای افزودن تصویر جدید، تصویر خودتان را بارگذاری کنید.",403);
+      }
     }
-    const primary=images.find((image)=>!image.variantSku) ?? images[0];
-    const searchKey = normalizeSearch([input.name,input.family,input.description,...input.topNotes,...input.heartNotes,...input.baseNotes].join(" "));
-    const values = [input.name.trim(),input.slug,input.description,input.concentration,input.family,JSON.stringify(input.topNotes),JSON.stringify(input.heartNotes),JSON.stringify(input.baseNotes),primary?.url ?? null,searchKey,id];
-    if (existing) await db.query("UPDATE product SET name=$1,slug=$2,description=$3,concentration=$4,family=$5,top_notes=$6::jsonb,heart_notes=$7::jsonb,base_notes=$8::jsonb,image_url=$9,search_key=$10,version=version+1,updated_at=now() WHERE id=$11",values);
-    else await db.query("INSERT INTO product(name,slug,description,concentration,family,top_notes,heart_notes,base_notes,image_url,search_key,id) VALUES($1,$2,$3,$4,$5,$6::jsonb,$7::jsonb,$8::jsonb,$9,$10,$11)",values);
+    await mediaPermission();
     const prior = await query(db,"SELECT * FROM variant WHERE product_id=$1",[id]);
+    const requiredPermissions:Permission[]=["catalog.write"];
+    if(input.variants.some(variant=>(variant.initialStock ?? 0)>0 && !prior.some(row=>row.sku===variant.sku)))requiredPermissions.push("inventory.write");
+    // Do not hold authorization rows while later SKU/media/business locks wait.
+    // The final locked proof rolls back every staged effect if rights change.
+    await assertOrdinaryAdmin(db,actor,requiredPermissions);
+    const primary=images.find((image)=>!image.variantSku) ?? images[0];
+    const [shortDescription,careInstructions,approvedWarnings]=productCopyFields.map(([field,column,label,maximum])=>input[field]===undefined ? String(existing?.[column] ?? "") : productCopy(input[field],label,maximum));
+    const searchKey = normalizeSearch([input.name,input.family,input.description,shortDescription,...input.topNotes,...input.heartNotes,...input.baseNotes].join(" "));
+    const values = [input.name.trim(),input.slug,input.description,input.concentration,input.family,JSON.stringify(input.topNotes),JSON.stringify(input.heartNotes),JSON.stringify(input.baseNotes),primary?.url ?? null,searchKey,id,shortDescription,careInstructions,approvedWarnings];
+    if (existing) await db.query("UPDATE product SET name=$1,slug=$2,description=$3,concentration=$4,family=$5,top_notes=$6::jsonb,heart_notes=$7::jsonb,base_notes=$8::jsonb,image_url=$9,search_key=$10,version=version+1,updated_at=now(),short_description=$12,care_instructions=$13,approved_warnings=$14 WHERE id=$11",values);
+    else await db.query("INSERT INTO product(name,slug,description,concentration,family,top_notes,heart_notes,base_notes,image_url,search_key,id,short_description,care_instructions,approved_warnings) VALUES($1,$2,$3,$4,$5,$6::jsonb,$7::jsonb,$8::jsonb,$9,$10,$11,$12,$13,$14)",values);
     for (const variant of input.variants) {
       const old = prior.find((row)=>row.sku === variant.sku); const variantId = old ? text(old,"id") : randomUUID();
       if (old) await db.query("UPDATE variant SET volume_ml=$1,price_irr=$2,active=true WHERE id=$3",[variant.volumeMl,tomanToIrr(variant.priceToman).toString(),variantId]);
@@ -318,14 +340,17 @@ export function createCommerce(options: CommerceOptions) {
       await db.query("INSERT INTO product_image(product_id,position,url,alt,variant_id,media_id) VALUES($1,$2,$3,$4,$5,$6)",[id,position,image.url,image.alt,variant?.id ?? null,media?.id ?? null]);
     }
     await audit(db,actor,existing ? "product.updated" : "product.created","product",id,"admin form");
-    return productDto(db,(await one(db,"SELECT * FROM product WHERE id=$1",[id]))!);
+    const result=await productDto(db,(await one(db,"SELECT * FROM product WHERE id=$1",[id]))!);
+    if(deferredMediaProofs)deferredMediaProofs.push(mediaPermission);
+    else{await assertOrdinaryAdmin(db,actor,requiredPermissions,true);await mediaPermission();await assertOrdinaryAdmin(db,actor,requiredPermissions);}
+    return result;
   }
-  async function createProduct(actor: Actor,input: ProductInput) { validateProduct(input); return transaction(async(db)=>{ await assertActor(db,actor,"catalog.write"); return writeProduct(db,actor,randomUUID(),input); }); }
+  async function createProduct(actor: Actor,input: ProductInput) { validateProduct(input); return transaction(async(db)=>{ await assertOrdinaryAdmin(db,actor,["catalog.write"]); return writeProduct(db,actor,randomUUID(),input); }); }
   async function updateProduct(actor: Actor,id: string,input: ProductInput,expectedVersion: number) {
-    validateProduct(input); return transaction(async(db)=>{ await assertActor(db,actor,"catalog.write"); const row=await one(db,"SELECT * FROM product WHERE id=$1 FOR UPDATE",[id]); if (!row) return fail("NOT_FOUND","محصول پیدا نشد.",404); if (row.version !== expectedVersion) fail("CONFLICT","محصول تغییر کرده است. نسخهٔ تازه را بررسی کنید.",409); return writeProduct(db,actor,id,input,row); });
+    validateProduct(input); return transaction(async(db)=>{ await assertOrdinaryAdmin(db,actor,["catalog.write"]); const row=await one(db,"SELECT * FROM product WHERE id=$1 FOR UPDATE",[id]); await assertOrdinaryAdmin(db,actor,["catalog.write"]); if (!row) return fail("NOT_FOUND","محصول پیدا نشد.",404); if (row.version !== expectedVersion) fail("CONFLICT","محصول تغییر کرده است. نسخهٔ تازه را بررسی کنید.",409); return writeProduct(db,actor,id,input,row); });
   }
   async function publishProduct(actor: Actor,id: string,expectedVersion: number) {
-    return transaction(async(db)=>{ await assertActor(db,actor,"catalog.write"); const row=await one(db,"SELECT * FROM product WHERE id=$1 FOR UPDATE",[id]); if (!row) return fail("NOT_FOUND","محصول پیدا نشد.",404); if (row.version!==expectedVersion) fail("CONFLICT","نسخهٔ محصول تغییر کرده است.",409); const variants=await query(db,"SELECT id FROM variant WHERE product_id=$1 AND active",[id]); const images=await query(db,readyGallerySql,[[id],deploymentEnv!=="live"]); if (!row.description || !row.concentration || !row.family || !images.length || !variants.length) fail("VALIDATION","اطلاعات محصول و تصویر را پیش از انتشار کامل کنید."); await db.query("UPDATE product SET status='published',version=version+1,updated_at=now() WHERE id=$1",[id]); await audit(db,actor,"product.published","product",id,"publish"); return productDto(db,(await one(db,"SELECT * FROM product WHERE id=$1",[id]))!); });
+    return transaction(async(db)=>{ await assertOrdinaryAdmin(db,actor,["catalog.write"]); const row=await one(db,"SELECT * FROM product WHERE id=$1 FOR UPDATE",[id]); await assertOrdinaryAdmin(db,actor,["catalog.write"]); if (!row) return fail("NOT_FOUND","محصول پیدا نشد.",404); if (row.version!==expectedVersion) fail("CONFLICT","نسخهٔ محصول تغییر کرده است.",409); const variants=await query(db,"SELECT id FROM variant WHERE product_id=$1 AND active",[id]); const images=await query(db,readyGallerySql,[[id],deploymentEnv!=="live"]); if (!row.description || !row.concentration || !row.family || !images.length || !variants.length) fail("VALIDATION","اطلاعات محصول و تصویر را پیش از انتشار کامل کنید."); await db.query("UPDATE product SET status='published',version=version+1,updated_at=now() WHERE id=$1",[id]); await audit(db,actor,"product.published","product",id,"publish"); const result=await productDto(db,(await one(db,"SELECT * FROM product WHERE id=$1",[id]))!);await assertOrdinaryAdmin(db,actor,["catalog.write"],true);return result; });
   }
   async function cartAccess(db: Connection,id: string,guestToken: string,actor?: Actor,lock=false) {
     if (actor) await assertActor(db,actor);
@@ -614,7 +639,7 @@ export function createCommerce(options: CommerceOptions) {
     return (await query(pool,"SELECT id,provider,provider_ref,amount_irr,currency,disposition,created_at FROM payment_receipt WHERE order_id=$1 ORDER BY created_at",[orderId])).map((row)=>({id:text(row,"id"),provider:text(row,"provider"),providerRef:text(row,"provider_ref"),amount:moneyDto(text(row,"amount_irr")),disposition:text(row,"disposition"),createdAt:date(row.created_at)}));
   }
   async function archiveProduct(actor:Actor,id:string,expectedVersion:number){
-    return transaction(async(db)=>{await assertActor(db,actor,"catalog.write");const row=await one(db,"SELECT * FROM product WHERE id=$1 FOR UPDATE",[id]);if(!row)return fail("NOT_FOUND","محصول پیدا نشد.",404);if(row.version!==expectedVersion)fail("CONFLICT","نسخهٔ محصول تغییر کرده است.",409);await db.query("UPDATE product SET status='archived',version=version+1,updated_at=now() WHERE id=$1",[id]);await audit(db,actor,"product.archived","product",id,"archive retains order history");return productDto(db,(await one(db,"SELECT * FROM product WHERE id=$1",[id]))!);});
+    return transaction(async(db)=>{await assertOrdinaryAdmin(db,actor,["catalog.write"]);const row=await one(db,"SELECT * FROM product WHERE id=$1 FOR UPDATE",[id]);await assertOrdinaryAdmin(db,actor,["catalog.write"]);if(!row)return fail("NOT_FOUND","محصول پیدا نشد.",404);if(row.version!==expectedVersion)fail("CONFLICT","نسخهٔ محصول تغییر کرده است.",409);await db.query("UPDATE product SET status='archived',version=version+1,updated_at=now() WHERE id=$1",[id]);await audit(db,actor,"product.archived","product",id,"archive retains order history");const result=await productDto(db,(await one(db,"SELECT * FROM product WHERE id=$1",[id]))!);await assertOrdinaryAdmin(db,actor,["catalog.write"],true);return result;});
   }
   async function retryPayment(actor:Actor,orderId:string,idempotencyKey:string):Promise<CheckoutDto>{
     const key=boundedString(idempotencyKey,"شناسهٔ درخواست",128,8),fingerprint=digest(JSON.stringify({orderId}));
@@ -820,14 +845,23 @@ export function createCommerce(options: CommerceOptions) {
     });
   }
   async function importProducts(actor:Actor,rows:ProductInput[],dryRun=true){
-    await assertActor(pool,actor,"catalog.write");if(!Array.isArray(rows) || !rows.length || rows.length>300)fail("VALIDATION","تعداد ردیف‌ها معتبر نیست.");
+    await assertOrdinaryAdmin(pool,actor,["catalog.write"]);if(!Array.isArray(rows) || !rows.length || rows.length>300)fail("VALIDATION","تعداد ردیف‌ها معتبر نیست.");
     const issues:{row:number;message:string}[]=[],slugs=new Set<string>(),skus=new Set<string>();
     for(const [index,input]of rows.entries()){
       try{validateProduct(input);if(slugs.has(input.slug))throw new Error("نشانی محصول تکراری است.");slugs.add(input.slug);for(const variant of input.variants){if(skus.has(variant.sku))throw new Error("شناسهٔ کالا تکراری است.");skus.add(variant.sku);}if(await one(pool,"SELECT product_id FROM product_slug_claim WHERE slug=$1",[input.slug]))throw new Error("نشانی محصول از پیش وجود دارد.");if(await one(pool,"SELECT id FROM variant WHERE sku=ANY($1::text[])",[input.variants.map((v)=>v.sku)]))throw new Error("شناسهٔ کالا از پیش وجود دارد.");}
       catch(error){issues.push({row:index+1,message:error instanceof Error ? error.message : "ردیف معتبر نیست."});}
     }
-    if(dryRun || issues.length)return {dryRun,issues,imported:0};
-    return transaction(async(db)=>{await assertActor(db,actor,"catalog.write");for(const input of rows)await writeProduct(db,actor,randomUUID(),input);return {dryRun:false,issues:[],imported:rows.length};});
+    if(dryRun || issues.length){await assertOrdinaryAdmin(pool,actor,["catalog.write"]);return {dryRun,issues,imported:0};}
+    return transaction(async(db)=>{
+      const permissions:Permission[]=rows.some(input=>input.variants.some(variant=>(variant.initialStock ?? 0)>0)) ? ["catalog.write","inventory.write"] : ["catalog.write"];
+      await assertOrdinaryAdmin(db,actor,permissions);
+      // All import business locks precede the final authorization locks; a later
+      // row's wait cannot keep an earlier row's role proof artificially alive.
+      const mediaProofs:(()=>Promise<void>)[]=[];
+      for(const input of rows)await writeProduct(db,actor,randomUUID(),input,undefined,mediaProofs);
+      await assertOrdinaryAdmin(db,actor,permissions,true);for(const proof of mediaProofs)await proof();await assertOrdinaryAdmin(db,actor,permissions);
+      return {dryRun:false,issues:[],imported:rows.length};
+    });
   }
   async function decideReturn(actor:Actor,returnId:string,input:ReturnDecisionInput):Promise<ReturnDecisionDto>{
     const reason=boundedString(input.reason,"دلیل تصمیم",1000).trim(),restock=input.restock ?? false;

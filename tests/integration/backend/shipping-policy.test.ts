@@ -27,7 +27,7 @@ describe.skipIf(!enabled)("PostgreSQL fresh shipping consent",()=>{
   }
   async function actor(kind:Actor["kind"]){
     const userId=randomUUID(),sessionId=randomUUID();users.push(userId);
-    await pool.query('INSERT INTO "user"(id,name,email,email_verified,phone_number,phone_number_verified) VALUES($1,\'TEST shipping fixture\',$2,true,$3,true)',[userId,`${userId}@fixture.invalid`,`+989${String(randomInt(0,1_000_000_000)).padStart(9,"0")}`]);
+    await pool.query('INSERT INTO "user"(id,name,email,email_verified,phone_number,phone_number_verified,two_factor_enabled) VALUES($1,\'TEST shipping fixture\',$2,true,$3,true,$4)',[userId,`${userId}@fixture.invalid`,`+989${String(randomInt(0,1_000_000_000)).padStart(9,"0")}`,kind==="admin"]);
     await pool.query("INSERT INTO session(id,token,user_id,expires_at) VALUES($1,$2,$3,now()+interval '1 hour')",[sessionId,randomUUID(),userId]);
     if(kind==="admin"){await pool.query("INSERT INTO role_membership(user_id,role) VALUES($1,'owner')",[userId]);await pool.query("INSERT INTO admin_grant(session_id,expires_at) VALUES($1,now()+interval '1 hour')",[sessionId]);}
     return {userId,sessionId,kind};

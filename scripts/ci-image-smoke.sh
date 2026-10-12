@@ -9,6 +9,7 @@ common=(--network host --read-only --cap-drop ALL --security-opt no-new-privileg
   --tmpfs /tmp:rw,noexec,nosuid,size=64m,uid=1001,gid=1001,mode=0700
   --tmpfs /app/.next/cache:rw,noexec,nosuid,size=64m,uid=1001,gid=1001,mode=0700)
 cleanup() {
+  docker logs --tail 50000 morphiume-ci-app > .local/image-app.log 2>&1 || true
   docker rm --force morphiume-ci-app morphiume-ci-worker >/dev/null 2>&1 || true
 }
 trap cleanup EXIT

@@ -2,9 +2,10 @@ import "server-only";
 import { NextRequest, NextResponse } from "next/server";
 import { CommerceError } from "../contracts/commerce";
 import { ZodError } from "zod";
+import { isAPIError } from "better-auth/api";
 import { getConfig } from "./config";
 import { validationMessage } from "../lib/fa-copy/validation";
-import { finishRequest, withRequestContext } from "./observability";
+import { finishRequest, unexpectedFailureCategory, withRequestContext } from "./observability";
 
 export function success(data: unknown, status = 200) {
   return NextResponse.json({ data }, { status, headers: { "Cache-Control": "private, no-store, max-age=0" } });
@@ -54,7 +55,13 @@ export function api(handler: (request: NextRequest) => Promise<Response>, mutati
       if (error instanceof SyntaxError) return finishRequest(NextResponse.json({ error: { code: "VALIDATION", message: "قالب درخواست معتبر نیست." } }, { status: 400, headers: { "Cache-Control": "no-store" } }), "VALIDATION");
       if (error instanceof CommerceError) return finishRequest(NextResponse.json({ error: { code: error.code, message: error.message } }, { status: error.status, headers: { "Cache-Control": "no-store" } }), error.code);
       if (error instanceof ZodError) return finishRequest(NextResponse.json({ error: { code: "VALIDATION", message: "اطلاعات فرم را بررسی کنید.", fields: error.issues.map((issue) => ({ path: issue.path.join("."), message: validationMessage(issue) })) } }, { status: 400, headers: { "Cache-Control": "no-store" } }), "VALIDATION");
-      return finishRequest(NextResponse.json({ error: { code: "INTERNAL", message: "درخواست انجام نشد. دوباره تلاش کنید." } }, { status: 500, headers: { "Cache-Control": "no-store" } }), "INTERNAL");
+      if (isAPIError(error) && error.statusCode === 429) {
+        const headers = new Headers({ "Cache-Control": "no-store" });
+        const retry = new Headers(error.headers).get("Retry-After") ?? new Headers(error.headers).get("X-Retry-After");
+        if (retry && /^\d{1,4}$/.test(retry) && Number(retry) > 0 && Number(retry) <= 3600) headers.set("Retry-After", retry);
+        return finishRequest(NextResponse.json({ error: { code: "RATE_LIMITED", message: "تعداد درخواست‌ها زیاد است. کمی بعد دوباره تلاش کنید." } }, { status: 429, headers }), "RATE_LIMITED");
+      }
+      return finishRequest(NextResponse.json({ error: { code: "INTERNAL", message: "درخواست انجام نشد. دوباره تلاش کنید." } }, { status: 500, headers: { "Cache-Control": "no-store" } }), "INTERNAL", unexpectedFailureCategory(error));
     }
     });
   };

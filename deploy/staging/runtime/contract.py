@@ -22,9 +22,137 @@ OPS_ROOT = Path(__file__).resolve().parent.parent
 OPS_FILES = ('verify-release.py', 'runtime/contract.py', 'runtime/prepare.py', 'runtime/deploy.py',
              'runtime/backup.py', 'runtime/compose.yaml', 'runtime/db-target.mjs', 'runtime/restore.py',
              'runtime/compose.restore.yaml', 'runtime/restore-init.sh', 'runtime/health.py',
-             'runtime/monitor.py', 'runtime/scheduled.py', 'runtime/upgrade.py',
+             'runtime/monitor.py', 'runtime/scheduled.py', 'runtime/upgrade.py', 'runtime/preview.py', 'runtime/operator-config.mjs',
              'runtime/systemd/morphiume-runtime-backup.service', 'runtime/systemd/morphiume-runtime-backup.timer',
              'runtime/systemd/morphiume-runtime-health.service', 'runtime/systemd/morphiume-runtime-health.timer')
+ORIGINS = {'ssh-localhost': 'http://localhost:3100', 'private-ip': 'http://192.168.240.51'}
+RELEASE_KEYS = ('sourceCommit', 'testedPlatformConfig', 'candidateManifestDigest', 'archiveSha256')
+
+
+def canonical_hash(value):
+    return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=True).encode()).hexdigest()
+
+
+def validate_identity(value):
+    if not isinstance(value, dict) or any(not isinstance(value.get(key), str) for key in RELEASE_KEYS + ('opsSha256',)) or not re.fullmatch('[a-f0-9]{40}', value['sourceCommit']) or not re.fullmatch('[a-f0-9]{64}', value['opsSha256']):
+        raise ValueError('Explicit release/source/Ops identities are required')
+    if any(not re.fullmatch('sha256:[a-f0-9]{64}', str(value.get(key, ''))) for key in ('testedPlatformConfig', 'candidateManifestDigest')) or not re.fullmatch('[a-f0-9]{64}', str(value.get('archiveSha256', ''))):
+        raise ValueError('Explicit accepted config/manifest/archive identities are required')
+
+
+def bundle_path(source, fingerprint):
+    validate_identity({'sourceCommit': source, 'opsSha256': fingerprint, 'testedPlatformConfig': 'sha256:' + '0' * 64,
+                       'candidateManifestDigest': 'sha256:' + '0' * 64, 'archiveSha256': '0' * 64})
+    return ROOT / 'releases' / source / 'ops-bundles' / fingerprint / 'ops'
+
+
+def validate_bundle_path(directory):
+    directory = Path(directory)
+    relative = directory.relative_to(ROOT / 'releases')
+    parts = relative.parts
+    # Retained legacy bundles are never overwritten. New source may coexist
+    # under an independently trusted fingerprint for the same accepted image.
+    if not (len(parts) == 2 and parts[1] == 'ops' or len(parts) == 4 and parts[1] == 'ops-bundles' and re.fullmatch('[a-f0-9]{64}', parts[2]) and parts[3] == 'ops') or not re.fullmatch('[a-f0-9]{40}', parts[0]):
+        raise ValueError('Unexpected immutable source-based Ops bundle path')
+    return directory
+
+
+def resolve_ops_bundle(source, fingerprint):
+    current = bundle_path(source, fingerprint)
+    return verify_ops_bundle(current if current.exists() else ROOT / 'releases' / source / 'ops', fingerprint)
+
+
+def profile_path(record):
+    validate_profile(record)
+    return ROOT / 'releases' / record['sourceCommit'] / 'profiles' / record['profile'] / canonical_hash(record) / 'profile.json'
+
+
+def validate_profile(record):
+    keys = set(RELEASE_KEYS) | {'version', 'profile', 'origin', 'opsSha256', 'opsRoot', 'configSha256'}
+    if not isinstance(record, dict) or set(record) != keys or type(record.get('version')) is not int or record['version'] != 1 or record.get('profile') not in ORIGINS:
+        raise ValueError('Unexpected immutable access-profile shape')
+    validate_identity(record)
+    if record['origin'] != ORIGINS[record['profile']] or record['opsRoot'] != bundle_path(record['sourceCommit'], record['opsSha256']).as_posix():
+        raise ValueError('Profile origin or immutable Ops path mismatch')
+    if not isinstance(record['configSha256'], dict) or set(record['configSha256']) != {'app.json', 'worker.json', 'migration.json'} or any(not isinstance(value, str) or not re.fullmatch('[a-f0-9]{64}', value) for value in record['configSha256'].values()):
+        raise ValueError('Profile must bind all three private runtime configurations')
+    return record
+
+
+def make_profile(report, name, configs):
+    if name not in ORIGINS: raise ValueError('Unknown access profile')
+    for file, value in configs.items():
+        validate_config(value, OWNER if file == 'migration.json' else APP, file == 'migration.json', profile=name)
+    record = {key: report[key] for key in RELEASE_KEYS + ('opsSha256',)}
+    record |= {'version': 1, 'profile': name, 'origin': ORIGINS[name],
+               'opsRoot': bundle_path(report['sourceCommit'], report['opsSha256']).as_posix(),
+               'configSha256': {file: canonical_hash(value) for file, value in configs.items()}}
+    return validate_profile(record)
+
+
+def private_directory(path):
+    path = exact_path(path)
+    metadata = path.stat()
+    if not path.is_dir() or metadata.st_uid != 0 or metadata.st_mode & 0o077:
+        raise ValueError('Profile/source directory must be root-owned and private')
+    return path
+
+
+def preserve_profile(record):
+    path = exact_path(profile_path(record))
+    base = ROOT / 'releases' / record['sourceCommit']
+    private_directory(base)
+    for directory in (base / 'profiles', base / 'profiles' / record['profile'], path.parent):
+        if not directory.exists(): directory.mkdir(mode=0o700)
+        private_directory(directory)
+    if path.exists():
+        if json.loads(private_file(path).read_text()) != record: raise ValueError('Immutable profile already differs')
+    else: write_private(path, json.dumps(record, sort_keys=True) + '\n')
+    return path
+
+
+def read_profile(path, expected_hash):
+    path = exact_path(Path(path))
+    parts = path.relative_to(ROOT / 'releases').parts
+    if len(parts) != 5 or not re.fullmatch('[a-f0-9]{40}', parts[0]) or parts[1] != 'profiles' or parts[2] not in ORIGINS or not re.fullmatch('[a-f0-9]{64}', parts[3]) or parts[4] != 'profile.json' or parts[3] != expected_hash:
+        raise ValueError('Unexpected immutable access-profile path')
+    for directory in (path.parent, *path.parent.parents):
+        if directory == ROOT / 'releases': break
+        private_directory(directory)
+    record = validate_profile(json.loads(private_file(path).read_text()))
+    if canonical_hash(record) != expected_hash or profile_path(record) != path:
+        raise ValueError('Access-profile content differs from its trusted hash/path')
+    verify_ops_bundle(Path(record['opsRoot']), record['opsSha256'])
+    return record
+
+
+def active_profile(required=False):
+    path = CONFIG / 'active-profile.json'
+    if not path.exists():
+        if required: raise ValueError('Explicit active profile is required')
+        return None  # Retained legacy SSH-only deployment, never infer private-IP.
+    pointer = json.loads(private_file(path).read_text())
+    if not isinstance(pointer, dict) or set(pointer) != {'profilePath', 'profileSha256'}:
+        raise ValueError('Unexpected active-profile pointer')
+    return read_profile(pointer['profilePath'], pointer['profileSha256'])
+
+
+def select_profile(record):
+    path = preserve_profile(record)
+    temporary = CONFIG / 'active-profile.json.new'
+    write_private(temporary, json.dumps({'profilePath': str(path), 'profileSha256': canonical_hash(record)}) + '\n')
+    if (CONFIG / 'active-profile.json').exists(): private_file(CONFIG / 'active-profile.json')
+    os.replace(temporary, CONFIG / 'active-profile.json')
+
+
+def compose_environment(image, bundle, profile=None):
+    value = f'MORPHIUME_IMAGE={image}\nMORPHIUME_OPS_ROOT={bundle}\n'
+    if profile is not None:
+        validate_profile(profile)
+        if image != profile['testedPlatformConfig'] or Path(bundle).as_posix() != profile['opsRoot']:
+            raise ValueError('Compose environment differs from the selected release/profile')
+        value = f"MORPHIUME_IMAGE={image}\nMORPHIUME_OPS_ROOT={Path(bundle).as_posix()}\nMORPHIUME_APP_BASE_URL={profile['origin']}\n"
+    return value
 
 
 def run(arguments, input_text=None, timeout=30):
@@ -102,17 +230,20 @@ def validate_url(value, role, host='db', port=5432):
         raise ValueError('Private connection selects an unexpected database or role')
 
 
-def validate_config(config, role, migration=False):
+def validate_config(config, role, migration=False, profile='ssh-localhost'):
+    if profile not in ORIGINS: raise ValueError('Unknown explicit canonical profile')
     keys = {'DATABASE_URL', 'PAYMENT_PROVIDER', 'SMS_PROVIDER'}
     if not migration:
         keys |= {'APP_BASE_URL', 'MEDIA_ROOT', 'AUTH_SECRET', 'ADMIN_AUTH_SECRET', 'MOCK_CONTROL_SECRET'}
     if not isinstance(config, dict) or set(config) != keys or any(not isinstance(value, str) or '\0' in value for value in config.values()):
         raise ValueError('Unexpected private runtime configuration shape')
     validate_url(config['DATABASE_URL'], role)
+    if not re.fullmatch('postgresql://' + re.escape(role) + ':[a-f0-9]{64}@db:5432/' + DATABASE, config['DATABASE_URL']):
+        raise ValueError('Runtime settings require the exact generated database URL shape')
     if config['PAYMENT_PROVIDER'] != 'mock' or config['SMS_PROVIDER'] != 'mock':
         raise ValueError('Only isolated synthetic providers are approved')
     if not migration:
-        if config['APP_BASE_URL'] != 'http://localhost:3100' or config['MEDIA_ROOT'] != '/app/media':
+        if config['APP_BASE_URL'] != ORIGINS[profile] or config['MEDIA_ROOT'] != '/app/media':
             raise ValueError('Private runtime origin or media root changed')
         values = [config[key] for key in ('AUTH_SECRET', 'ADMIN_AUTH_SECRET', 'MOCK_CONTROL_SECRET')]
         if len(set(values)) != 3 or any(not re.fullmatch('[a-f0-9]{64}', value) for value in values):
@@ -177,7 +308,7 @@ def verify_release(args):
         raise ValueError('Accepted source or reviewed ops bundle fingerprint mismatch')
     if run(['git', '-C', '/opt/morphiume', 'rev-parse', 'HEAD']) != args.source or run(['git', '-C', '/opt/morphiume', 'status', '--porcelain']):
         raise ValueError('Checkout must be clean at the explicitly accepted source')
-    allowed_ops = (Path('/opt/morphiume/deploy/staging'), ROOT / 'releases' / args.source / 'ops')
+    allowed_ops = (Path('/opt/morphiume/deploy/staging'), ROOT / 'releases' / args.source / 'ops', bundle_path(args.source, args.ops_sha256))
     if OPS_ROOT not in allowed_ops:
         raise ValueError('Use the accepted checkout or exact reviewed release ops directory')
     exact_path(OPS_ROOT)
@@ -207,8 +338,7 @@ def compose(image, env_file=None, ops_root=None):
     if environment not in (CONFIG / 'deploy.env', CONFIG / 'deploy.candidate.env'):
         raise ValueError('Unexpected runtime Compose environment path')
     bundle = Path(ops_root) if ops_root else OPS_ROOT
-    if ops_root and (bundle.parent.parent != ROOT / 'releases' or not re.fullmatch('[a-f0-9]{40}', bundle.parent.name) or bundle.name != 'ops'):
-        raise ValueError('Unexpected preserved runtime Ops bundle directory')
+    if ops_root: validate_bundle_path(bundle); exact_path(bundle)
     return ['docker', 'compose', '--project-name', PROJECT, '--env-file', str(environment),
             '-f', str(bundle / 'runtime/compose.yaml')]
 
@@ -220,12 +350,17 @@ def ops_manifest():
 def preserve_ops_bundle(source):
     if not re.fullmatch('[a-f0-9]{40}', source):
         raise ValueError('Invalid accepted source for Ops preservation')
-    destination = exact_path(ROOT / 'releases' / source / 'ops')
+    destination = exact_path(bundle_path(source, ops_digest()))
     if destination.exists() and destination != OPS_ROOT:
         if verify_ops_bundle(destination, ops_digest()) != destination:
             raise ValueError('Preserved Ops bundle differs from the reviewed source')
         return destination
     if not destination.exists():
+        base = ROOT / 'releases' / source
+        private_directory(base)
+        for directory in (base / 'ops-bundles', destination.parent):
+            if not directory.exists(): directory.mkdir(mode=0o700)
+            private_directory(directory)
         destination.mkdir(mode=0o700)
         for name in OPS_FILES:
             target = exact_path(destination / name)
@@ -246,10 +381,14 @@ def preserve_ops_bundle(source):
 
 def verify_ops_bundle(directory, expected_hash):
     directory = exact_path(directory)
-    if directory.parent.parent != ROOT / 'releases' or directory.name != 'ops' or not re.fullmatch('[a-f0-9]{40}', directory.parent.name):
-        raise ValueError('Use an exact immutable runtime release Ops directory')
+    validate_bundle_path(directory)
+    if directory.parent.parent.name == 'ops-bundles' and directory.parent.name != expected_hash:
+        raise ValueError('Ops directory fingerprint differs from the explicitly trusted hash')
     if directory.stat().st_uid != 0 or directory.stat().st_mode & 0o077:
         raise ValueError('Preserved Ops directory must be private and root-owned')
+    for parent in directory.parents:
+        if parent == ROOT / 'releases': break
+        private_directory(parent)
     values = json.loads(private_file(directory / 'ops-manifest.json').read_text())
     if not isinstance(values, dict) or not 1 <= len(values) <= 64:
         raise ValueError('Unexpected preserved Ops manifest shape')
@@ -271,15 +410,23 @@ def load_configs():
     metadata = CONFIG.stat()
     if metadata.st_uid != 0 or metadata.st_mode & 0o077:
         raise ValueError('Runtime configuration directory must be private and root-owned')
+    profile = active_profile()
     configs = {}
     for name in ('app.json', 'worker.json', 'migration.json'):
         value = json.loads(private_file(CONFIG / name, uid=1001).read_text())
-        validate_config(value, OWNER if name == 'migration.json' else APP, name == 'migration.json')
+        validate_config(value, OWNER if name == 'migration.json' else APP, name == 'migration.json', profile=profile['profile'] if profile else 'ssh-localhost')
+        if profile and canonical_hash(value) != profile['configSha256'][name]:
+            raise ValueError('Private configuration differs from the immutable active profile')
         configs[name] = value
     secrets_used = [configs[name][key] for name in ('app.json', 'worker.json') for key in ('AUTH_SECRET', 'ADMIN_AUTH_SECRET', 'MOCK_CONTROL_SECRET')]
     if len(set(secrets_used)) != 6 or configs['app.json']['DATABASE_URL'] != configs['worker.json']['DATABASE_URL']:
         raise ValueError('Private runtime credentials are not independently scoped')
     return configs
+
+
+def profile_name():
+    value = active_profile()
+    return value['profile'] if value else 'ssh-localhost'
 
 
 def lock():

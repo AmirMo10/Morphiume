@@ -19,6 +19,8 @@ def validate_acceptance(approval, evidence, release):
         raise ValueError('Runtime scheduling approval is absent or incompatible')
     if any(approval.get(key) != release[key] for key in ('sourceCommit', 'testedPlatformConfig', 'opsSha256')):
         raise ValueError('Runtime scheduling approval differs from reviewed release')
+    if release.get('accessProfileSha256') and approval.get('accessProfileSha256') != release['accessProfileSha256']:
+        raise ValueError('Timer approval must explicitly bind the current canonical profile')
     if not isinstance(evidence, dict) or set(evidence.get('checks', {})) != CHECKS or not all(value is True for value in evidence['checks'].values()):
         raise ValueError('Actual native restore business acceptance is incomplete')
     if not evidence.get('acceptedUtc') or evidence.get('sourceCommit') != release['sourceCommit'] or evidence.get('testedPlatformConfig') != release['testedPlatformConfig']:
@@ -32,6 +34,9 @@ def main(action, apply=False):
     if not apply:
         return {'mode': 'unexecuted-plan', 'action': action, 'scope': c.PROJECT, 'notificationDelivery': 'local-only-not-configured'}
     c.assert_boundaries()
+    if (c.CONFIG / 'preview-transition.json').exists():
+        state = json.loads(c.private_file(c.CONFIG / 'preview-transition.json').read_text())
+        if state.get('phase') not in ('accepted', 'rolled-back'): raise ValueError('Scheduling is closed during partial preview/native acceptance')
     approval = json.loads(c.private_file(c.CONFIG / 'schedule-approved.json').read_text())
     deployed = json.loads(c.private_file(c.CONFIG / 'deployed-release.json').read_text())
     evidence_path = c.exact_path(Path(approval.get('restoreEvidence', '')))

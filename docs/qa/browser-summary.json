@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-10-12T17:41:57.836Z",
-  "startedAt": "2026-10-12T17:26:31.340Z",
-  "durationMs": 560980.11,
-  "expected": 22,
+  "generatedAt": "2026-10-12T19:04:07.496Z",
+  "startedAt": "2026-10-12T18:50:25.575Z",
+  "durationMs": 627080.353,
+  "expected": 28,
   "unexpected": 0,
   "skipped": 0,
   "flaky": 0,
@@ -11,7 +11,7 @@
       "title": "T01/T20/T21: HTTP paging exceeds legacy limits, selected-volume price agrees with guide, CSV and staging SEO",
       "project": "chromium",
       "status": "passed",
-      "durationMs": 14443,
+      "durationMs": 15623,
       "retry": 0,
       "errorCount": 0,
       "nativeAuthStatuses": [
@@ -86,13 +86,14 @@
           "formPresent": null,
           "readiness": "ready"
         }
-      ]
+      ],
+      "httpResponses": []
     },
     {
       "title": "T01/T20/T21: HTTP paging exceeds legacy limits, selected-volume price agrees with guide, CSV and staging SEO",
       "project": "webkit",
       "status": "passed",
-      "durationMs": 18245,
+      "durationMs": 20234,
       "retry": 0,
       "errorCount": 0,
       "nativeAuthStatuses": [
@@ -167,13 +168,14 @@
           "formPresent": null,
           "readiness": "ready"
         }
-      ]
+      ],
+      "httpResponses": []
     },
     {
       "title": "T05/T09/T20: collection SSR without JavaScript preserves paging/filter identity and real308/404",
       "project": "chromium",
       "status": "passed",
-      "durationMs": 10430,
+      "durationMs": 10559,
       "retry": 0,
       "errorCount": 0,
       "nativeAuthStatuses": [
@@ -206,7 +208,7 @@
       "adminReadiness": [
         {
           "expectedAlias": "admin-home",
-          "actualAlias": "admin-login",
+          "actualAlias": "admin-home",
           "documentHttpStatus": null,
           "sessionHttpStatus": 200,
           "mfaVerified": true,
@@ -223,6 +225,38 @@
           "roleAllowed": true,
           "formPresent": null,
           "readiness": "ready"
+        }
+      ],
+      "httpResponses": [
+        {
+          "stage": "collection-save",
+          "status": 200,
+          "serverRequestId": "5d5c6ebe-26a2-40e5-8b7f-c80785d47626"
+        },
+        {
+          "stage": "collection-save",
+          "status": 200,
+          "serverRequestId": "19085aa7-5ca3-48aa-8162-3d6c3cc178d5"
+        },
+        {
+          "stage": "collection-save",
+          "status": 400,
+          "serverRequestId": "13393510-d7b0-474b-a65d-98988c3b8ef8"
+        },
+        {
+          "stage": "collection-save",
+          "status": 409,
+          "serverRequestId": "221b06fc-7319-4ab1-b9bd-863e5c2c7bdf"
+        },
+        {
+          "stage": "collection-save",
+          "status": 200,
+          "serverRequestId": "97c8cb33-f46b-4215-b38e-3b363d6cfdc0"
+        },
+        {
+          "stage": "collection-save",
+          "status": 200,
+          "serverRequestId": "4268489a-4d34-4732-820f-60605d769268"
         }
       ]
     },
@@ -230,7 +264,7 @@
       "title": "T05/T09/T20: collection SSR without JavaScript preserves paging/filter identity and real308/404",
       "project": "webkit",
       "status": "passed",
-      "durationMs": 13383,
+      "durationMs": 13535,
       "retry": 0,
       "errorCount": 0,
       "nativeAuthStatuses": [
@@ -281,13 +315,45 @@
           "formPresent": null,
           "readiness": "ready"
         }
+      ],
+      "httpResponses": [
+        {
+          "stage": "collection-save",
+          "status": 200,
+          "serverRequestId": "b5f2eef0-49b9-46f7-86d5-af6be9688ffe"
+        },
+        {
+          "stage": "collection-save",
+          "status": 200,
+          "serverRequestId": "f4d66762-8c4d-4b58-aef0-a727bfd7b6ca"
+        },
+        {
+          "stage": "collection-save",
+          "status": 400,
+          "serverRequestId": "82fe861d-d10b-442a-979b-741042654bf7"
+        },
+        {
+          "stage": "collection-save",
+          "status": 409,
+          "serverRequestId": "619c60e8-ae00-40a6-93c4-12ef9e14e629"
+        },
+        {
+          "stage": "collection-save",
+          "status": 200,
+          "serverRequestId": "fb506138-91f6-428b-a6d8-f51d14c014cd"
+        },
+        {
+          "stage": "collection-save",
+          "status": 200,
+          "serverRequestId": "2d4b0e4d-1706-43eb-acd8-d3bc9fece2ea"
+        }
       ]
     },
     {
       "title": "T01/T12/T17/T19/T20/T21/T23/T25: real admin product → guest purchase → mock verification → stock → owned tracking",
       "project": "chromium",
       "status": "passed",
-      "durationMs": 24466,
+      "durationMs": 24119,
       "retry": 0,
       "errorCount": 0,
       "nativeAuthStatuses": [
@@ -368,7 +434,7 @@
       "adminReadiness": [
         {
           "expectedAlias": "admin-home",
-          "actualAlias": "admin-login",
+          "actualAlias": "admin-home",
           "documentHttpStatus": null,
           "sessionHttpStatus": 200,
           "mfaVerified": true,
@@ -406,13 +472,14 @@
           "formPresent": true,
           "readiness": "ready"
         }
-      ]
+      ],
+      "httpResponses": []
     },
     {
       "title": "T01/T12/T17/T19/T20/T21/T23/T25: real admin product → guest purchase → mock verification → stock → owned tracking",
       "project": "webkit",
       "status": "passed",
-      "durationMs": 81494,
+      "durationMs": 81737,
       "retry": 0,
       "errorCount": 0,
       "nativeAuthStatuses": [
@@ -461,7 +528,7 @@
           "category": "customer-phone-verify",
           "attempt": 1,
           "status": 429,
-          "retryAfterSeconds": 25,
+          "retryAfterSeconds": 24,
           "retryAfterHeader": "x-retry-after"
         },
         {
@@ -485,7 +552,7 @@
           "category": "customer-phone-send-otp",
           "attempt": 1,
           "status": 429,
-          "retryAfterSeconds": 21,
+          "retryAfterSeconds": 22,
           "retryAfterHeader": "x-retry-after"
         },
         {
@@ -547,13 +614,14 @@
           "formPresent": true,
           "readiness": "ready"
         }
-      ]
+      ],
+      "httpResponses": []
     },
     {
       "title": "T01/T05/T17/T20: real gallery upload, reorder, SKU selection and archive retain pending edits",
       "project": "chromium",
       "status": "passed",
-      "durationMs": 13715,
+      "durationMs": 13532,
       "retry": 0,
       "errorCount": 0,
       "nativeAuthStatuses": [
@@ -624,13 +692,14 @@
           "formPresent": true,
           "readiness": "ready"
         }
-      ]
+      ],
+      "httpResponses": []
     },
     {
       "title": "T01/T05/T17/T20: real gallery upload, reorder, SKU selection and archive retain pending edits",
       "project": "webkit",
       "status": "passed",
-      "durationMs": 19535,
+      "durationMs": 19476,
       "retry": 0,
       "errorCount": 0,
       "nativeAuthStatuses": [
@@ -701,35 +770,38 @@
           "formPresent": true,
           "readiness": "ready"
         }
-      ]
+      ],
+      "httpResponses": []
     },
     {
       "title": "T12/T19/T23: real native auth wrappers bound requests, preserve no-store and issue server request IDs",
       "project": "chromium",
       "status": "passed",
-      "durationMs": 59,
+      "durationMs": 62,
       "retry": 0,
       "errorCount": 0,
       "nativeAuthStatuses": [],
       "publicMetadataStatuses": [],
-      "adminReadiness": []
+      "adminReadiness": [],
+      "httpResponses": []
     },
     {
       "title": "T12/T19/T23: real native auth wrappers bound requests, preserve no-store and issue server request IDs",
       "project": "webkit",
       "status": "passed",
-      "durationMs": 56,
+      "durationMs": 99,
       "retry": 0,
       "errorCount": 0,
       "nativeAuthStatuses": [],
       "publicMetadataStatuses": [],
-      "adminReadiness": []
+      "adminReadiness": [],
+      "httpResponses": []
     },
     {
       "title": "T06/T07/T20: inventory-only native MFA cannot receive or mutate price through variants/bulk",
       "project": "chromium",
       "status": "passed",
-      "durationMs": 31264,
+      "durationMs": 30767,
       "retry": 0,
       "errorCount": 0,
       "nativeAuthStatuses": [
@@ -826,7 +898,7 @@
       "adminReadiness": [
         {
           "expectedAlias": "admin-home",
-          "actualAlias": "admin-login",
+          "actualAlias": "admin-home",
           "documentHttpStatus": null,
           "sessionHttpStatus": 200,
           "mfaVerified": true,
@@ -864,13 +936,14 @@
           "formPresent": null,
           "readiness": "ready"
         }
-      ]
+      ],
+      "httpResponses": []
     },
     {
       "title": "T06/T07/T20: inventory-only native MFA cannot receive or mutate price through variants/bulk",
       "project": "webkit",
       "status": "passed",
-      "durationMs": 42053,
+      "durationMs": 38611,
       "retry": 0,
       "errorCount": 0,
       "nativeAuthStatuses": [
@@ -1005,13 +1078,14 @@
           "formPresent": null,
           "readiness": "ready"
         }
-      ]
+      ],
+      "httpResponses": []
     },
     {
       "title": "T12/T19/T21: typed Tehran-period report follows real receipts/refunds and Jalali UI preserves read-only queues",
       "project": "chromium",
       "status": "passed",
-      "durationMs": 14121,
+      "durationMs": 12978,
       "retry": 0,
       "errorCount": 0,
       "nativeAuthStatuses": [
@@ -1084,7 +1158,7 @@
       "adminReadiness": [
         {
           "expectedAlias": "admin-home",
-          "actualAlias": "admin-login",
+          "actualAlias": "admin-home",
           "documentHttpStatus": null,
           "sessionHttpStatus": 200,
           "mfaVerified": true,
@@ -1104,7 +1178,7 @@
         },
         {
           "expectedAlias": "admin-home",
-          "actualAlias": "admin-login",
+          "actualAlias": "admin-home",
           "documentHttpStatus": null,
           "sessionHttpStatus": 200,
           "mfaVerified": true,
@@ -1122,13 +1196,14 @@
           "formPresent": null,
           "readiness": "ready"
         }
-      ]
+      ],
+      "httpResponses": []
     },
     {
       "title": "T12/T19/T21: typed Tehran-period report follows real receipts/refunds and Jalali UI preserves read-only queues",
       "project": "webkit",
       "status": "passed",
-      "durationMs": 17583,
+      "durationMs": 16907,
       "retry": 0,
       "errorCount": 0,
       "nativeAuthStatuses": [
@@ -1239,13 +1314,14 @@
           "formPresent": null,
           "readiness": "ready"
         }
-      ]
+      ],
+      "httpResponses": []
     },
     {
       "title": "T09/T12/T19/T25: native owner presentation pause refuses new checkout but preserves exact replay and callback",
       "project": "chromium",
       "status": "passed",
-      "durationMs": 24349,
+      "durationMs": 24339,
       "retry": 0,
       "errorCount": 0,
       "nativeAuthStatuses": [
@@ -1372,13 +1448,14 @@
           "formPresent": null,
           "readiness": "ready"
         }
-      ]
+      ],
+      "httpResponses": []
     },
     {
       "title": "T09/T12/T19/T25: native owner presentation pause refuses new checkout but preserves exact replay and callback",
       "project": "webkit",
       "status": "passed",
-      "durationMs": 32810,
+      "durationMs": 31553,
       "retry": 0,
       "errorCount": 0,
       "nativeAuthStatuses": [
@@ -1497,13 +1574,656 @@
           "formPresent": null,
           "readiness": "ready"
         }
+      ],
+      "httpResponses": []
+    },
+    {
+      "title": "T01/T05/T20: native product copy creates, previews, publishes, preserves absent fields and imports optional CSV",
+      "project": "chromium",
+      "status": "passed",
+      "durationMs": 16798,
+      "retry": 0,
+      "errorCount": 0,
+      "nativeAuthStatuses": [
+        {
+          "stage": "password-sign-in",
+          "category": "admin-sign-in-email",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "mfa-enable",
+          "category": "admin-two-factor-enable",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-enrollment",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        }
+      ],
+      "publicMetadataStatuses": [],
+      "adminReadiness": [
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "observed"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "ready"
+        },
+        {
+          "expectedAlias": "admin-products-new",
+          "actualAlias": "admin-products-new",
+          "documentHttpStatus": 200,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": true,
+          "readiness": "observed"
+        },
+        {
+          "expectedAlias": "admin-products-new",
+          "actualAlias": "admin-products-new",
+          "documentHttpStatus": 200,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": true,
+          "readiness": "ready"
+        }
+      ],
+      "httpResponses": [
+        {
+          "stage": "product-create",
+          "status": 201,
+          "serverRequestId": "ad2c7ef4-9f86-47ca-8e9b-0c04887b21b1"
+        },
+        {
+          "stage": "product-update",
+          "status": 200,
+          "serverRequestId": "9beff836-0a28-4ff9-b347-7bd8779adea9"
+        },
+        {
+          "stage": "product-publish",
+          "status": 200,
+          "serverRequestId": "4bfa0731-b3bb-4491-b51a-62a093063c64"
+        },
+        {
+          "stage": "product-update",
+          "status": 200,
+          "serverRequestId": "91b412cc-cf02-4579-9317-902337e6cc92"
+        },
+        {
+          "stage": "product-update",
+          "status": 409,
+          "serverRequestId": "7dbe82dc-7103-420d-9ef6-0506e0fc43f2"
+        },
+        {
+          "stage": "product-import",
+          "status": 200,
+          "serverRequestId": "7bd4c262-6432-4454-b4de-61b434950769"
+        },
+        {
+          "stage": "product-import",
+          "status": 200,
+          "serverRequestId": "d0257b22-03bb-4113-9736-ae77cf41fcef"
+        },
+        {
+          "stage": "product-read",
+          "status": 200,
+          "serverRequestId": "e9f3fea2-d707-436c-ab6e-fccdc95588af"
+        },
+        {
+          "stage": "product-import",
+          "status": 200,
+          "serverRequestId": "bf495683-6516-404d-aa4d-e7f2800966d3"
+        },
+        {
+          "stage": "product-export",
+          "status": 200,
+          "serverRequestId": "996ddd85-7b34-48e8-81dd-6006b05e0497"
+        },
+        {
+          "stage": "product-update",
+          "status": 200,
+          "serverRequestId": "2bcac2d4-67f5-4c7a-a636-80baceacda5a"
+        }
+      ]
+    },
+    {
+      "title": "T12/T19:205 native authenticated internal session reads preserve quota; actual HTTP get-session remains charged",
+      "project": "chromium",
+      "status": "passed",
+      "durationMs": 5877,
+      "retry": 0,
+      "errorCount": 0,
+      "nativeAuthStatuses": [
+        {
+          "stage": "password-sign-in",
+          "category": "admin-sign-in-email",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "mfa-enable",
+          "category": "admin-two-factor-enable",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-enrollment",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        }
+      ],
+      "publicMetadataStatuses": [],
+      "adminReadiness": [
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-login",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "observed"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "ready"
+        }
+      ],
+      "httpResponses": [
+        {
+          "stage": "admin-session-read",
+          "status": 200,
+          "serverRequestId": "ffaba78c-7387-4258-99ad-81b9571676e7"
+        },
+        {
+          "stage": "admin-session-read",
+          "status": 200,
+          "serverRequestId": "6379ae02-29a3-420f-8b12-24bb17ec457c"
+        },
+        {
+          "stage": "admin-http-session-read",
+          "status": 200,
+          "serverRequestId": "83f22312-12df-43c7-b863-bdc62ab3944c"
+        }
+      ]
+    },
+    {
+      "title": "T19/T20:native role revocation during a product row-lock wait returns403 without product effects",
+      "project": "chromium",
+      "status": "passed",
+      "durationMs": 7220,
+      "retry": 0,
+      "errorCount": 0,
+      "nativeAuthStatuses": [
+        {
+          "stage": "password-sign-in",
+          "category": "admin-sign-in-email",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "mfa-enable",
+          "category": "admin-two-factor-enable",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-enrollment",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "password-sign-in",
+          "category": "admin-sign-in-email",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "mfa-enable",
+          "category": "admin-two-factor-enable",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-enrollment",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        }
+      ],
+      "publicMetadataStatuses": [],
+      "adminReadiness": [
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "observed"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "ready"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "observed"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "ready"
+        }
+      ],
+      "httpResponses": [
+        {
+          "stage": "role-revoke",
+          "status": 200,
+          "serverRequestId": "627fd79c-85df-4b15-a016-bcd109e4cc7e"
+        },
+        {
+          "stage": "product-lock-revocation",
+          "status": 403,
+          "serverRequestId": "3e6d41f1-18ca-41b9-90cd-56370800f157"
+        }
+      ]
+    },
+    {
+      "title": "T01/T05/T20: native product copy creates, previews, publishes, preserves absent fields and imports optional CSV",
+      "project": "webkit",
+      "status": "passed",
+      "durationMs": 20678,
+      "retry": 0,
+      "errorCount": 0,
+      "nativeAuthStatuses": [
+        {
+          "stage": "password-sign-in",
+          "category": "admin-sign-in-email",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "mfa-enable",
+          "category": "admin-two-factor-enable",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-enrollment",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        }
+      ],
+      "publicMetadataStatuses": [],
+      "adminReadiness": [
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-login",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "observed"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "ready"
+        },
+        {
+          "expectedAlias": "admin-products-new",
+          "actualAlias": "admin-products-new",
+          "documentHttpStatus": 200,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": false,
+          "readiness": "observed"
+        },
+        {
+          "expectedAlias": "admin-products-new",
+          "actualAlias": "admin-products-new",
+          "documentHttpStatus": 200,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": true,
+          "readiness": "ready"
+        }
+      ],
+      "httpResponses": [
+        {
+          "stage": "product-create",
+          "status": 201,
+          "serverRequestId": "3ee0056c-24ab-4497-b530-a210c65b956e"
+        },
+        {
+          "stage": "product-update",
+          "status": 200,
+          "serverRequestId": "f8e20b7a-d6b4-4771-bbc9-1d52d152fe2c"
+        },
+        {
+          "stage": "product-publish",
+          "status": 200,
+          "serverRequestId": "ab682e85-fd8a-4179-aa17-9137a8cf0471"
+        },
+        {
+          "stage": "product-update",
+          "status": 200,
+          "serverRequestId": "d5280c7a-4e59-453c-87b7-80d7423e7ac2"
+        },
+        {
+          "stage": "product-update",
+          "status": 409,
+          "serverRequestId": "32732c6e-4a5b-4a18-bccf-df2e9a1703e6"
+        },
+        {
+          "stage": "product-import",
+          "status": 200,
+          "serverRequestId": "91b7fcbc-3f74-4d35-a195-13370b70d520"
+        },
+        {
+          "stage": "product-import",
+          "status": 200,
+          "serverRequestId": "79261b06-f475-4895-8270-e116bf1d61ea"
+        },
+        {
+          "stage": "product-read",
+          "status": 200,
+          "serverRequestId": "710834af-01a4-4d1e-88e5-ab11f5ccbf15"
+        },
+        {
+          "stage": "product-import",
+          "status": 200,
+          "serverRequestId": "ecc931be-b689-45db-9862-f6e122a619d6"
+        },
+        {
+          "stage": "product-export",
+          "status": 200,
+          "serverRequestId": "078df5bc-85ac-4163-8b6c-82af9e115d13"
+        },
+        {
+          "stage": "product-update",
+          "status": 200,
+          "serverRequestId": "fcb74723-e264-47b5-adcb-0efa652ccefd"
+        }
+      ]
+    },
+    {
+      "title": "T12/T19:205 native authenticated internal session reads preserve quota; actual HTTP get-session remains charged",
+      "project": "webkit",
+      "status": "passed",
+      "durationMs": 6318,
+      "retry": 0,
+      "errorCount": 0,
+      "nativeAuthStatuses": [
+        {
+          "stage": "password-sign-in",
+          "category": "admin-sign-in-email",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "mfa-enable",
+          "category": "admin-two-factor-enable",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-enrollment",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        }
+      ],
+      "publicMetadataStatuses": [],
+      "adminReadiness": [
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-login",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "observed"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "ready"
+        }
+      ],
+      "httpResponses": [
+        {
+          "stage": "admin-session-read",
+          "status": 200,
+          "serverRequestId": "0331128a-1be8-4605-a9f7-6d038d0332ee"
+        },
+        {
+          "stage": "admin-session-read",
+          "status": 200,
+          "serverRequestId": "a95ca439-81ea-46a9-b62f-62f4e6777bc1"
+        },
+        {
+          "stage": "admin-http-session-read",
+          "status": 200,
+          "serverRequestId": "6ce5081e-eed0-4efd-bfbc-dbddfe02da5a"
+        }
+      ]
+    },
+    {
+      "title": "T19/T20:native role revocation during a product row-lock wait returns403 without product effects",
+      "project": "webkit",
+      "status": "passed",
+      "durationMs": 17507,
+      "retry": 0,
+      "errorCount": 0,
+      "nativeAuthStatuses": [
+        {
+          "stage": "password-sign-in",
+          "category": "admin-sign-in-email",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "mfa-enable",
+          "category": "admin-two-factor-enable",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-enrollment",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "password-sign-in",
+          "category": "admin-sign-in-email",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "mfa-enable",
+          "category": "admin-two-factor-enable",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-enrollment",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        }
+      ],
+      "publicMetadataStatuses": [],
+      "adminReadiness": [
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "observed"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "ready"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "observed"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "ready"
+        }
+      ],
+      "httpResponses": [
+        {
+          "stage": "role-revoke",
+          "status": 200,
+          "serverRequestId": "e21ff0b5-270f-4962-93fa-0e45ce30d1bd"
+        },
+        {
+          "stage": "product-lock-revocation",
+          "status": 403,
+          "serverRequestId": "ad6f4322-143c-4784-93de-5271a042f961"
+        }
       ]
     },
     {
       "title": "T20: public Persian pages remain usable at 320px with keyboard and reduced motion",
       "project": "chromium",
       "status": "passed",
-      "durationMs": 4261,
+      "durationMs": 4379,
       "retry": 0,
       "errorCount": 0,
       "nativeAuthStatuses": [],
@@ -1725,13 +2445,14 @@
           "readiness": "ready"
         }
       ],
-      "adminReadiness": []
+      "adminReadiness": [],
+      "httpResponses": []
     },
     {
       "title": "T20: public Persian pages remain usable at 320px with keyboard and reduced motion",
       "project": "webkit",
       "status": "passed",
-      "durationMs": 6145,
+      "durationMs": 6567,
       "retry": 0,
       "errorCount": 0,
       "nativeAuthStatuses": [],
@@ -1953,13 +2674,14 @@
           "readiness": "ready"
         }
       ],
-      "adminReadiness": []
+      "adminReadiness": [],
+      "httpResponses": []
     },
     {
       "title": "T11/T12/T19/T21: kind-aware cancel/return and confirmed refund non-transfer preserve stock, budget and actor-bound replay",
       "project": "chromium",
       "status": "passed",
-      "durationMs": 36549,
+      "durationMs": 37393,
       "retry": 0,
       "errorCount": 0,
       "nativeAuthStatuses": [
@@ -1967,6 +2689,14 @@
           "stage": "password-sign-in",
           "category": "admin-sign-in-email",
           "attempt": 1,
+          "status": 429,
+          "retryAfterSeconds": 1,
+          "retryAfterHeader": "x-retry-after"
+        },
+        {
+          "stage": "password-sign-in",
+          "category": "admin-sign-in-email",
+          "attempt": 2,
           "status": 200,
           "retryAfterSeconds": null,
           "retryAfterHeader": "absent"
@@ -2078,13 +2808,14 @@
           "formPresent": null,
           "readiness": "ready"
         }
-      ]
+      ],
+      "httpResponses": []
     },
     {
       "title": "T11/T12/T19/T21: kind-aware cancel/return and confirmed refund non-transfer preserve stock, budget and actor-bound replay",
       "project": "webkit",
       "status": "passed",
-      "durationMs": 80927,
+      "durationMs": 77059,
       "retry": 0,
       "errorCount": 0,
       "nativeAuthStatuses": [
@@ -2203,13 +2934,14 @@
           "formPresent": null,
           "readiness": "ready"
         }
-      ]
+      ],
+      "httpResponses": []
     },
     {
       "title": "T07/T15/T19/T21/T23/T29: fresh native shipping approval resets checkout consent; notes, return and refund remain exact",
       "project": "chromium",
       "status": "passed",
-      "durationMs": 31724,
+      "durationMs": 29650,
       "retry": 0,
       "errorCount": 0,
       "nativeAuthStatuses": [
@@ -2284,13 +3016,35 @@
           "formPresent": null,
           "readiness": "ready"
         }
+      ],
+      "httpResponses": [
+        {
+          "stage": "shipping-read",
+          "status": 200,
+          "serverRequestId": "f68470b0-1780-4c70-abd3-a2e866b1c281"
+        },
+        {
+          "stage": "shipping-write",
+          "status": 200,
+          "serverRequestId": "d455e70b-bec0-4159-9716-5328b03b2aef"
+        },
+        {
+          "stage": "shipping-read",
+          "status": 200,
+          "serverRequestId": "cf936474-3bbd-43ce-9665-0f0d38c22aaa"
+        },
+        {
+          "stage": "shipping-write",
+          "status": 200,
+          "serverRequestId": "9e07fe0e-3649-4f95-baba-0865480a1f24"
+        }
       ]
     },
     {
       "title": "T07/T15/T19/T21/T23/T29: fresh native shipping approval resets checkout consent; notes, return and refund remain exact",
       "project": "webkit",
       "status": "passed",
-      "durationMs": 39414,
+      "durationMs": 39402,
       "retry": 0,
       "errorCount": 0,
       "nativeAuthStatuses": [
@@ -2364,6 +3118,28 @@
           "roleAllowed": true,
           "formPresent": null,
           "readiness": "ready"
+        }
+      ],
+      "httpResponses": [
+        {
+          "stage": "shipping-read",
+          "status": 200,
+          "serverRequestId": "d1a1e505-c56a-452f-887f-9781f83c38fd"
+        },
+        {
+          "stage": "shipping-write",
+          "status": 200,
+          "serverRequestId": "2ddd195b-5a14-4c9c-8085-c550a7a98646"
+        },
+        {
+          "stage": "shipping-read",
+          "status": 200,
+          "serverRequestId": "cd184be4-cba3-44db-8d85-c34800a3c3b1"
+        },
+        {
+          "stage": "shipping-write",
+          "status": 200,
+          "serverRequestId": "00b1fb0a-08ea-4998-880b-f791cfe72075"
         }
       ]
     }

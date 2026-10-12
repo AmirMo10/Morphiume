@@ -2,6 +2,8 @@
 
 ## آخرین پذیرش معتبر
 
+تشخیص دقیق CI fd74961: Firefox full-purchase در native **admin password sign-in** ابتدا429 با X-Retry-After7 و پس از7.351s دوباره429 بدون هر دو header retry گرفت؛ OTP مشتری علت این شکست نبود. WebKit shipping با TypeError از current.version شکست خورد چون پاسخ GET فاقد data بود؛ status آن GET ثبت نشده بود. Firefox rename مستقل500 داشت. هیچ server request.completed در log دریافت‌شده نیست؛ علت پاسخ‌های برنامه هنوز طبقه‌بندی نشده است.
+
 | اجرای مشخص | نتیجهٔ مشاهده‌شده |
 |---|---|
 | working tree یکپارچه |۲۲۸/۲۲۸،۲۶فایل،635.89s،exit0؛ اجرای جامع پیش از discovery فایل guard تازه بود |
@@ -12,7 +14,21 @@
 | اصلاح جداگانهٔ شاهد تصویری | در دو موتور، فرم draft مصنوعیِ واقعاً آماده و تصویر decodeشده؛ کاتالوگ SSR با API client کنترل‌شده و scroll/decode واقعی؛ چهار PNG، بدون خرید/مشتری/پرداخت تازه |
 | Linux static زیرساخت |۱۵/۱۵ آزمون خالص، symlink واقعی، Python/Bash syntax، چهار systemd unit و calendar03UTC موفق؛ هیچ سرویس/PG/Docker/checkout/key/config اصلی تغییر نکرد |
 | ابزار ارتقا/backup واردشده |۹/۹ آزمون محلی با مرزهای DB/Docker/encryption کنترل‌شده؛ فراخوانی واقعی تابع بدون CLI-global، ترتیب backup پیش از migration و حفظ حالت شکست؛ اجرای ارتقا/backup واقعی سرور نیست. CI اجرای Linux هر دو suite خالص را به verify اضافه کرده است |
-| CI آخرین main d7d0c0c | verify۱۵۰/۱۵۰ و۱۸/۱۸ Linux؛ image۱۷/۱۸ و Firefox gallery شکست؛ nativeTLS/Sharp و فرمان Grype exit0؛ worker/publish/export اجرا نشدند |
+| CI checkpoint fd74961 | [run38286418414](https://github.com/AmirMo10/Morphiume/actions/runs/38286418414)،۲۷۶/۲۷۶ در۲۷فایل؛ Python safety، lint/types/audit/build موفق؛ مرورگر۳۰/۳۳ در6.8min. Firefox collection rename500، Firefox nativeadmin429 پس از retry، WebKit shipping شکست جدا با علت هنوز نامعلوم؛ image skipped |
+| CI پیشین d7d0c0c | verify۱۵۰/۱۵۰ و۱۸/۱۸ Linux؛ image۱۷/۱۸ و Firefox gallery شکست؛ nativeTLS/Sharp و فرمان Grype exit0؛ worker/publish/export اجرا نشدند |
+| delta هدفمند بعد از checkpoint | CSV سه آزمون286ms؛ observability10+CSV3،۱۳/۱۳ در805ms برای طبقه‌بندی ثابت خطای داخلی بدون metadata خصوصی؛ این اجراها مستقل‌اند، نه شمار اضافه بر۴۰۱ |
+| اطلاعات کالا و مجوز نهایی | تجارت۱۵۴/۱۵۴ در۱۷فایل،628.70s؛ شامل۱۰محتوا و اصلاح۷baseline واقعیِ ثبت غیرمجاز پس از قفل؛۲۰هدفمند و۳archive زیرمجموعه‌اند و جمع نمی‌شوند |
+| PUBLIC0011 | یک migration در1.271s؛ total11/checksumfc4feb95…؛۴۸جدول قبلی و۳۴۱تعریف ستون قدیمی ثابت،۸۵۲۴محصول دارای۳متن خالی/nonNULL؛ history۱..۱۰ حفظ، بدون backfill/DML |
+| خواندن build قدیمی بعد از0011 | old production89652/server36884، GETcatalog200/یک عضو/فیلدهای legacy؛ فیلد جدید absent و X-Request-ID معتبر. این probe Windows runtime بود، نه Linux image؛ سپس server متوقف/listener3000صفر |
+| scope محدودیت auth | خود BetterAuth1.7.7+memoryadapter/limiter کنترل‌شده: baseline۲fail/۱pass در2.01s؛ اصلاح۳pass. authscope3/budget4/obs10/CSV3،۲۰/۲۰ در3.90s؛ صفر SQL واقعی، آستانه HTTP200/60 وSMS500/hour ثابت |
+| رگرسیون یکپارچهٔ همین delta | session10069،۴۰۱/۴۰۱ در۳۴فایل و695.85s،exit0؛ source منجمد، window آزاد. شمار۱۵۴و۲۰هدفمند و نتایج قبلی، به۴۰۱ افزوده نمی‌شوند |
+| production تازه | build96266 exit0/compile4.9s/types12.8s،CLIclosure۵۳۰/worker181.9KB/WindowsWebP واقعی موفق؛ server1792 localhost3000/schema11 وready200/serverUUID |
+| سه case جدید در دو موتور |۶/۶ در83.859755s،صفر unexpected/skip/flaky؛ native MFA/محتوا/CSV،۲۰۵خواندن نشست بومی و سهمیهٔ ثابت، PATCH منتظر قفل و لغو نقش با403/بدون اثر محصول؛ همان build/server/schema11 |
+| مرورگر کامل همین منبع |۱۲spec/۲۸case درChrome/WebKit،۲۸/۲۸ در627.080353s،exit0؛ start2026-10-12T18:50:25.575Z؛ صفر unexpected/skip/flaky، بدون اصلاح source/assertion/fixture؛ cleanup محدود و window release صریح. FirefoxWindows اجرا نمی‌شود؛۴۲case سه موتور Linux فقط برنامهٔ CI است |
+| native rate-limit در همین اجرای کامل |JSON نهایی۱۵۶وضعیت امن و شش429 واقعی ثبت کرد؛ هرکدام فقط یک retry محدود مطابق زمان پاسخ داشت: wrongOTP→400 مورد انتظار و پنج ورود/send/TOTP→200. شمار Playwrightretry صفر است؛ عبارت «429 مشاهده نشد» در progress میانی به علت parser ناقص بود و نتیجهٔ نهایی نیست |
+| تصاویر همین اجرای کامل |هشت PNG بازبینی و فاقد credential/OTP/TOTP URI/cookie/providerref خصوصی‌اند؛ تنها fixture مصنوعی. دو مستطیل تصویر lazy در catalogWebKit هنگام capture خالی‌اند؛ آن PNG شاهد decode کامل تصویر نیست و نقص محصول از آن نتیجه گرفته نمی‌شود |
+| private-IP profile آماده |عامل زیرساخت۲۲/۲۲ purepreview در0.415s،upgrade۹/۹،safety۱۵pass/یک Windowssymlinkskip،scopedlint/syntax و سه مدل quietCompose را گذراند؛ OpsSHA256=1b19bab6a039029cc51c10a13787c5b64b116814b6724175f34bc0ac8d9b8161. هیچ SSH/HTTP/PG/service/credential واقعی اجرا نشد؛ LinuxNginx/unit/access و baseline/restore/nativeIP هنوز اجرا نشده‌اند |
+| بازبینی نهایی root |همان۲۲purepreview در0.421s،exit0؛ fingerprint دقیق یکسان؛ lint/TypeScript سراسری session56853،exit0. source برنامه بعد از build96266/مرورگر۲۸case تغییر نکرده است؛ docs/Ops/CI تکمیل شدند |
 | سرور/بازیابی/ظرفیت | برنامه، restore کامل، هشدار واقعی و۲۰۰VU/RPS هنوز اجرا نشده‌اند؛ تصویر پذیرفته‌شده نداریم |
 
 اعداد اجراهای هدفمند، مستقل و جامع جمع نمی‌شوند. اصلاح PUTquantity1 در fixture خرید دوم و ترتیب shipped→delivered، خطای آزمون را رفع کردند؛ منطق برنامه در این بازاجراها تغییر نکرد. گزارش مالی خالص منفی در مرورگر DTO کنترل‌شده داشت؛ شاهد aggregation مالی منفی واقعی از چهار آزمون PG جداست. بررسی امنیت کامل/ASVS پس از رد خودکار عامل امنیت انجام‌شده ادعا نمی‌شود.

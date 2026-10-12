@@ -1,0 +1,76 @@
+{
+  "reviewedAt": "2026-10-12T19:10:25.389402+00:00",
+  "runtimeBuild": "96266",
+  "runtimeSession": "1792",
+  "functionalSummary": "browser-product-content-combined.json",
+  "functionalCases": 28,
+  "functionalStatus": "passed",
+  "scope": "privacy and visible pixels only; no fresh browser or native probe after window release",
+  "limitation": "WebKit catalog image rectangles were blank at capture; current pixels do not prove decoded images, and no product defect or original cause is inferred",
+  "images": [
+    {
+      "path": "screenshots/admin-product-draft-chromium.png",
+      "engine": "chromium",
+      "privacyReviewed": true,
+      "syntheticDataOnly": true,
+      "visibleSyntheticBlueImage": true,
+      "catalogImageVisualProof": "not_applicable"
+    },
+    {
+      "path": "screenshots/catalog-chromium-320.png",
+      "engine": "chromium",
+      "privacyReviewed": true,
+      "syntheticDataOnly": true,
+      "visibleSyntheticBlueImage": false,
+      "catalogImageVisualProof": "visible_sample"
+    },
+    {
+      "path": "screenshots/owned-order-chromium-320.png",
+      "engine": "chromium",
+      "privacyReviewed": true,
+      "syntheticDataOnly": true,
+      "visibleSyntheticBlueImage": false,
+      "catalogImageVisualProof": "not_applicable"
+    },
+    {
+      "path": "screenshots/product-chromium-390.png",
+      "engine": "chromium",
+      "privacyReviewed": true,
+      "syntheticDataOnly": true,
+      "visibleSyntheticBlueImage": true,
+      "catalogImageVisualProof": "not_applicable"
+    },
+    {
+      "path": "screenshots/admin-product-draft-webkit.png",
+      "engine": "webkit",
+      "privacyReviewed": true,
+      "syntheticDataOnly": true,
+      "visibleSyntheticBlueImage": true,
+      "catalogImageVisualProof": "not_applicable"
+    },
+    {
+      "path": "screenshots/catalog-webkit-320.png",
+      "engine": "webkit",
+      "privacyReviewed": true,
+      "syntheticDataOnly": true,
+      "visibleSyntheticBlueImage": false,
+      "catalogImageVisualProof": "blank_at_capture"
+    },
+    {
+      "path": "screenshots/owned-order-webkit-320.png",
+      "engine": "webkit",
+      "privacyReviewed": true,
+      "syntheticDataOnly": true,
+      "visibleSyntheticBlueImage": false,
+      "catalogImageVisualProof": "not_applicable"
+    },
+    {
+      "path": "screenshots/product-webkit-390.png",
+      "engine": "webkit",
+      "privacyReviewed": true,
+      "syntheticDataOnly": true,
+      "visibleSyntheticBlueImage": true,
+      "catalogImageVisualProof": "not_applicable"
+    }
+  ]
+}

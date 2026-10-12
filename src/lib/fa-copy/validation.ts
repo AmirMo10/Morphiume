@@ -10,6 +10,7 @@ type ValidationIssue = {
 
 const fieldLabels: Readonly<Record<string, string>> = {
   name: "نام", slug: "نامک صفحه", description: "توضیح محصول",
+  shortDescription: "توضیح کوتاه", careInstructions: "راهنمای نگهداری", approvedWarnings: "نکات و هشدارهای محصول",
   concentration: "غلظت عطر", family: "خانوادهٔ رایحه",
   imageUrl: "تصویر محصول", variants: "حجم‌های محصول", sku: "شناسهٔ تنوع",
   volumeMl: "حجم", priceToman: "قیمت به تومان", initialStock: "موجودی اولیه",

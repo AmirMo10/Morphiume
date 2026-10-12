@@ -5,6 +5,7 @@ import { notFound, permanentRedirect } from "next/navigation";
 import type { Metadata } from "next";
 import { ProductView } from "@/components/catalog";
 import { productImages } from "@/components/product-images";
+import { productIntro } from "@/components/product-content";
 import { JsonLd } from "@/components/structured-data";
 import { CommerceError } from "@/contracts/commerce";
 import { getCommerce } from "@/server/runtime";
@@ -15,7 +16,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const { id } = await params;
   const { product } = await publicProduct(id);
   const config = getConfig(), canonical = new URL(`/products/${product.slug}`, config.PUBLIC_SITE_URL ?? config.APP_BASE_URL).toString();
-  return { title: product.name, description: product.description.slice(0, 180), alternates: { canonical } };
+  return { title: product.name, description: productIntro(product).trim().slice(0, 180), alternates: { canonical } };
 }
 export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

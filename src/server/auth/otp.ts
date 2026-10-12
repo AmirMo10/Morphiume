@@ -18,7 +18,10 @@ export async function enforceRateLimit(key: string, max: number, windowSeconds: 
      ON CONFLICT(key) DO UPDATE SET count=CASE WHEN auth_rate_limit.last_request=$2 THEN auth_rate_limit.count+1 ELSE 1 END,last_request=$2 RETURNING count`,
     [`app:${opaque}`, windowStart],
   );
-  if ((result.rows[0]?.count ?? max + 1) > max) throw new APIError("TOO_MANY_REQUESTS", { message: "تعداد درخواست‌ها زیاد است. کمی بعد دوباره تلاش کنید." });
+  if ((result.rows[0]?.count ?? max + 1) > max) {
+    const retryAfter = Math.max(1, Math.ceil((windowStart + windowSeconds * 1000 - Date.now()) / 1000));
+    throw new APIError("TOO_MANY_REQUESTS", { message: "تعداد درخواست‌ها زیاد است. کمی بعد دوباره تلاش کنید." }, { "Retry-After": String(retryAfter) });
+  }
 }
 
 export async function sendOtp(phoneInput: string, code: string): Promise<void> {

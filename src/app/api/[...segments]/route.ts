@@ -14,13 +14,14 @@ import { uploadMedia } from "@/server/media";
 import { getShippingSettings, saveShippingSettings } from "@/server/shipping";
 import { recordCommerceResponse } from "@/server/observability";
 import { getPresentation, getAdminPresentation, savePresentation } from "@/server/presentation";
+import { exportCsv } from "@/server/export-csv";
 
 export const runtime = "nodejs";
 const id = z.uuid();
 const version = z.number().int().positive();
 const address = z.object({ recipient: z.string().min(1).max(120), phone: z.string().max(40), province: z.string().min(1).max(80), city: z.string().min(1).max(80), address: z.string().min(1).max(1000), plaque: z.string().min(1).max(20), unit: z.string().max(20).optional(), postalCode: z.string().max(20) }).strict();
 const productImage = z.object({url:z.string().max(128),alt:z.string().max(240),variantSku:z.string().max(64).nullable().optional()}).strict();
-const product = z.object({ name: z.string().min(1).max(160), slug: z.string().max(160), description: z.string().max(10000), concentration: z.string().max(80), family: z.string().max(80), topNotes: z.array(z.string().max(120)).max(30), heartNotes: z.array(z.string().max(120)).max(30), baseNotes: z.array(z.string().max(120)).max(30), imageUrl: z.string().max(500).optional(), images:z.array(productImage).max(10).optional(), variants: z.array(z.object({ sku: z.string().max(64), volumeMl: z.number().int().positive().max(5000), priceToman: z.string().max(20), initialStock: z.number().int().min(0).max(100000).optional() }).strict()).min(1).max(20) }).strict();
+const product = z.object({ name: z.string().min(1).max(160), slug: z.string().max(160), description: z.string().max(10000), shortDescription:z.string().trim().max(600).optional(), careInstructions:z.string().trim().max(4000).optional(), approvedWarnings:z.string().trim().max(4000).optional(), concentration: z.string().max(80), family: z.string().max(80), topNotes: z.array(z.string().max(120)).max(30), heartNotes: z.array(z.string().max(120)).max(30), baseNotes: z.array(z.string().max(120)).max(30), imageUrl: z.string().max(500).optional(), images:z.array(productImage).max(10).optional(), variants: z.array(z.object({ sku: z.string().max(64), volumeMl: z.number().int().positive().max(5000), priceToman: z.string().max(20), initialStock: z.number().int().min(0).max(100000).optional() }).strict()).min(1).max(20) }).strict();
 const paging=z.object({page:z.coerce.number().int().positive().max(100000).optional(),pageSize:z.coerce.number().int().positive().max(100).optional()});
 const productPage=paging.extend({search:z.string().max(120).optional(),family:z.string().max(80).optional(),concentration:z.string().max(80).optional(),note:z.string().max(120).optional(),minPriceToman:z.string().max(30).optional(),maxPriceToman:z.string().max(30).optional(),volumeMl:z.coerce.number().int().positive().max(5000).optional(),available:z.enum(["true","false"]).transform(value=>value==="true").optional(),sort:z.enum(["name","price_asc","price_desc"]).optional()}).strict();
 const orderPage=paging.extend({search:z.string().max(100).optional(),status:z.enum(["awaiting_payment","confirmed","payment_exception","cancelled","completed"]).optional(),paymentStatus:z.enum(["pending","paid","partially_refunded","refunded","failed","unknown"]).optional()}).strict();
@@ -67,8 +68,7 @@ function orderView(order:OrderDto,roles:Role[]) {
   return view;
 }
 function csv(rows:unknown[][]) {
-  const cell=(value:unknown)=>{let text=String(value??"");if(/^[=+\-@\t\r]/.test(text))text=`'${text}`;return `"${text.replaceAll('"','""')}"`;};
-  return new Response("\uFEFF"+rows.map(row=>row.map(cell).join(",")).join("\r\n"),{headers:{"Content-Type":"text/csv; charset=utf-8","Content-Disposition":"attachment; filename=morphiume-export.csv","Cache-Control":"private, no-store","X-Content-Type-Options":"nosniff"}});
+  return new Response(exportCsv(rows),{headers:{"Content-Type":"text/csv; charset=utf-8","Content-Disposition":"attachment; filename=morphiume-export.csv","Cache-Control":"private, no-store","X-Content-Type-Options":"nosniff"}});
 }
 
 async function dispatch(request: NextRequest): Promise<Response> {
@@ -189,7 +189,7 @@ async function dispatch(request: NextRequest): Promise<Response> {
     if(route === "admin/test-otp" && method === "GET") {await adminActor(request.headers,"roles.write",true);if(getConfig().DEPLOYMENT_ENV === "live")return missing();return success({code:await readMockOtp(request.nextUrl.searchParams.get("phone")??"")});}
     if(route === "admin/export" && method === "GET") {
       const kind=request.nextUrl.searchParams.get("kind");
-      if(kind === "products") {const actor=await adminActor(request.headers,"catalog.write",true);const products=await commerce.listExportProducts(actor);return csv([["نام","نامک","شناسهٔ تنوع","حجم میلی‌لیتر","قیمت تومان","موجودی قابل فروش","وضعیت"],...products.flatMap(p=>p.variants.map(v=>[p.name,p.slug,v.sku,v.volumeMl,(BigInt(v.price.amountIrr)/10n).toString(),v.available,p.status]))]);}
+      if(kind === "products") {const actor=await adminActor(request.headers,"catalog.write",true);const products=await commerce.listExportProducts(actor);return csv([["نام","نامک","شناسهٔ تنوع","حجم میلی‌لیتر","قیمت تومان","موجودی قابل فروش","وضعیت","توضیح کوتاه","روش نگه‌داری","هشدارهای فروشنده"],...products.flatMap(p=>p.variants.map(v=>[p.name,p.slug,v.sku,v.volumeMl,(BigInt(v.price.amountIrr)/10n).toString(),v.available,p.status,p.shortDescription,p.careInstructions,p.approvedWarnings]))]);}
       if(kind === "orders") {const actor=await adminActor(request.headers,"orders.read",true);const orders=await commerce.listExportOrders(actor);return csv([["شمارهٔ سفارش","تاریخ","وضعیت","وضعیت پرداخت","وضعیت ارسال"],...orders.map(o=>[o.orderNumber,o.createdAt,o.status,o.paymentStatus,o.shipment?.status??""])]);}
       return missing();
     }

@@ -1,5 +1,9 @@
 # آزمون یکپارچهٔ صفحه‌بندی، ارسال و دسترسی انبار
 
+آخرین پذیرش واقعی build96266/server1792/schema11: **۱۲spec،۱۴case در هر موتور و مجموع۲۸/۲۸ Chrome/WebKit در۶۲۷٫۰۸۰۳۵۳s موفق**؛ آغاز `2026-10-12T18:50:25.575Z` و unexpected/skipped/flaky/Playwrightretry صفر. [browser-product-content-combined.json](browser-product-content-combined.json) و [browser-summary.json](browser-summary.json) اجرای جاری‌اند؛ [browser-product-content-targeted.json](browser-product-content-targeted.json) اجرای مستقل۶/۶ در۸۳٫۸۵۹۷۵۵s است و با۲۸ جمع نمی‌شود. [PRODUCT_CONTENT_PREPARED_QA.md](PRODUCT_CONTENT_PREPARED_QA.md) پذیرش اجراشدهٔ متن محصول/CSV،۲۰۵خواندن نشست بدون تغییر سهمیه، HTTPget-session شارژشده و لغو مجوز بومی هنگام انتظار قفل را ثبت می‌کند. Global هماهنگ‌کننده۴۰۱/۴۰۱ در۳۴فایل و۶۹۵٫۸۵s جداست. جزئیات و تاریخچه در [NEW_SOURCE_QA.md](NEW_SOURCE_QA.md) است.
+
+## تاریخچهٔ اجراهای پیشین
+
 آخرین پذیرش برنامهٔ جدید: build89652/server36884/schema10،۱۱spec در Chrome/WebKit **۲۲/۲۲در۵۶۰٫۹۸۰۱۱۰ثانیه موفق**؛ unexpected/skipped/flaky/Playwrightretry صفر. browser-summary.json و browser-newsource-combined.json همین اجرا را نگه می‌دارند. جزئیات قابلیت‌های جدید، اصلاحات ثابت‌شدهٔ fixture و شاهد تصویری مستقل در [NEW_SOURCE_QA.md](NEW_SOURCE_QA.md) است. ۱۳۱status بومی،۶۰proof آمادگی مدیریت و۴۸metadata امن ثبت شد؛ image Linux جدید/stage/restore/load هنوز پذیرفته یا اجرا نشده‌اند.
 
 شرح زیر تاریخچهٔ source قدیمی و دامنهٔ سناریوهاست؛ زمان‌های جدول، نتیجهٔ build89652 نیستند. browser-checkpoint-538ff-local.json نتیجهٔ قدیمی۱۲/۱۲و۷۱status را حفظ می‌کند.

@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { expect, test } from "@playwright/test";
 import type { QuoteDto } from "../../src/contracts/commerce";
 import { createAdmin, createProduct, disableUsers, isolatedPool, loginAdmin, loginCustomer, verifyAdminTotp } from "./acceptance-fixtures";
+import { readSuccessObject } from "./safe-response";
 
 test("T07/T15/T19/T21/T23/T29: fresh native shipping approval resets checkout consent; notes, return and refund remain exact", async ({ browser, page, baseURL }) => {
   test.setTimeout(180_000);
@@ -13,10 +14,10 @@ test("T07/T15/T19/T21/T23/T29: fresh native shipping approval resets checkout co
   let productId: string | undefined, collectionId: string | undefined;
   const couponCode = `QA-${marker}`.toUpperCase();
   async function savePolicy(fee: string, threshold: string | null) {
-    const current = (await (await page.request.get("/api/admin/shipping")).json()).data;
+    const current = await readSuccessObject(await page.request.get("/api/admin/shipping"), "shipping-read");
+    expect(Number.isInteger(current.version) && Number(current.version) > 0, "Shipping success payload requires a positive version").toBe(true);
     const response = await page.request.put("/api/admin/shipping", { headers: { Origin: baseURL! }, data: { shippingFeeToman: fee, freeShippingThresholdToman: threshold, expectedVersion: current.version, reason: `QA controlled shipping ${marker}` } });
-    expect(response.status()).toBe(200);
-    return (await response.json()).data as { policyVersion: string; version: number };
+    return await readSuccessObject(response, "shipping-write") as { policyVersion: string; version: number };
   }
   async function restorePolicy() {
     const restore = await pool.connect();

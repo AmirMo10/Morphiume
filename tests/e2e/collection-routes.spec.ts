@@ -4,6 +4,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { createAdmin, disableUsers, isolatedPool, loginAdmin } from "./acceptance-fixtures";
 import { archiveFixtureProducts } from "./next-acceptance-fixtures";
 import type { AdminCollectionDetailDto, CollectionDetailPageDto, CollectionInput } from "../../src/contracts/commerce";
+import { recordSafeHttpResponse } from "./safe-response";
 
 test("T05/T09/T20: collection SSR without JavaScript preserves paging/filter identity and real308/404", async ({ browser, page, baseURL }) => {
   const pool = isolatedPool(), marker = randomUUID(), products: string[] = [], collections: string[] = [], users: string[] = [];
@@ -24,7 +25,11 @@ test("T05/T09/T20: collection SSR without JavaScript preserves paging/filter ide
       }
     }
     const input: CollectionInput = { name: `مجموعهٔ مصنوعی QA ${marker}`, slug: `qa-collection-${marker}`, description: "مجموعهٔ مصنوعی برای آزمون مستقل؛ بدون عرضهٔ واقعی.", published: true, productIds: products.slice(0, 26) };
-    const save = async (value: CollectionInput) => page.request.post("/api/admin/collections", { headers: { Origin: baseURL! }, data: value });
+    const save = async (value: CollectionInput) => {
+      const response = await page.request.post("/api/admin/collections", { headers: { Origin: baseURL! }, data: value });
+      recordSafeHttpResponse(response, "collection-save");
+      return response;
+    };
     const created = await save(input); expect(created.status()).toBe(200);
     const row = (await created.json()).data as { id: string; version: number }; collections.push(row.id);
     await pool.query("UPDATE product SET status='archived' WHERE id=ANY($1::uuid[])", [[products[25], products[26]]]);

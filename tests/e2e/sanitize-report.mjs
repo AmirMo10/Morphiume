@@ -1,4 +1,5 @@
 import { readFile, mkdir, writeFile } from "node:fs/promises";
+import { safeHttpResponseAnnotations } from "./http-response-evidence.mjs";
 let source;
 try { source = JSON.parse(await readFile("test-results/playwright.json", "utf8")); }
 catch (error) {
@@ -54,7 +55,7 @@ function safeAdminReadiness(annotations = []) {
 }
 function walk(suite) {
   for (const spec of suite.specs ?? []) for (const test of spec.tests ?? []) for (const result of test.results ?? []) {
-    tests.push({ title: spec.title, project: test.projectName, status: result.status, durationMs: result.duration, retry: result.retry, errorCount: result.errors?.length ?? 0, nativeAuthStatuses: safeAuthStatuses(test.annotations), publicMetadataStatuses: safeMetadataStatuses(test.annotations), adminReadiness: safeAdminReadiness(test.annotations) });
+    tests.push({ title: spec.title, project: test.projectName, status: result.status, durationMs: result.duration, retry: result.retry, errorCount: result.errors?.length ?? 0, nativeAuthStatuses: safeAuthStatuses(test.annotations), publicMetadataStatuses: safeMetadataStatuses(test.annotations), adminReadiness: safeAdminReadiness(test.annotations), httpResponses: safeHttpResponseAnnotations(test.annotations) });
   }
   for (const child of suite.suites ?? []) walk(child);
 }

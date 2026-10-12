@@ -2,6 +2,8 @@
 
 2026-10-12. **Proposed next implementation; no feature in this document is implemented or accepted by writing this plan.** Current application source remains frozen for coordinator/QA acceptance. This task writes only this document: no application/schema/test edits, PostgreSQL/native-auth calls, migration, worker, queue retry or historical rewrite. Implementation requires the coordinator's next checkpoint/start and isolated-test window; public DDL requires its own explicit GO.
 
+Subsequent slice-A source/verification is recorded in `PRODUCT_CONTENT.md`; sections2 onward remain proposed work. The paragraph above records this plan's original documentation-only scope and does not supersede later explicitly authorized implementation.
+
 Sources: specification product section12, outbox section14, privacy section17, analytics section21; `.agents/skills/morphiume-commerce/SKILL.md` and `morphiume-admin/SKILL.md`; current `src/contracts/commerce.ts`, `src/server/commerce/service.ts`, `src/server/jobs/{service,notifications}.ts`, `src/server/reports.ts`, `src/contracts/reports.ts`, `db/migrations/0006_notification_messages.sql`, `docs/OBSERVABILITY.md`. Operational response/job logs are not analytics or receipt evidence.
 
 ## 1. Optional product content, first implementation slice

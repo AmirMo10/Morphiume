@@ -68,7 +68,9 @@ const adminAuth = betterAuth({
   },
   hooks: {
     before: createAuthMiddleware(async (ctx) => {
-      await enforceRateLimit("admin-auth:global", 200, 60);
+      // Native HTTP endpoints and direct authentication mutations keep the
+      // existing quota. Internal session authorization reads are not login attempts.
+      if (ctx.path !== "/get-session" || ctx.request) await enforceRateLimit("admin-auth:global", 200, 60);
       if (ctx.path === "/sign-up/email" || ctx.path.startsWith("/phone-number/")) throw new APIError("FORBIDDEN", { message: "این روش ورود برای مدیریت فعال نیست." });
     }),
     after: createAuthMiddleware(async (ctx) => {

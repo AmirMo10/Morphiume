@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { CommerceError } from "../../../src/contracts/commerce";
 import { api, boundedAuthRequest, boundedBody, success } from "../../../src/server/http";
-import { finishRequest, recordCommerceResponse, recordJobEvent, requestContext, withRequestContext } from "../../../src/server/observability";
+import { finishRequest, recordCommerceResponse, recordJobEvent, requestContext, unexpectedFailureCategory, withRequestContext } from "../../../src/server/observability";
 
 afterEach(() => vi.restoreAllMocks());
 function capture() {
@@ -15,6 +15,20 @@ function capture() {
   return records;
 }
 describe("request correlation and bounded private-data logging", () => {
+  it("categorizes unexpected database failures without emitting SQLSTATE or private error fields", async () => {
+    const records = capture(), canary = "private-error-query-contact-token-canary";
+    for (const [code, category] of [["40P01", "database_deadlock"], ["40001", "database_serialization"], ["23505", "database_constraint"], ["08006", "database_connection"], ["42P01", "database_schema"], ["57014", "database_timeout"], [canary, "unexpected"]]) {
+      const error = Object.assign(new Error(canary), { code, detail: canary, query: canary, schema: canary, constraint: canary });
+      const response = await api(async () => { throw error; })(new NextRequest("http://localhost:3000/api/admin/collections"));
+      expect(response.status).toBe(500);
+      expect(await response.json()).toEqual({ error: { code: "INTERNAL", message: "درخواست انجام نشد. دوباره تلاش کنید." } });
+      expect(records.at(-1)).toMatchObject({ route: "admin.catalog", errorCode: "INTERNAL", failureCategory: category });
+    }
+    expect(JSON.stringify(records)).not.toContain(canary);
+    expect(JSON.stringify(records)).not.toMatch(/40P01|23505|08006|42P01|57014/);
+    const getter = Object.defineProperty({}, "code", { get() { throw new Error(canary); } });
+    expect(unexpectedFailureCategory(getter)).toBe("unexpected");
+  });
   it("correlates durable jobs without serializing arbitrary types, payload or errors", () => {
     const records = capture(), jobId = randomUUID(), orderId = randomUUID(), paymentAttemptId = randomUUID();
     const canary = "private-provider-reference-09123456789-OTP987654";
@@ -68,7 +82,7 @@ describe("request correlation and bounded private-data logging", () => {
     expect(records).toHaveLength(1);
     expect(records[0]).toMatchObject({ route: "api.other", method: "POST", status: 500, errorCode: "INTERNAL" });
     expect(JSON.stringify(records)).not.toContain(canary);
-    expect(Object.keys(records[0]!).sort()).toEqual(["durationMs", "errorCode", "event", "method", "requestId", "route", "status", "time"].sort());
+    expect(Object.keys(records[0]!).sort()).toEqual(["durationMs", "errorCode", "failureCategory", "event", "method", "requestId", "route", "status", "time"].sort());
   });
   it("retains redirects, cookie headers and private caching when responses are wrapped", async () => {
     capture();

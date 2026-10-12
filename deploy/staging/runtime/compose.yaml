@@ -21,7 +21,7 @@ x-environment: &environment
   DEPLOYMENT_ENV: staging
   PAYMENT_PROVIDER: mock
   SMS_PROVIDER: mock
-  APP_BASE_URL: http://localhost:3100
+  APP_BASE_URL: ${MORPHIUME_APP_BASE_URL:-http://localhost:3100}
   MEDIA_ROOT: /app/media
   MORPHIUME_RUNTIME_CONFIG: /run/secrets/runtime_config
 

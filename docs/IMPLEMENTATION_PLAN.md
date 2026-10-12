@@ -1,5 +1,7 @@
 # برنامهٔ اجرا و مالکیت
 
+استثنای یکپارچه‌سازی sliceA: هماهنگ‌کننده فقط سه نام فارسیِ validation.ts برای shortDescription/careInstructions/approvedWarnings را می‌افزاید؛ سایر فایل‌های فارسی با مالک قبلی‌اند. درخواست بیدارسازی مجدد نقش فارسی با پیام واقعی «agent thread limit reached» روبه‌رو شد؛ نشست تازه یا بازبینی مرورگر از آن ادعا نمی‌شود. عامل‌های واقعی تجارت/QA ادامه دارند؛ کار مستقل متوقف نشده است.
+
 مالک تنظیمات ریشه، package/lockfile، auth، route handlerهای API، یکپارچه‌سازی، ثبت شواهد و push به `main`: هماهنگ‌کننده (`/root`). هیچ عامل دیگری این فایل‌ها را تغییر نمی‌دهد. هر تحویل باید فایل‌ها، آزمون واقعاً اجراشده، شکست و مانع واقعی را گزارش کند.
 
 | فاز/کار | مالک واقعی | مسیر انحصاری | وابستگی | معیار پذیرش |
@@ -38,4 +40,6 @@
 
 پذیرش build89652/server36884 پایان یافت: مرورگر یکپارچه۲۲/۲۲ در560.980110s و ثبت جداگانهٔ تصاویر آماده موفق؛ QA پنجره را صریحاً آزاد کرده است. root همچنان مالک استثنایی `src/contracts/presentation.ts` و `src/contracts/reports.ts`، ماژول‌های server متناظر و tests/unit/config +tests/integration/config است؛ قراردادهای دیگر با تجارت‌اند. QA مالک tests/helpers/qa-target و tests/unit/shared/qa-target.test.ts و E2E/load است. checkpoint یکپارچه پس از تحویل منجمد Ops/QA، اسکن اسرار و بررسی نهایی روی main push می‌شود.
 
-chunk بعدی پس از checkpoint: تجارت0011 و سه فیلد اختیاری plain-text کالا/حفظ مقدار در update-import را می‌سازد؛ root whitelist/API/export را یکپارچه می‌کند و فرانت‌اند فرم/پیش‌نمایش/نمایش عمومی را متصل می‌کند. آزمون PG فقط schema تولیدشدهٔ جدا در پنجرهٔ هماهنگ؛ DDL پایگاه مشترک فقط با GO صریح. قرارداد analytics/اعلان در docs/backend/NEXT_CONTENT_ANALYTICS_CONTRACT.md و سیاست مصرف/claim/بازیابی سبد در CART_LIFECYCLE_PLAN.md هنوز برنامه‌اند. نشر CI یا آزادشدن پنجرهٔ آزمون، مجوز خودکار bootstrap/image/restore نیست؛ استقرار فقط با هویت تصویر واقعاً پذیرفته‌شده و dispatch هماهنگ‌کننده انجام می‌شود.
+sliceA پیاده‌سازی شده است: تجارت0011 و سه فیلد اختیاری plain-text کالا/حفظ مقدار ارسال‌نشده در update، root whitelist/API/export و فرانت‌اند فرم/پیش‌نمایش/نمایش عمومی. import فقط create است و collision را رد می‌کند؛ وعدهٔ upsert یا حفظ مقدار در import محصول موجود وجود ندارد. رگرسیون۴۰۱/۴۰۱،build96266،مرورگر هدفمند۶/۶ و سپس کامل۲۸/۲۸ در627.080353s پذیرفته‌اند؛ cleanup محدود انجام و QA پنجره را صریحاً آزاد کرده است. DDL0011 با GO صریح و بررسی fingerprint اعمال شد. قرارداد analytics/اعلان در docs/backend/NEXT_CONTENT_ANALYTICS_CONTRACT.md و سیاست مصرف/claim/بازیابی سبد در CART_LIFECYCLE_PLAN.md هنوز برنامه‌اند.
+
+استفادهٔ مستقیم crypto.randomUUID در شش component برای HTTP خصوصی باید در chunk بعدی با helper مشترک مبتنی بر Web Crypto و آزمون واقعی insecure-origin اصلاح شود؛ در پنجرهٔ فعلی QA کد برنامه تغییر نمی‌کند. نشر CI یا آزادشدن پنجرهٔ آزمون، مجوز خودکار bootstrap/image/restore نیست؛ استقرار فقط با هویت تصویر واقعاً پذیرفته‌شده و dispatch هماهنگ‌کننده انجام می‌شود. سایر قابلیت‌های مستقل با نقش‌های واقعی پس از checkpoint ادامه می‌یابند.

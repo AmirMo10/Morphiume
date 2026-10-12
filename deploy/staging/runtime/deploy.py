@@ -25,8 +25,11 @@ def main(args):
         table_count = int(c.psql(c.DATABASE, "SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relkind IN ('r','p');"))
         if table_count:
             raise ValueError('First deployment requires a pristine runtime schema; never repeat seed/migration blindly')
-        frozen_ops = c.verify_ops_bundle(c.ROOT / 'releases' / args.source / 'ops', args.ops_sha256)
-        expected_env = f'MORPHIUME_IMAGE={args.config_id}\nMORPHIUME_OPS_ROOT={frozen_ops}\n'
+        profile = c.active_profile(required=True)
+        if profile['profile'] != 'ssh-localhost' or any(profile[key] != report[key] for key in c.RELEASE_KEYS + ('opsSha256',)):
+            raise ValueError('First deployment requires the accepted SSH-only profile')
+        frozen_ops = c.resolve_ops_bundle(args.source, args.ops_sha256)
+        expected_env = c.compose_environment(args.config_id, frozen_ops, profile)
         if c.private_file(c.CONFIG / 'deploy.env').read_text() != expected_env:
             raise ValueError('Private Compose identity or ops path changed')
         c.private_file(c.CONFIG / 'bootstrap.env')
@@ -46,7 +49,8 @@ def main(args):
         actual = json.loads(c.run(['docker', 'inspect', *containers]))
         if {item['Config']['Labels'].get('com.docker.compose.service') for item in actual} != {'app', 'worker'} or any(item['Image'] != args.config_id or item['Config']['User'] != '1001:1001' or item['State'].get('Health', {}).get('Status') != 'healthy' for item in actual):
             raise ValueError('Running fresh runtime identity, user or health mismatch')
-        output = report | {'deployedUtc': datetime.datetime.now(datetime.timezone.utc).isoformat(), 'project': c.PROJECT, 'database': c.DATABASE}
+        output = report | {'deployedUtc': datetime.datetime.now(datetime.timezone.utc).isoformat(), 'project': c.PROJECT, 'database': c.DATABASE,
+                           'accessProfileSha256': c.canonical_hash(profile)}
         c.write_private(c.CONFIG / 'deployed-release.json', json.dumps(output, indent=2) + '\n')
         return {'mode': 'deployed', 'project': c.PROJECT, 'database': c.DATABASE, 'browserOrigin': 'http://localhost:3100',
                 'applicationStarted': True, 'nativeFixtureRestoreAcceptance': 'pending'}

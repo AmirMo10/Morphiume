@@ -33,6 +33,22 @@ const routePatterns: readonly [RegExp, string][] = [
 const responseEvents = new Set(["checkout.response", "payment.verification.response", "order.response", "shipment.response", "refund.decision.response"]);
 export type CommerceResponseEvent = "checkout.response" | "payment.verification.response" | "order.response" | "shipment.response" | "refund.decision.response";
 const outcomes = new Set(["created", "pending", "processing", "unknown", "succeeded", "failed", "paid", "partially_refunded", "refunded", "confirmed", "completed", "cancelled", "payment_exception", "awaiting_payment", "shipped", "delivered"]);
+type FailureCategory = "database_deadlock" | "database_serialization" | "database_constraint" | "database_connection" | "database_schema" | "database_timeout" | "unexpected";
+const failureCategories = new Set<FailureCategory>(["database_deadlock", "database_serialization", "database_constraint", "database_connection", "database_schema", "database_timeout", "unexpected"]);
+const databaseFailures: Readonly<Record<string, FailureCategory>> = {
+  "40P01": "database_deadlock", "40001": "database_serialization",
+  "23505": "database_constraint", "23503": "database_constraint", "23514": "database_constraint",
+  "08000": "database_connection", "08001": "database_connection", "08003": "database_connection", "08006": "database_connection", "53300": "database_connection", "57P01": "database_connection",
+  "42P01": "database_schema", "42703": "database_schema", "42704": "database_schema", "42883": "database_schema",
+  "57014": "database_timeout", "55P03": "database_timeout",
+};
+export function unexpectedFailureCategory(error: unknown): FailureCategory {
+  // Read only a plain own value; never log error text, names, SQL or metadata.
+  try {
+    const code = error && typeof error === "object" ? Object.getOwnPropertyDescriptor(error, "code")?.value : undefined;
+    return typeof code === "string" && Object.hasOwn(databaseFailures, code) ? databaseFailures[code]! : "unexpected";
+  } catch { return "unexpected"; }
+}
 
 function safeIds(ids: Correlation): Correlation {
   const result: Correlation = {};
@@ -70,14 +86,15 @@ export function recordJobEvent(observation: JobObservation) {
     jobType: jobTypes.has(observation.type) ? observation.type : "domain.other", attemptNumber: observation.attemptNumber,
     ...safeIds(observation) }, observation.state === "dead");
 }
-export function finishRequest(response: Response, errorCode?: string): Response {
+export function finishRequest(response: Response, errorCode?: string, failureCategory?: FailureCategory): Response {
   const current = context.getStore();
   if (!current) return response;
   const headers = new Headers(response.headers);
   headers.set("X-Request-ID", current.requestId);
-  const allowedCodes = new Set(["VALIDATION", "UNAUTHENTICATED", "FORBIDDEN", "MFA_REQUIRED", "NOT_FOUND", "CONFLICT", "OUT_OF_STOCK", "PRICE_CHANGED", "PAYMENT_UNKNOWN", "NOT_ELIGIBLE", "CONFIGURATION", "INTERNAL"]);
+  const allowedCodes = new Set(["VALIDATION", "UNAUTHENTICATED", "FORBIDDEN", "MFA_REQUIRED", "RATE_LIMITED", "NOT_FOUND", "CONFLICT", "OUT_OF_STOCK", "PRICE_CHANGED", "PAYMENT_UNKNOWN", "NOT_ELIGIBLE", "CONFIGURATION", "INTERNAL"]);
   write({ event: "request.completed", requestId: current.requestId, route: current.route, method: current.method,
     status: response.status, durationMs: Math.max(0, Math.round(performance.now() - current.startedAt)), ...safeIds(current),
-    ...(errorCode && allowedCodes.has(errorCode) ? { errorCode } : {}) }, response.status >= 500);
+    ...(errorCode && allowedCodes.has(errorCode) ? { errorCode } : {}),
+    ...(errorCode === "INTERNAL" && failureCategory && failureCategories.has(failureCategory) ? { failureCategory } : {}) }, response.status >= 500);
   return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
 }

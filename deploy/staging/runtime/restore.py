@@ -68,8 +68,8 @@ def extract_media(stream, root):
     return {'files': sum(1 for file in root.rglob('*') if file.is_file()), 'bytes': total}
 
 
-def restore_config(app, password):
-    c.validate_config(app, c.APP)
+def restore_config(app, password, profile='ssh-localhost'):
+    c.validate_config(app, c.APP, profile=profile)
     value = dict(app, DATABASE_URL=f'postgresql://{RESTORE_APP}:{password}@db:5432/{RESTORE_DB}', APP_BASE_URL='http://localhost:3101')
     # Only the runtime auth/control keys are cloned; never old integration keys.
     return value
@@ -135,7 +135,7 @@ def main(args):
         start = datetime.datetime.now(datetime.timezone.utc).isoformat()
         passwords = {name: secrets.token_hex(32) for name in ('db_bootstrap_password', 'db_owner_password', 'db_app_password')}
         for name, value in passwords.items(): c.write_private(root / name, value, uid=999, gid=999)
-        app = restore_config(configs['app.json'], passwords['db_app_password'])
+        app = restore_config(configs['app.json'], passwords['db_app_password'], profile=c.profile_name())
         c.write_private(root / 'app.json', json.dumps(app) + '\n', uid=1001, gid=1001)
         c.write_private(root / 'restore.env', f'MORPHIUME_RESTORE_PROJECT={project}\nMORPHIUME_RESTORE_ROOT={root}\nMORPHIUME_IMAGE={args.config_id}\nMORPHIUME_OPS_ROOT={c.OPS_ROOT}\n')
         c.write_private(root / 'recovery-start.json', json.dumps({'recoveryStartUtc': start, 'backup': str(backup), 'sourceCommit': args.source}) + '\n')

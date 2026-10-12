@@ -6,11 +6,13 @@ export type Permission = "catalog.write" | "inventory.write" | "orders.read" | "
 export type ProductImage = { url: string; alt: string; variantSku?: string | null };
 export type ProductInput = {
   name: string; slug: string; description: string; concentration: string; family: string;
+  shortDescription?: string; careInstructions?: string; approvedWarnings?: string;
   topNotes: string[]; heartNotes: string[]; baseNotes: string[];
   imageUrl?: string; images?: ProductImage[]; variants: { sku: string; volumeMl: number; priceToman: string; initialStock?: number }[];
 };
 export type ProductDto = {
   id: string; name: string; slug: string; description: string; concentration: string; family: string;
+  shortDescription: string; careInstructions: string; approvedWarnings: string;
   topNotes: string[]; heartNotes: string[]; baseNotes: string[]; imageUrl: string | null; images: ProductImage[];
   status: "draft" | "published" | "archived"; version: number;
   variants: { id: string; sku: string; volumeMl: number; price: MoneyDto; available: number }[];

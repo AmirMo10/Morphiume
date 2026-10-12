@@ -49,6 +49,11 @@ def evaluate(facts, mode, expect_backups=False, thresholds=None):
 def snapshot(mode, expect_backups=False, thresholds=None):
     c.assert_boundaries()
     facts = {'utc': datetime.datetime.now(datetime.timezone.utc).isoformat(), 'containers': [], 'databaseHealthy': False, 'diskUsedPercent': {}}
+    profile = c.active_profile()
+    if profile:
+        c.load_configs()
+        facts['accessProfile'] = profile['profile']
+        facts['canonicalOrigin'] = profile['origin']
     try: c.db_container(); facts['databaseHealthy'] = True
     except (OSError, ValueError, KeyError): pass
     for path in ('/', '/var/lib/docker', str(c.ROOT)):

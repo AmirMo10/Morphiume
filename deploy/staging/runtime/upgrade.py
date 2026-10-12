@@ -53,7 +53,7 @@ def verify_previous(previous):
     image = json.loads(c.run(['docker', 'image', 'inspect', previous['testedPlatformConfig']]))[0]
     if (image['Id'], image['Os'], image['Architecture'], image['Config']['User'], image['Config']['Labels'].get('org.opencontainers.image.revision')) != (previous['testedPlatformConfig'], 'linux', 'amd64', '1001:1001', previous['sourceCommit']):
         raise ValueError('Retained previous image identity changed')
-    frozen_ops = c.verify_ops_bundle(directory / 'ops', previous['opsSha256'])
+    frozen_ops = c.resolve_ops_bundle(previous['sourceCommit'], previous['opsSha256'])
     return report | {'opsSha256': previous['opsSha256']}, frozen_ops
 
 
@@ -132,16 +132,25 @@ def main(args):
     candidate = c.verify_release(args)
     previous = previous_identity(args)
     with c.lock():
+        if (c.CONFIG / 'preview-transition.json').exists():
+            preview = json.loads(c.private_file(c.CONFIG / 'preview-transition.json').read_text())
+            if preview.get('phase') not in ('accepted', 'rolled-back'):
+                raise ValueError('Pending/failed preview transition must finish before image upgrade')
         deployed = json.loads(c.private_file(c.CONFIG / 'deployed-release.json').read_text())
         partial = any((c.CONFIG / name).exists() for name in ('upgrading.json', 'upgrading.json.new', 'deploy.candidate.env', 'deployed-release.json.new'))
         validate_transition(deployed, previous, candidate, partial)
         previous_report, previous_ops = verify_previous(previous)
         c.db_container(); c.load_configs()
         validate_writers(runtime_containers(), previous)
-        expected_env = f"MORPHIUME_IMAGE={previous['testedPlatformConfig']}\nMORPHIUME_OPS_ROOT={previous_ops}\n"
+        current_profile = c.active_profile()
+        if current_profile and (current_profile['opsSha256'] != previous['opsSha256'] or any(current_profile[key] != previous[key] for key in c.RELEASE_KEYS)):
+            raise ValueError('Upgrade target active profile differs from previous immutable release')
+        expected_env = c.compose_environment(previous['testedPlatformConfig'], previous_ops, current_profile)
         if c.private_file(c.CONFIG / 'deploy.env').read_text() != expected_env:
             raise ValueError('Current runtime Compose env differs from the retained previous release')
         next_ops = c.preserve_ops_bundle(candidate['sourceCommit'])
+        next_profile = c.make_profile(candidate, current_profile['profile'], c.load_configs()) if current_profile else None
+        if next_profile: c.preserve_profile(next_profile)
         old_command = c.compose(previous['testedPlatformConfig'], ops_root=previous_ops)
         next_command = c.compose(candidate['testedPlatformConfig'], env_file=c.CONFIG / 'deploy.candidate.env', ops_root=next_ops)
         before = migrations_snapshot()
@@ -149,7 +158,7 @@ def main(args):
                  'previous': previous, 'candidate': candidate, 'migrationBefore': before, 'seedInvoked': False,
                  'backendMigrationReviewed': True, 'automaticRollback': False}
         c.write_private(c.CONFIG / 'upgrading.json', json.dumps(state, indent=2) + '\n')
-        c.write_private(c.CONFIG / 'deploy.candidate.env', f"MORPHIUME_IMAGE={candidate['testedPlatformConfig']}\nMORPHIUME_OPS_ROOT={next_ops}\n")
+        c.write_private(c.CONFIG / 'deploy.candidate.env', c.compose_environment(candidate['testedPlatformConfig'], next_ops, next_profile))
         try:
             c.run(old_command + ['config', '--quiet'])
             c.run(next_command + ['config', '--quiet'])
@@ -167,6 +176,10 @@ def main(args):
             c.run(next_command + ['run', '--rm', '--pull', 'never', '--no-deps', 'migrate'], timeout=180)
             after = migrations_snapshot(); validate_migrations(before, after)
             state |= {'phase': 'migration-applied', 'migrationAfter': after}; state_update(state)
+            if next_profile:
+                # Persist canonical release/profile before recreating writers.
+                c.select_profile(next_profile)
+                state['accessProfileSha256'] = c.canonical_hash(next_profile); state_update(state)
             c.run(next_command + ['up', '-d', '--no-build', '--pull', 'never', '--wait', '--wait-timeout', '180', 'app', 'worker'], timeout=210)
             validate_writers(runtime_containers(), candidate)
             with urllib.request.urlopen('http://127.0.0.1:3001/api/health/ready', timeout=10) as response:
@@ -186,6 +199,7 @@ def main(args):
             output = candidate | {'deployedUtc': datetime.datetime.now(datetime.timezone.utc).isoformat(), 'project': c.PROJECT, 'database': c.DATABASE,
                                   'previousSourceCommit': previous['sourceCommit'], 'preMigrationBackup': result['directory'],
                                   'migrationBefore': before, 'migrationAfter': after, 'nativeFixtureAcceptance': 'pending'}
+            if next_profile: output['accessProfileSha256'] = c.canonical_hash(next_profile)
             atomic_replace_json(c.CONFIG / 'deployed-release.json', output)
             state |= {'phase': 'committed', 'completedUtc': output['deployedUtc'], 'nativeFixtureAcceptance': 'pending'}
             state_update(state)
