@@ -18,4 +18,5 @@
 - Deployment server: `192.168.240.51`, SSH port `22`.
 - Use the dedicated SSH key at `C:\Users\Admin\.ssh\morphiume_deploy_ed25519`; its public key is in `deploy/ssh/morphiume_deploy_ed25519.pub`.
 - SSH authentication is pending. `root` is the provisional bootstrap account until an authorized login is confirmed.
+- SSH reported a changed server host key during setup. Confirm the host fingerprint through the server console before changing the local known-hosts entry or reconnecting.
 - Keep private keys and passwords outside this repository. See `DEPLOYMENT.md` for connection details.
