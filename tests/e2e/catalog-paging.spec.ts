@@ -4,6 +4,7 @@ import AxeBuilder from "@axe-core/playwright";
 import type { CatalogPageDto, OrderDto, PageDto } from "../../src/contracts/commerce";
 import { normalizeSearch } from "../../src/lib/persian";
 import { createAdmin, disableUsers, isolatedPool, loginAdmin, loginCustomer, verifyAdminTotp } from "./acceptance-fixtures";
+import { recordGuideReflowFailure } from "./guide-reflow";
 
 test("T01/T20/T21: HTTP paging exceeds legacy limits, selected-volume price agrees with guide, CSV and staging SEO", async ({ browser, page, baseURL }) => {
   const pool = isolatedPool(), marker = `qa-paging-${randomUUID()}`, orderMarker = `QA-READ-${randomUUID()}`;
@@ -87,7 +88,12 @@ test("T01/T20/T21: HTTP paging exceeds legacy limits, selected-volume price agre
     await expect(guide.locator(".product-tile .price").nth(0)).toHaveText("۳۰٬۰۰۰ تومان");
     await expect(guide.locator(".product-tile .price").nth(1)).toHaveText("۵۰٬۰۰۰ تومان");
     await expect(guide.locator(".helper").filter({ hasText: "همهٔ گزینه‌های فیلتر نمایش داده نمی‌شوند." })).toBeVisible();
-    await expect.poll(() => guide.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+    try {
+      await expect.poll(() => guide.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+    } catch (error) {
+      await recordGuideReflowFailure(guide);
+      throw error;
+    }
     expect((await new AxeBuilder({ page: guide }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze()).violations).toEqual([]);
     await guide.close();
 
