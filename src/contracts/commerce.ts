@@ -15,6 +15,24 @@ export type ProductDto = {
   status: "draft" | "published" | "archived"; version: number;
   variants: { id: string; sku: string; volumeMl: number; price: MoneyDto; available: number }[];
 };
+export type ProductResolutionDto = { products: ProductDto[]; unavailableIds: string[] };
+export type PageDto<T> = { items: T[]; page: number; pageSize: number; totalItems: number; totalPages: number };
+export type ProductPageInput = {
+  page?: number; pageSize?: number; search?: string; family?: string; available?: boolean;
+  volumeMl?: number; concentration?: string; note?: string; sort?: "name" | "price_asc" | "price_desc";
+  minPriceToman?: string; maxPriceToman?: string;
+};
+export type AdminProductPageInput = ProductPageInput & { status?: ProductDto["status"] };
+export type CatalogPageDto = PageDto<ProductDto> & { facets: { families: string[]; concentrations: string[]; volumesMl: number[]; notes: string[] }; facetLimit: number; facetsTruncated: boolean };
+export type SitemapProductDto = { id: string; slug: string; updatedAt: string };
+export type VariantPageInput = { page?: number; pageSize?: number; search?: string };
+export type VariantDto = {
+  id: string; sku: string; productName: string; productStatus: ProductDto["status"]; active: boolean;
+  volumeMl: number; productVersion: number; available: number; onHand?: number; reserved?: number; price?: MoneyDto;
+};
+export type OrderStatus = "awaiting_payment" | "confirmed" | "payment_exception" | "cancelled" | "completed";
+export type OrderPaymentStatus = "pending" | "paid" | "partially_refunded" | "refunded" | "failed" | "unknown";
+export type OrdersPageInput = { page?: number; pageSize?: number; search?: string; status?: OrderStatus; paymentStatus?: OrderPaymentStatus };
 export type BulkEditInput = {
   operations: { variantId: string; expectedProductVersion: number; priceToman?: string; inventoryDelta?: number }[];
   reason: string; operationKey: string; dryRun: boolean;

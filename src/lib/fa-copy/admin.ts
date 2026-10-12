@@ -4,6 +4,8 @@ const auditActions: Readonly<Record<string, string>> = {
   "product.published": "انتشار محصول",
   "product.archived": "بایگانی محصول",
   "inventory.adjusted": "اصلاح موجودی",
+  "catalog.bulk_edited": "ویرایش گروهی قیمت و موجودی",
+  "shipping.policy_updated": "ویرایش تنظیمات هزینهٔ ارسال",
   "shipment.updated": "ثبت وضعیت ارسال",
   "refund.requested": "درخواست بازپرداخت",
   "refund.completed": "ثبت انجام بازپرداخت",
@@ -20,7 +22,7 @@ const auditActions: Readonly<Record<string, string>> = {
 const entityTypes: Readonly<Record<string, string>> = {
   product: "محصول", variant: "تنوع محصول", order: "سفارش", refund: "بازپرداخت",
   coupon: "تخفیف", content: "صفحهٔ محتوا", collection: "مجموعه", return: "درخواست رسیدگی",
-  setting: "تنظیمات", user: "حساب کاربری", media: "تصویر محصول",
+  setting: "تنظیمات", user: "حساب کاربری", media: "تصویر محصول", bulk_operation: "تغییر گروهی",
 };
 
 const systemReasons: Readonly<Record<string, string>> = {

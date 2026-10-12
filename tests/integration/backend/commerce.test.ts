@@ -2,30 +2,30 @@ import { config } from "dotenv";
 import { randomInt, randomUUID } from "node:crypto";
 import pg from "pg";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { createCommerce } from "../../../src/server/commerce/service";
+import { createCommerce, type Commerce } from "../../../src/server/commerce/service";
 import { MockPaymentProvider } from "../../../src/server/payments/mock";
 import { createJobs } from "../../../src/server/jobs/service";
 import { notifyOrderEvent } from "../../../src/server/jobs/notifications";
 import type { Actor, BulkEditInput, CheckoutInput, ProductInput } from "../../../src/contracts/commerce";
 import type { PaymentProvider } from "../../../src/server/payments/provider";
+import { createIsolatedDatabase } from "./isolated-database";
 
 config({path:".env.local",quiet:true});
 const databaseUrl=process.env.TEST_DATABASE_URL ?? process.env.DATABASE_URL;
-const enabled=!!databaseUrl && ["test","staging"].includes(process.env.DEPLOYMENT_ENV ?? "");
+const migrationUrl=process.env.TEST_MIGRATION_DATABASE_URL ?? process.env.MIGRATION_DATABASE_URL;
+const enabled=!!databaseUrl && !!migrationUrl && ["test","staging"].includes(process.env.DEPLOYMENT_ENV ?? "");
 describe.skipIf(!enabled)("PostgreSQL commerce invariants",()=>{
-  const pool=new pg.Pool({connectionString:databaseUrl,max:8});
-  const mock=new MockPaymentProvider(pool,"test","http://127.0.0.1:3000");
-  const commerce=createCommerce({pool,payments:mock,deploymentEnv:"test",appBaseUrl:"http://127.0.0.1:3000",shippingFeeIrr:100n,policyVersion:"test-policy"});
+  let pool:pg.Pool,mock:MockPaymentProvider,commerce:Commerce,isolation:Awaited<ReturnType<typeof createIsolatedDatabase>>;
   let admin:Actor,customerA:Actor,customerB:Actor;const fixtureUsers:string[]=[];const productIds:string[]=[];const mediaIds:string[]=[];
-  async function actor(kind:"customer"|"admin"):Promise<Actor>{const id=randomUUID(),sessionId=randomUUID();fixtureUsers.push(id);await pool.query('INSERT INTO "user"(id,name,email,email_verified,phone_number,phone_number_verified) VALUES($1,\'TEST fixture\',$2,true,$3,true)',[id,`${id}@fixture.invalid`,`+989${String(randomInt(0,1_000_000_000)).padStart(9,"0")}`]);await pool.query("INSERT INTO session(id,token,user_id,expires_at) VALUES($1,$2,$3,now()+interval '1 hour')",[sessionId,randomUUID(),id]);if(kind==="admin"){await pool.query("INSERT INTO role_membership(user_id,role) VALUES($1,'owner')",[id]);await pool.query("INSERT INTO admin_grant(session_id,expires_at) VALUES($1,now()+interval '1 hour')",[sessionId]);}return {userId:id,sessionId,kind};}
+  async function actor(kind:"customer"|"admin"):Promise<Actor>{const id=randomUUID(),sessionId=randomUUID();fixtureUsers.push(id);await pool.query('INSERT INTO "user"(id,name,email,email_verified,phone_number,phone_number_verified,two_factor_enabled) VALUES($1,\'TEST fixture\',$2,true,$3,true,$4)',[id,`${id}@fixture.invalid`,`+989${String(randomInt(0,1_000_000_000)).padStart(9,"0")}`,kind==="admin"]);await pool.query("INSERT INTO session(id,token,user_id,expires_at) VALUES($1,$2,$3,now()+interval '1 hour')",[sessionId,randomUUID(),id]);if(kind==="admin"){await pool.query("INSERT INTO role_membership(user_id,role) VALUES($1,'owner')",[id]);await pool.query("INSERT INTO admin_grant(session_id,expires_at) VALUES($1,now()+interval '1 hour')",[sessionId]);}return {userId:id,sessionId,kind};}
   async function product(stock=1){const suffix=randomUUID();const input:ProductInput={name:`TEST fixture ${suffix}`,slug:`test-${suffix}`,description:"Clearly marked integration fixture",concentration:"TEST",family:"TEST",topNotes:[],heartNotes:[],baseNotes:[],imageUrl:"/assets/sample-perfume.svg",variants:[{sku:`TEST-${suffix}`,volumeMl:50,priceToman:"1000",initialStock:stock}]};const created=await commerce.createProduct(admin,input);productIds.push(created.id);return commerce.publishProduct(admin,created.id,created.version);}
   async function checkout(actor:Actor,variantId:string,coupon?:string){const {cart,guestToken}=await commerce.createCart();let filled=await commerce.setCartItem(cart.id,guestToken,variantId,1,cart.version);if(coupon)filled=await commerce.setCartCoupon(cart.id,guestToken,coupon,filled.version);const quote=await commerce.quoteCheckout(actor,guestToken,cart.id);const input:CheckoutInput={cartId:cart.id,cartVersion:filled.version,address:{recipient:"TEST recipient",phone:"09121234567",province:"TEST",city:"TEST",address:"TEST address",plaque:"1",postalCode:"1234567890"},shippingMethodId:"standard",quoteFingerprint:quote.fingerprint,policyVersion:quote.policyVersion};return {input,guestToken,key:randomUUID()};}
   async function authority(attemptId:string){return (await pool.query<{authority:string}>("SELECT authority FROM payment_attempt WHERE id=$1",[attemptId])).rows[0]!.authority;}
   async function media(owner:Actor,status="ready"){const id=randomUUID(),url=`/media/${id}.webp`;mediaIds.push(id);await pool.query("INSERT INTO media(id,public_path,private_object_key,mime_type,width,height,status,created_by) VALUES($1,$2,$5,'image/webp',100,100,$3,$4)",[id,url,status,owner.userId,id]);return url;}
   function galleryInput(suffix:string):ProductInput{return {name:`TEST gallery ${suffix}`,slug:`test-gallery-${suffix}`,description:"TEST gallery fixture",concentration:"TEST",family:"TEST",topNotes:[],heartNotes:[],baseNotes:[],variants:[{sku:`GAL50-${suffix}`,volumeMl:50,priceToman:"1000",initialStock:1},{sku:`GAL100-${suffix}`,volumeMl:100,priceToman:"2000",initialStock:1}]};}
-  beforeAll(async()=>{admin=await actor("admin");});
+  beforeAll(async()=>{isolation=await createIsolatedDatabase(databaseUrl!,migrationUrl!);pool=isolation.pool;mock=new MockPaymentProvider(pool,"test","http://127.0.0.1:3000");commerce=createCommerce({pool,payments:mock,deploymentEnv:"test",appBaseUrl:"http://127.0.0.1:3000",shippingFeeIrr:100n,policyVersion:"test-policy"});admin=await actor("admin");});
   beforeEach(async()=>{customerA=await actor("customer");customerB=await actor("customer");});
-  afterAll(async()=>{await pool.query("UPDATE product SET status='archived' WHERE id=ANY($1::uuid[])",[productIds]);await pool.query("UPDATE media SET status='rejected' WHERE id=ANY($1::uuid[])",[mediaIds]);await pool.query('UPDATE "user" SET disabled=true WHERE id=ANY($1::text[])',[fixtureUsers]);await pool.query("DELETE FROM admin_grant WHERE session_id IN (SELECT id FROM session WHERE user_id=ANY($1::text[]))",[fixtureUsers]);await pool.end();});
+  afterAll(async()=>{if(isolation)await isolation.close();});
 
   it("races the last unit and accepts only one reservation",async()=>{
     const p=await product(1);const a=await checkout(customerA,p.variants[0]!.id),b=await checkout(customerB,p.variants[0]!.id);

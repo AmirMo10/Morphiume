@@ -33,7 +33,7 @@ test("T01/T12/T17/T19/T20/T21/T23/T25: real admin product → guest purchase →
     await page.getByLabel("کد شش‌رقمی برنامهٔ رمزساز").fill(totpForUri(`otpauth://totp/Morphiume?secret=${secret}`));
     await page.getByRole("button", { name: "تأیید و ورود به مدیریت", exact: true }).click();
     await expect(page).toHaveURL(/\/admin$/);
-    const png = await sharp({ create: { width: 8, height: 8, channels: 4, background: "#F6F2EB" } }).png().toBuffer();
+    const png = await sharp({ create: { width: 16, height: 20, channels: 4, background: "#3355B1" } }).png().toBuffer();
     const media = await page.context().request.post("/api/admin/media", { headers: { Origin: baseURL! }, multipart: { file: { name: "qa-test-fixture.png", mimeType: "image/png", buffer: png } } });
     expect(media.status()).toBe(201);
     const uploaded = (await media.json()).data as { id: string; url: string; width: number; height: number };
@@ -85,6 +85,11 @@ test("T01/T12/T17/T19/T20/T21/T23/T25: real admin product → guest purchase →
     await expect(buyer.locator("html")).toHaveAttribute("lang", "fa");
     await expect(buyer.locator("html")).toHaveAttribute("dir", "rtl");
     await expect(buyer.getByText("۱۲۳٬۴۵۶ تومان", { exact: true }).first()).toBeVisible();
+    const displayedImage = buyer.getByRole("img", { name: productName, exact: true });
+    await expect(displayedImage).toHaveAttribute("src", /^\/media\/[0-9a-f-]{36}\.webp$/);
+    const decoded = await displayedImage.evaluate(async (element: HTMLImageElement) => { await element.decode(); return { width: element.naturalWidth, height: element.naturalHeight, currentSrc: element.currentSrc }; });
+    expect(decoded.width).toBe(16); expect(decoded.height).toBe(20);
+    expect((await customer.request.get(decoded.currentSrc)).status()).toBe(200);
     const catalogAxe = await new AxeBuilder({ page: buyer }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
     expect(catalogAxe.violations).toEqual([]);
     await buyer.screenshot({ path: `docs/qa/screenshots/product-${info.project.name}-390.png`, fullPage: true });

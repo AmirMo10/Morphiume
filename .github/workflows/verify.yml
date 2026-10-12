@@ -98,6 +98,7 @@ jobs:
           mkdir -p .local
           docker buildx create --use
           docker buildx build --file deploy/staging/Dockerfile --build-arg MORPHIUME_SOURCE_COMMIT="$GITHUB_SHA" --tag "$image" --load .
+          docker run --rm --network none --read-only --cap-drop ALL --security-opt no-new-privileges:true --entrypoint node "$image" -e 'process.stdout.write(require("node:fs").readFileSync("/app/morphiume-native-audit.json","utf8"))' > .local/native-audit.json
           curl --fail --location --silent --show-error --output /tmp/grype.tar.gz https://github.com/anchore/grype/releases/download/v0.120.1/grype_0.120.1_linux_amd64.tar.gz
           echo '0a9ee97ef5ae2ee953b0a80098105052e846cdbe319a57d808b519c33cd1343d  /tmp/grype.tar.gz' | sha256sum --check
           tar --extract --gzip --file /tmp/grype.tar.gz --directory /tmp grype
@@ -117,6 +118,22 @@ jobs:
           docker buildx build --file deploy/staging/Dockerfile --build-arg MORPHIUME_SOURCE_COMMIT="$GITHUB_SHA" --tag "$candidate" --provenance=mode=max --sbom=true --metadata-file .local/image-publication.json --push .
           node scripts/ci-image-identity.mjs
           echo "Accepted platform config matched before promoting verified source: $image" >> "$GITHUB_STEP_SUMMARY"
+      - name: Export accepted platform image for private server transfer
+        run: |
+          image="ghcr.io/${GITHUB_REPOSITORY,,}:${GITHUB_SHA}"
+          docker save --platform linux/amd64 "$image" | gzip -1 > .local/accepted-image.tar.gz
+          cd .local
+          sha256sum accepted-image.tar.gz > accepted-image.sha256
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: accepted-runtime-image
+          path: |
+            .local/accepted-image.tar.gz
+            .local/accepted-image.sha256
+            .local/image-identity.json
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 7
       - name: Summarize image browser evidence without credentials
         if: always()
         run: node tests/e2e/sanitize-report.mjs
@@ -128,5 +145,6 @@ jobs:
             docs/qa/browser-summary.json
             .local/image-scan.json
             .local/image-identity.json
+            .local/native-audit.json
           if-no-files-found: ignore
           retention-days: 14

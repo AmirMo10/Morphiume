@@ -22,6 +22,10 @@ const fieldLabels: Readonly<Record<string, string>> = {
   title: "عنوان صفحه", body: "متن صفحه", reason: "دلیل",
   carrier: "شرکت ارسال", trackingCode: "کد رهگیری", delta: "تغییر تعداد",
   policyVersion: "نسخهٔ شرایط خرید", shippingDescription: "شرح ارسال",
+  shippingFeeToman: "هزینهٔ ارسال به تومان",
+  freeShippingThresholdToman: "حداقل خرید برای ارسال رایگان به تومان",
+  inventoryDelta: "تغییر موجودی", operations: "تغییرهای گروهی",
+  page: "شمارهٔ صفحه", pageSize: "تعداد نتیجه در هر صفحه",
 };
 
 /** Keep approved Persian schema messages; never expose a default English validation sentence. */

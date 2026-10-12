@@ -1,0 +1,21 @@
+[Unit]
+Description=Morphiume staging encrypted local logical backup
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/morphiume
+ExecStart=/usr/bin/bash /opt/morphiume/deploy/staging/backup.sh
+TimeoutStartSec=30min
+User=root
+UMask=0077
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=strict
+ReadWritePaths=/srv/morphiume/staging/backups /srv/morphiume/staging/backup.lock
+MemoryMax=512M
+CPUQuota=50%
+StandardOutput=journal
+StandardError=journal

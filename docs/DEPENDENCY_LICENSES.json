@@ -1,0 +1,238 @@
+{
+  "packageManager": "pnpm@11.25.0",
+  "coverage": "Installed direct dependencies; upstream declarations, not a legal compliance certification. Image transitive/OS inventory comes from the accepted image SBOM.",
+  "entries": [
+    {
+      "name": "@axe-core/playwright",
+      "version": "4.13.0",
+      "scope": "development",
+      "declaredLicense": "MPL-2.0",
+      "repository": "https://github.com/dequelabs/axe-core-npm.git",
+      "metadataSha256": "b7325a3f67fbefba9f3da2e3eaec796958b919a306c4beaa8a3de73a7ed3991f"
+    },
+    {
+      "name": "@better-auth/drizzle-adapter",
+      "version": "1.7.7",
+      "scope": "runtime",
+      "declaredLicense": "MIT",
+      "repository": "git+https://github.com/better-auth/better-auth.git",
+      "metadataSha256": "783c7c1104c2d68080407994208fd1f505439b52e30a7466fb1a188be4f46cac"
+    },
+    {
+      "name": "@eslint/js",
+      "version": "10.0.1",
+      "scope": "development",
+      "declaredLicense": "MIT",
+      "repository": "https://github.com/eslint/eslint.git",
+      "metadataSha256": "866d0fa98ddf79c7d2c0a9865a330f9ba1a415877407b1859223a84fea84bf68"
+    },
+    {
+      "name": "@next/eslint-plugin-next",
+      "version": "16.4.0",
+      "scope": "development",
+      "declaredLicense": "MIT",
+      "repository": "vercel/next.js",
+      "metadataSha256": "4ca584e2bff5dcda9a7a1a7e63c6ead49a21a581324011968931b3ad0f635ada"
+    },
+    {
+      "name": "@playwright/test",
+      "version": "1.64.0",
+      "scope": "development",
+      "declaredLicense": "Apache-2.0",
+      "repository": "git+https://github.com/microsoft/playwright.git",
+      "metadataSha256": "fdf7f73664765c38b043241c72e3b0ce6db74fc80fe90f5b17c3768bc39fb1e3"
+    },
+    {
+      "name": "@tailwindcss/postcss",
+      "version": "4.3.3",
+      "scope": "development",
+      "declaredLicense": "MIT",
+      "repository": "https://github.com/tailwindlabs/tailwindcss.git",
+      "metadataSha256": "2f8268cf1c0b9947d4f5fc6de60d45d2ee0bac3523c485c15722d2f8de7a65b4"
+    },
+    {
+      "name": "@types/node",
+      "version": "24.19.2",
+      "scope": "development",
+      "declaredLicense": "MIT",
+      "repository": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+      "metadataSha256": "13aa15b08ff549f7b79033f33940aae287f1d47098991ddc6b92d9800f55a695"
+    },
+    {
+      "name": "@types/pg",
+      "version": "8.23.1",
+      "scope": "development",
+      "declaredLicense": "MIT",
+      "repository": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+      "metadataSha256": "d122ef1e1bdb760edd5cff70d39597b9b3ae757c80e829bc297cd34fb7f01bd3"
+    },
+    {
+      "name": "@types/react",
+      "version": "19.3.0",
+      "scope": "development",
+      "declaredLicense": "MIT",
+      "repository": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+      "metadataSha256": "505c0df4cd73d6a02c946bd9b81451584bd9c83ea72d75cff9b826efceaa19c2"
+    },
+    {
+      "name": "@types/react-dom",
+      "version": "19.3.0",
+      "scope": "development",
+      "declaredLicense": "MIT",
+      "repository": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+      "metadataSha256": "4a2052bb362c34f1d39cfe0818b6fe01a9f988b609e8b7e4832aff7dbf2f7180"
+    },
+    {
+      "name": "better-auth",
+      "version": "1.7.7",
+      "scope": "runtime",
+      "declaredLicense": "MIT",
+      "repository": "git+https://github.com/better-auth/better-auth.git",
+      "metadataSha256": "f5e6b9369bdfe9335dfc1c8e829a52aa3cc34c5d987eab35eb75e0b14baab75c"
+    },
+    {
+      "name": "dotenv",
+      "version": "18.0.7",
+      "scope": "runtime",
+      "declaredLicense": "BSD-2-Clause",
+      "repository": "git://github.com/motdotla/dotenv.git",
+      "metadataSha256": "424b3a937aa2448ef7ab8a99cf935f171806879a967ec9b1a0c4ee317cb33bd2"
+    },
+    {
+      "name": "drizzle-kit",
+      "version": "0.31.11",
+      "scope": "development",
+      "declaredLicense": "MIT",
+      "repository": "git+https://github.com/drizzle-team/drizzle-orm.git",
+      "metadataSha256": "7e2f9e78650d4d55f2fd40e273a68e0bf8c6dc3eee7ab386e09a608628fe097a"
+    },
+    {
+      "name": "drizzle-orm",
+      "version": "0.45.4",
+      "scope": "runtime",
+      "declaredLicense": "Apache-2.0",
+      "repository": "git+https://github.com/drizzle-team/drizzle-orm.git",
+      "metadataSha256": "0053890bb51fa62e886e4c0ef549611249da665e23c8642586bdcf910de5da64"
+    },
+    {
+      "name": "esbuild",
+      "version": "0.28.2",
+      "scope": "development",
+      "declaredLicense": "MIT",
+      "repository": "git+https://github.com/evanw/esbuild.git",
+      "metadataSha256": "9d0bc453f4e791553c4cc2298ba023b409241fd9801e494741666eb0f6051490"
+    },
+    {
+      "name": "eslint",
+      "version": "10.12.0",
+      "scope": "development",
+      "declaredLicense": "MIT",
+      "repository": "eslint/eslint",
+      "metadataSha256": "7178a717ca081a0558e5bd4eedd5b27c19d7a9b7048434ec40ba536aa2d0f501"
+    },
+    {
+      "name": "eslint-plugin-react-hooks",
+      "version": "7.1.1",
+      "scope": "development",
+      "declaredLicense": "MIT",
+      "repository": "https://github.com/facebook/react.git",
+      "metadataSha256": "c745f6ec0ce838f395eb5da17e3f907094fcd14c87c30b94810f217fe5e7b476"
+    },
+    {
+      "name": "next",
+      "version": "16.4.0",
+      "scope": "runtime",
+      "declaredLicense": "MIT",
+      "repository": "vercel/next.js",
+      "metadataSha256": "440efba874450dc997b2c3bf9efa4c3c4835abbc40d65442e94a7c69f4bad031"
+    },
+    {
+      "name": "pg",
+      "version": "8.23.1",
+      "scope": "runtime",
+      "declaredLicense": "MIT",
+      "repository": "git://github.com/brianc/node-postgres.git",
+      "metadataSha256": "b1e53333a3d0c2c47c49a5cb919d221135dc03145df740925b899bc2baacc435"
+    },
+    {
+      "name": "react",
+      "version": "19.3.0",
+      "scope": "runtime",
+      "declaredLicense": "MIT",
+      "repository": "https://github.com/react/react.git",
+      "metadataSha256": "6e003e4e9ed25afa7fdd55613f8aa877cefa9b359d9c13f81ee704030248e24e"
+    },
+    {
+      "name": "react-dom",
+      "version": "19.3.0",
+      "scope": "runtime",
+      "declaredLicense": "MIT",
+      "repository": "https://github.com/react/react.git",
+      "metadataSha256": "136d4af63de473392ea79d6a21932b0ed9eb37fe518ce70f4621250f3d79e9bb"
+    },
+    {
+      "name": "server-only",
+      "version": "0.0.1",
+      "scope": "runtime",
+      "declaredLicense": "MIT",
+      "repository": null,
+      "metadataSha256": "e4b0cc01e2e0349c51c694fa97d8a642eb8322521ca1444b20bd1842594b4339"
+    },
+    {
+      "name": "sharp",
+      "version": "0.35.5",
+      "scope": "runtime",
+      "declaredLicense": "Apache-2.0",
+      "repository": "git+https://github.com/lovell/sharp.git",
+      "metadataSha256": "ad4a2535d72eb638053a38867b1abf43c328cd1c1dbae5cf4172d498365a8b97"
+    },
+    {
+      "name": "tailwindcss",
+      "version": "4.3.3",
+      "scope": "development",
+      "declaredLicense": "MIT",
+      "repository": "https://github.com/tailwindlabs/tailwindcss.git",
+      "metadataSha256": "3dc86b46c511947ca00838aa3f1776243abe923ac347c092e60a0cbc7ae68559"
+    },
+    {
+      "name": "tsx",
+      "version": "4.23.15",
+      "scope": "runtime",
+      "declaredLicense": "MIT",
+      "repository": "privatenumber/tsx",
+      "metadataSha256": "ab5f14c4251638844ade3905d3cfc52fc1c833644694d655a05f6d0ca746b83c"
+    },
+    {
+      "name": "typescript",
+      "version": "6.0.3",
+      "scope": "development",
+      "declaredLicense": "Apache-2.0",
+      "repository": "https://github.com/microsoft/TypeScript.git",
+      "metadataSha256": "9332e97c30d3e53ed54910b89207ed657fb444066484df6e5b6965bf130865e9"
+    },
+    {
+      "name": "typescript-eslint",
+      "version": "8.71.1",
+      "scope": "development",
+      "declaredLicense": "MIT",
+      "repository": "https://github.com/typescript-eslint/typescript-eslint.git",
+      "metadataSha256": "2b907d09df3378dc1df90d0e1cb5059a2a8e35f55f7be4f997d605f00d8a3f6e"
+    },
+    {
+      "name": "vitest",
+      "version": "5.0.3",
+      "scope": "development",
+      "declaredLicense": "MIT",
+      "repository": "git+https://github.com/vitest-dev/vitest.git",
+      "metadataSha256": "df72ec137c86d8454d129967ed88c640012fa8db7950d58f79cee8a94df437f1"
+    },
+    {
+      "name": "zod",
+      "version": "4.6.6",
+      "scope": "runtime",
+      "declaredLicense": "MIT",
+      "repository": "git+https://github.com/colinhacks/zod.git",
+      "metadataSha256": "cff7e142055a9dd9bc2947a71ca3fb5e3aacdfda966d7728993ff3656245b94a"
+    }
+  ]
+}

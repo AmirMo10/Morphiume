@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+bash /opt/morphiume/deploy/staging/assert-boundaries.sh
 umask 077
 [[ $# == 2 ]] || { echo 'Usage: restore.sh BACKUP_DIRECTORY TEMPORARY_IDENTITY_FILE' >&2; exit 1; }
 backup="$(realpath "$1")"

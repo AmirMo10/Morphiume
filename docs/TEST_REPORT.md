@@ -1,6 +1,35 @@
 # آزمون‌های واقعاً اجراشده
 
-تاریخ: ۲۰۲۶-۱۰-۱۲. برنامهٔ اصلی در `7f403a9834aee3f392d182d58f37b1ee12cb56a0` روی main منتشر شد؛ اجرای CI همان منبع جدا ثبت شده است. بازبینی جدید گالری/مهاجرت/بستهٔ اجرایی در working tree جاری است. نتیجهٔ زیر خروجی واقعی ابزار است، نه برآورد یا گواهی آمادگی فروش.
+تاریخ: ۲۰۲۶-۱۰-۱۲. checkpoint پیشین `1a4fa4433d720b490ce222e8898cb09f73ba4abf` است. نسخهٔ یکپارچهٔ صفحه‌بندی/ارسال/مجوزها در این checkpoint با build24244/server48583 و مرورگر کامل پذیرفته شد؛ CI Linux و تصویر همان منبع هنوز نتیجه ندارند. شمارها مربوط به اجراهای مشخص‌اند و جمع نمی‌شوند. جدول پایین سابقهٔ اجرا را حفظ می‌کند؛ شواهد تازهٔ این بخش مقدم‌اند.
+
+| اجرای تازه | نتیجهٔ واقعی |
+|---|---|
+| CI منبع1a4fa44 | [run38248764072](https://github.com/AmirMo10/Morphiume/actions/runs/38248764072)، verify موفق:۹۷آزمون در۸فایل و۹مورد Chromium/Firefox/WebKit Linux؛ build/lint/types/audit/Gitleaks موفق |
+| image همان CI | build بدون secret و native musl WebP موفق؛ Grype نه High در OpenSSL/zlib ثبت کرد؛ publication/deployment اجرا نشد |
+| بک‌اند نسخهٔ جاری | full58/58 در۸فایل،168.49s، پیش از آخرین recheck قفل مجوز؛ پس از آن targeted8/8 bulk در32.94s؛ full59 ادعا نمی‌شود |
+| تنظیمات ارسال | native-MFA/DB پنج از پنج،8.86s؛ تبدیل دقیق، نسخه/مجوز، قفل ردیف غایب و انقضای proof حین انتظار واقعی advisory lock |
+| بازهٔ قیمت | pagination18/18 در28.95s، شامل چهار مورد تازه؛ حدود inclusive صفر/سقف، ارقام محلی، خطای محدوده و جلوگیری از ترکیب قیمت/حجم/موجودی تنوع‌های متفاوت؛ اجرا پس از suite125 بود |
+| مجوز تنظیمات/نقش | native-MFA دو از دو در7.85s؛ proof منقضی پس از قفل حساب هدف و نقش لغوشده پس از انتظار تنظیمات، بدون اثر |
+| invariant ارسال/refund | delivered→shipped در baseline واقعاً بازتولید شد (یک fail/هشت skip،8.11s)؛ پس از اصلاح،۱۳/۱۳ در84.40s؛ سپس شرط فعال‌بودن MFA و fixture معتبر افزوده و۱۴/۱۴ در91.29s قبول شد. fixture دامنه grant کنترل‌شده دارد و ورود بومی محسوب نمی‌شود؛ issuance بومی در root/QA جدا آزموده شده است |
+| full owned regression نهایی | ۷۳/۷۳ در۹فایل،259.92s، بدون skip؛۸واحد/۶۵PG؛ شامل ارسال/refund/عامل فعال و tick/sweep روی schema مهاجرت‌یافتهٔ جدا. fingerprint صف/رزرو public ثابت و cleanup دقیق موفق؛۱۵dead اصلی بدون تغییر. پس از آن guard پیش از connection با۹/۹ در357ms قبول شد؛ branch ساخت role محدود CI تا اجرای واقعی pending |
+| native config پس از delta | root config suite هفت از هفت در۲فایل،21.05s، موفق؛ helper فقط429 مشاهده‌شده را با interval واقعی یا rule10s plugin1.7.7 رعایت می‌کند |
+| مرورگر کامل build نهایی |۱۲/۱۲ در Chrome154.0.8037.93/WebKit27.2،272.570747s؛ expected12/unexpected0/skipped0/flaky0/retries0. شش spec روی production24244/server48583؛ خرید بومی/پرداخت mock، گالری/موجودی/صفحه‌بندی/ارسال و guard تازهٔ mutation واقعاً اجرا شدند. fulfillment GET/PATCH/replay بدون مبلغ و event مالی؛ CSV سفارش مجاز با پنج ستون غیرمالی/private no-store، CSV محصول و receipt403؛ stock6→5/receipt1/shipment1 |
+| صف پیش از استقرار | snapshot14:13:57UTC:708completed/315pending/15dead؛ deadها همه payment.reconcile با۱۲تلاش،۹«payment in progress» و۶«create result unknown» و حساب‌های disabled@fixture.invalid. lineage آزمایشی تأیید شد، نه tick ایجادکنندهٔ هر retry. هیچ replay/تغییرstatus انجام نشد؛ snapshot شناسه‌ها خصوصی است |
+| fixture limiter | اجرای اولیهٔ جامع115pass/4skip/1failed suite به‌علت429 ورود fixture؛ fixture اکنون X-Retry-After واقعی را رعایت می‌کند. auth+shipping9/9 قبول شد؛ limiter حذف یا تضعیف نشد |
+| build یکپارچه | Next production، worker/migration/seed bundle، closure530فایل و encoder واقعی Windows WebP موفق؛ هیچ secret در build تولید نشد |
+| component harness | Chromium با اجزای واقعی و API/router fixture: صفحه‌بندی/فیلتر/نشانی/ارسال/علاقه‌مندی/تعویض حساب موفق؛ جای DB/MFA/E2E واقعی نیست |
+| delta UI/metadata | build96791 موفق؛ robots/sitemap دینامیک شدند، Windows WebP موفق؛ harness بازهٔ قیمت/خطای400/scroll region با axe و SSR ورود با delayed JavaScript موفق؛ علت شکست قبلی WebKit هنوز اثبات نشده |
+| مرورگر source83122 | اجرای دوم۱۲مورد:۱۰موفق/دو locator قدیمی موجودی؛ سپس Chrome موجودی26.2s و WebKit35.6s موفق. پوشش هر شش سناریو در هر دو موتور قبول شد، نه یک اجرای واحد۱۲/۱۲. native429 با انتظار واقعی۱۰s و کد تازه رعایت شد؛ limiter تغییر نکرد |
+| تصویر T25 | در دو موتور، img.decode/naturalWidth16/naturalHeight20 و HTTP200 تصویر مصنوعی آبی پیش از screenshot تأیید شدند؛ عکس واقعی کالا نیست |
+| zoom بومی۲۰۰٪ | Chrome154.0.8037.93 headless، چهار HTTP200 route محصولات/حساب/ورودمدیر/راهنما؛ profile جدید و preference بومی، outer/screen ثابت، inner764×485→382×242 و DPR1→2، CSSzoom1/visualViewport.scale1؛ overflow صفر، Tab موفق و WCAG axe صفر؛ شواهد native-zoom-observations.json. آزمون دستی GUI/device/screenreader نیست |
+| زیرساخت | guard mount، پایش DB-only و هشدار غیبت با expect-app، syntax/Compose/systemd و metrics15s smoke موفق؛ timer نصب و restore کامل انجام نشده |
+| مجوز وابستگی | snapshot29وابستگی مستقیم از metadata نسخهٔ نصب‌شده با منبع/SHA؛ transitive/OS به SBOM تصویر وابسته است |
+
+اجرای جامع۱۲۵/۱۲۵ در۱۲فایل،199.75s، exit0 پس از recheck قفل bulk انجام شد؛ lint و TypeScript سراسری نیز exit0. تغییرات بعدی با آزمون‌های هدفمند جدا در جدول ثبت شده‌اند. هر شش spec مرورگر source83122 در دو موتور، از اجرای کامل و بازاجرا، پذیرفته شد. zoom بومی headless جدا تأیید شد؛ CI Linux و reflow جای دستگاه یا آزمون دستی صفحه‌خوان نیستند.
+
+اجرای نخست مرورگر ویژگی‌های جدید:۱۲مورد در Chrome/WebKit، چهار موفق و هشت شکست. نقص واقعی scrollable-region-focusable جدول سفارش رفع و در harness قبول شد؛ locatorهای قدیمی متن و واحد SQL cleanup5seconds به5s اصلاح شدند. policy تنها با تشخیص نویسندهٔ fixture و snapshot خصوصی اولیه برگردانده شد. مجموعهٔ کامل روی build تازه در حال بازاجراست. نتیجهٔ suite125 به تغییرات بعدی قیمت/مجوز/رابط تعمیم داده نمی‌شود؛ شمارهای هدفمند بالا مستقل ثبت شده‌اند و CI بعدی suite کامل همان commit را اجرا خواهد کرد.
+
+آزمون‌های قدیمی commerce، tick و sweep جهانی را روی DB مشترک اجرا می‌کردند؛ انتقال به schema تولیدشدهٔ جدا با migration/constraints اصلی و runtime DML مستقل اکنون در full73 قبول شد. claim/sweep زمان اجرا تغییر یا فیلتر نشدند. schema/role موقت CI فقط با guardهای محیط و شناسهٔ این اجرای آزمون ایجاد/پاک می‌شوند؛ شاخهٔ ساخت role در CI هنوز نتیجه ندارد. build24244، lint سراسری و WebP واقعی موفق شدند. دو اجرای نخست build نهایی هرکدام۱۰موفق/دو شکست داشتند: اول assertion اشتباه `.irr` به‌جای قرارداد `.amountIrr`، سپس انتظار نادرست403 برای CSV غیرمالی مجاز نقش انبار. این خطاهای آزمون اصلاح شدند؛ خروجی‌های امن قبلی حفظ شدند و سومین اجرای کامل۱۲/۱۲ قبول شد. منبع برنامه در این سه اجرا ثابت بود؛ نتیجهٔ ترکیبی جای اجرای کامل گزارش نمی‌شود.
 
 | بررسی | نتیجهٔ موجود |
 |---|---|
@@ -34,4 +63,4 @@
 
 اعداد واقعی پذیرش در [ماتریس QA](qa/ACCEPTANCE_MATRIX.md)، خروجی بی‌اطلاعات حساس در [خلاصهٔ مرورگر](qa/browser-summary.json)، جزئیات بک‌اند در [CHECKS](backend/CHECKS.md) و متن فارسی در [بازبینی](persian/REVIEW.md) آمده‌اند. trace/password/OTP/کلید/dump به Git یا artifact عمومی منتقل نمی‌شوند.
 
-موارد اجرا نشده: Firefox Windows/دستگاه واقعی، zoom200% کامل، broad UI matrix پنل، بررسی مستقل امنیت کامل/ASVS، PSP/SMS واقعی و sandbox حساب، CDN/network ایران، restore کامل، alert/offsite و اندازه‌گیری ۲۰۰VU/RPS. وضعیت این‌ها با تکمیل کار مستقل به‌روز می‌شود؛ نامعلوم بودن دادهٔ کسب‌وکار جایگزین نقص پیاده‌سازی نیست.
+موارد اجرا نشده: Firefox Windows/دستگاه واقعی/صفحه‌خوان دستی، پوشش همهٔ ترکیب‌های ماتریس پنل، بررسی مستقل امنیت کامل/ASVS، PSP/SMS واقعی و sandbox حساب، CDN/network ایران، restore کامل، alert/offsite و اندازه‌گیری۲۰۰VU/RPS. بخشی از پنل، هزینه/رضایت خرید، مرجوعی/بازپرداخت، نقش انبار و CSV اکنون در دو موتور آزموده شدند. قابلیت‌های مستقلِ هنوز تکمیل‌نشده در IMPLEMENTATION_PLAN ثبت‌اند و نبود دادهٔ کسب‌وکار جایگزین نقص پیاده‌سازی نیست.

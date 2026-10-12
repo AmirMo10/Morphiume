@@ -8,6 +8,11 @@ Observed 2026-10-12. Official pages and npm registry metadata were read; no real
 | https://orm.drizzle.team/docs/column-types/pg | PostgreSQL types |
 | https://node-postgres.com/features/transactions | Same-client short transactions |
 | https://www.postgresql.org/docs/current/explicit-locking.html | Row locks, lock ordering and deadlock retry |
+| https://www.postgresql.org/docs/18/sql-begin.html | Transaction isolation/read-only syntax; ordinary quote transactions permit settings locks |
+| https://www.postgresql.org/docs/18/transaction-iso.html | Repeatable-read consistent paging/export snapshots |
+| https://www.postgresql.org/docs/18/sql-select.html | Bounded selection, deterministic ordering and shared row locks |
+| https://www.postgresql.org/docs/18/functions-string.html | Reviewed UTF8 normalize/translate/regexp_replace for normalized SKU/name-only variant search |
+| https://www.postgresql.org/docs/18/functions-datetime.html | clock_timestamp reflects real elapsed time; now/transaction_timestamp stays fixed for the transaction |
 | https://better-auth.com/docs/adapters/drizzle | Split adapter package and pg schema mapping |
 | https://better-auth.com/docs/plugins/phone-number | OTP hook; docs explicitly require atomic custom consumption for parallel strict single-use |
 | https://better-auth.com/docs/plugins/2fa | Password/TOTP and recovery; default passwordless enforcement exclusions |

@@ -16,7 +16,7 @@ function Shell({ children, environment }: { children: ReactNode; environment: st
   const { cart } = useCommerce();
   const isAdmin = pathname.startsWith("/admin");
   const cartCount = cart?.items.reduce((count, item) => count + item.quantity, 0) ?? 0;
-  return <><a className="skip-link" href="#main">رفتن به محتوای اصلی</a>{environment !== "live" && <div className="environment-banner">محیط آزمایشی Morphiume · پرداخت و پیامک واقعی فعال نیست.</div>}
+  return <><a className="skip-link" href="#main">رفتن به محتوای اصلی</a>{environment !== "live" && <section className="environment-banner" aria-label="وضعیت محیط فروشگاه">محیط آزمایشی <bdi>Morphiume</bdi> · پرداخت و پیامک واقعی فعال نیست.</section>}
     <header className="site-header"><div className="header-inner">
       <Link href={isAdmin ? "/admin" : "/"} className="brand" aria-label="Morphiume — صفحهٔ اصلی"><Image src="/brand/morphiume-wordmark.svg" alt="Morphiume" width={526} height={122} /></Link>
       {isAdmin ? <span className="admin-header-label">مدیریت فروشگاه</span> : <nav className="desktop-nav" aria-label="ناوبری اصلی"><Link href="/products">عطرها</Link><Link href="/guide">راهنمای رایحه</Link><Link href="/pages/about">دربارهٔ برند</Link></nav>}

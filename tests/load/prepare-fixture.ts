@@ -24,6 +24,7 @@ try {
     const product = i === 0 ? productId : randomUUID(), variant = i === 0 ? variantId : randomUUID(), stock = i === 0 ? 100000 : 1000;
     productIds.push(product);
     await pool.query("INSERT INTO product(id,name,slug,description,concentration,family,image_url,status,search_key) VALUES($1,$2,$3,$4,'QA','آزمایشی','/assets/sample-perfume.svg','published','آزمون ظرفیت qa')", [product, `آزمون ظرفیت QA ${fixtureId.slice(0, 8)} ${i + 1}`, `load-${fixtureId}-${i}`, "دادهٔ مصنوعی آزمون ظرفیت؛ برای فروش واقعی معتبر نیست."]);
+    await pool.query("INSERT INTO product_image(product_id,position,url,alt) VALUES($1,0,'/assets/sample-perfume.svg','تصویر مصنوعی آزمون ظرفیت QA')", [product]);
     await pool.query("INSERT INTO variant(id,product_id,sku,volume_ml,price_irr) VALUES($1,$2,$3,50,10000)", [variant, product, `LOAD-${fixtureId}-${i}`]);
     await pool.query("INSERT INTO inventory_balance(variant_id,on_hand,reserved) VALUES($1,$2,0)", [variant, stock]);
     await pool.query("INSERT INTO inventory_ledger(id,variant_id,operation_key,on_hand_delta,reserved_delta,reason) VALUES($1,$2,$3,$4,0,'QA synthetic load dataset')", [randomUUID(), variant, `load-seed:${fixtureId}:${i}`, stock]);

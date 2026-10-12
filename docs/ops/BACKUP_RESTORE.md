@@ -23,6 +23,8 @@ Restore verifies the manifest, creates a new `morphiume-restore-*` project/netwo
 
 Forward `ssh -N -L 127.0.0.1:3101:127.0.0.1:3002 morphiume-deploy`. `recovery-start-utc` precedes DB startup/decryption and `application-ready-utc` records readiness; full RTO ends only at `recovery-accepted-utc` after the native login/order/media/reconciliation assertions below. An app readiness timestamp alone is not full RTO.
 
+The canonical restore browser origin is `http://localhost:3101`, server loopback3002/container3000, matching both scripts. Port3200 in an older conversational summary is not an executable contract; do not use it for auth origin or QA. See [handoff URL table](ARCHIVE_HANDOFF.md).
+
 QA will create and retain one dedicated synthetic fixture only after the actual staging app is deployed: native OTP customer login, owned paid order, published product and uploaded media physically in server `MEDIA_ROOT`. Enable the explicit retention flag only for the completed Chromium T25 test against tunnel3100; private `.local/restore-acceptance.json` records the phone/order/product, expected stock/receipt/shipment/amount and media URLs/SHA-256 without cookies or auth secrets. Old Windows media fixtures are insufficient unless deliberately copied and validated.
 
 Acceptance against restore3101 requires a fresh native OTP login for that retained customer, access to their restored owned order, payment status/amount and shipment tracking, exact uploaded-media SHA-256, and repeated callback/verification/reconciliation producing no extra receipt/shipment/stock mutation. Compare aggregate baseline/restored counters with paused source writers. A `pg_restore` zero exit does not pass T22. Keep restored worker disabled until reconciliation is verified.

@@ -1,11 +1,12 @@
 import "server-only";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import type { Pool, PoolClient } from "pg";
-import { CommerceError, type Actor, type AddressInput, type BulkEditDto, type BulkEditInput, type CartDto, type CheckoutDto, type CheckoutInput, type DeploymentEnvironment, type OrderDto, type Permission, type ProductDto, type ProductImage, type ProductInput, type QuoteDto, type Role } from "../../contracts/commerce";
+import { CommerceError, type Actor, type AddressInput, type AdminProductPageInput, type BulkEditDto, type BulkEditInput, type CartDto, type CatalogPageDto, type CheckoutDto, type CheckoutInput, type DeploymentEnvironment, type OrderDto, type OrdersPageInput, type PageDto, type Permission, type ProductDto, type ProductImage, type ProductInput, type ProductPageInput, type ProductResolutionDto, type QuoteDto, type Role, type SitemapProductDto, type VariantDto, type VariantPageInput } from "../../contracts/commerce";
 import type { PaymentProvider, PaymentContext } from "../payments/provider";
 import { MAX_MONEY_IRR, moneyDto, normalizeDigits, normalizeIranPhone, percentageDiscount, parseIrr, tomanToIrr } from "./money";
 import { ROLE_PERMISSIONS } from "./permissions";
 import { normalizeSearch } from "../../lib/persian";
+import { tomanToIrr as rangeTomanToIrr } from "../../lib/money";
 
 type Row = Record<string, unknown>;
 type Connection = Pool | PoolClient;
@@ -20,6 +21,15 @@ function boundedString(value: unknown, label: string, max: number, min = 1): str
   if (typeof value !== "string" || value.trim().length < min || value.trim().length > max) return fail("VALIDATION",`${label} معتبر نیست.`);
   return value.trim();
 }
+function pagination(input: { page?: number; pageSize?: number }) {
+  const page=input.page ?? 1,pageSize=input.pageSize ?? 24;
+  if(!Number.isSafeInteger(page) || page<1 || page>1_000_000 || !Number.isSafeInteger(pageSize) || pageSize<1 || pageSize>100)fail("VALIDATION","شمارهٔ صفحه یا تعداد نتایج معتبر نیست.");
+  return {page,pageSize,offset:(page-1)*pageSize};
+}
+function pageDto<T>(items:T[],page:number,pageSize:number,totalItems:number):PageDto<T>{return {items,page,pageSize,totalItems,totalPages:Math.ceil(totalItems/pageSize)};}
+function exportLimit(maximum:number){if(!Number.isSafeInteger(maximum) || maximum<1 || maximum>10_000)fail("VALIDATION","سقف خروجی باید بین یک و ده‌هزار باشد.");return maximum;}
+function searchInput(value:unknown):string{return value===undefined ? "" : normalizeSearch(boundedString(value,"جست‌وجو",120,0));}
+function literalSearch(value:string):string{return value.replace(/[\\%_]/g,"\\$&");}
 function addressInput(input: AddressInput): AddressInput {
   const postalCode = normalizeDigits(input.postalCode ?? "");
   if (!/^[0-9]{10}$/.test(postalCode)) fail("VALIDATION","کدپستی باید ده رقم باشد.");
@@ -46,18 +56,25 @@ function validateProduct(input: ProductInput) {
   }
 }
 
+export type CommerceQueryable = Pick<PoolClient,"query">;
+export type CommerceShippingPolicy = { shippingFeeIrr: bigint; freeShippingThresholdIrr?: bigint; policyVersion: string };
+function validateShippingPolicy(policy:CommerceShippingPolicy):CommerceShippingPolicy {
+  if(!policy || typeof policy.shippingFeeIrr!=="bigint" || policy.shippingFeeIrr<0n || policy.shippingFeeIrr>MAX_MONEY_IRR || policy.shippingFeeIrr%10n)fail("CONFIGURATION","هزینهٔ ارسال معتبر نیست.",503);
+  const threshold=policy.freeShippingThresholdIrr;
+  if(threshold!==undefined && (typeof threshold!=="bigint" || threshold<0n || threshold>MAX_MONEY_IRR || threshold%10n))fail("CONFIGURATION","آستانهٔ ارسال رایگان معتبر نیست.",503);
+  if(typeof policy.policyVersion!=="string" || !policy.policyVersion.trim() || policy.policyVersion.length>128)fail("CONFIGURATION","نسخهٔ سیاست ارسال معتبر نیست.",503);
+  return {shippingFeeIrr:policy.shippingFeeIrr,freeShippingThresholdIrr:threshold,policyVersion:policy.policyVersion};
+}
 export interface CommerceOptions {
   pool: Pool; payments: PaymentProvider; deploymentEnv: DeploymentEnvironment; appBaseUrl: string;
   merchantKey?: string; reservationMinutes?: number; shippingFeeIrr?: bigint; freeShippingThresholdIrr?: bigint; policyVersion?: string;
+  readShippingPolicy?: (queryable: CommerceQueryable) => Promise<CommerceShippingPolicy>;
 }
 export function createCommerce(options: CommerceOptions) {
   const { pool, payments, deploymentEnv } = options;
   if (deploymentEnv === "live" && payments.name === "mock") fail("CONFIGURATION","درگاه آزمایشی در محیط واقعی مجاز نیست.",503);
-  const shippingFee = options.shippingFeeIrr ?? 0n;
-  if (shippingFee < 0n || shippingFee > MAX_MONEY_IRR || shippingFee % 10n) fail("CONFIGURATION","هزینهٔ ارسال معتبر نیست.",503);
-  const freeShippingThreshold=options.freeShippingThresholdIrr;
-  if(freeShippingThreshold!==undefined && (freeShippingThreshold<0n || freeShippingThreshold>MAX_MONEY_IRR || freeShippingThreshold%10n))fail("CONFIGURATION","آستانهٔ ارسال رایگان معتبر نیست.",503);
-  const policyVersion = options.policyVersion ?? "staging-policy-v1";
+  const staticShippingPolicy=validateShippingPolicy({shippingFeeIrr:options.shippingFeeIrr ?? 0n,freeShippingThresholdIrr:options.freeShippingThresholdIrr,policyVersion:options.policyVersion ?? "staging-policy-v1"});
+  async function shippingPolicy(db:PoolClient){return options.readShippingPolicy ? validateShippingPolicy(await options.readShippingPolicy(db)) : staticShippingPolicy;}
   const reservationMinutes = options.reservationMinutes ?? 15;
   if (!Number.isInteger(reservationMinutes) || reservationMinutes < 1 || reservationMinutes > 60) fail("CONFIGURATION","زمان رزرو معتبر نیست.",503);
   const merchantKey = options.merchantKey ?? (payments.name === "mock" ? "controlled-mock" : "");
@@ -77,6 +94,11 @@ export function createCommerce(options: CommerceOptions) {
       } finally { db.release(); }
     }
   }
+  async function readSnapshot<T>(work:(db:PoolClient)=>Promise<T>):Promise<T>{
+    const db=await pool.connect();
+    try{await db.query("BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY");await db.query("SET LOCAL lock_timeout = '3s'");const result=await work(db);await db.query("COMMIT");return result;}
+    catch(error){await db.query("ROLLBACK");throw error;}finally{db.release();}
+  }
   async function assertActor(db: Connection, actor: Actor, permission?: Permission) {
     const active = await one(db,'SELECT u.id FROM "user" u JOIN session s ON s.user_id=u.id WHERE u.id=$1 AND s.id=$2 AND s.expires_at>now() AND NOT u.disabled AND ($3::boolean OR (u.phone_number_verified AND u.phone_number IS NOT NULL))', [actor.userId,actor.sessionId,actor.kind==="admin"]);
     if (!active) fail("UNAUTHENTICATED","دوباره وارد حساب شوید.",401);
@@ -85,6 +107,17 @@ export function createCommerce(options: CommerceOptions) {
     const grant = await one(db,"SELECT session_id FROM admin_grant WHERE session_id=$1 AND expires_at>now()",[actor.sessionId]);
     const roles = await query(db,"SELECT role FROM role_membership WHERE user_id=$1",[actor.userId]);
     if (!grant || !roles.some((row) => ROLE_PERMISSIONS[text(row,"role") as Role]?.includes(permission))) fail("FORBIDDEN","اجازهٔ انجام این کار را ندارید.",403);
+  }
+  async function assertFreshAdmin(db:PoolClient,actor:Actor,requiredPermissions:readonly Permission[],lock=false){
+    // now() is fixed at transaction start; use wall-clock time across financial/auth lock waits.
+    const freshSql="SELECT s.id FROM session s JOIN \"user\" u ON u.id=s.user_id JOIN admin_grant g ON g.session_id=s.id WHERE s.id=$1 AND u.id=$2 AND NOT u.disabled AND u.two_factor_enabled AND s.expires_at>clock_timestamp() AND g.expires_at>clock_timestamp() AND g.factor_verified_at>clock_timestamp()-interval '5 minutes'";
+    const fresh=await one(db,freshSql+(lock ? " FOR SHARE OF s,u,g" : ""),[actor.sessionId,actor.userId]);
+    if(actor.kind!=="admin" || !fresh)fail("FORBIDDEN","برای این عملیات، تأیید دومرحله‌ای تازه لازم است.",403);
+    const roles=await query(db,`SELECT role FROM role_membership WHERE user_id=$1${lock ? " FOR SHARE" : ""}`,[actor.userId]);
+    const permissions=new Set(roles.flatMap((row)=>ROLE_PERMISSIONS[text(row,"role") as Role] ?? []));
+    if(!requiredPermissions.every((permission)=>permissions.has(permission)))fail("FORBIDDEN","اجازهٔ ثبت این تغییر را ندارید.",403);
+    // Locking SELECT predicates can run before their wait; recheck after all auth locks return.
+    if(lock && !await one(db,freshSql,[actor.sessionId,actor.userId]))fail("FORBIDDEN","برای این عملیات، تأیید دومرحله‌ای تازه لازم است.",403);
   }
   async function audit(db: Connection, actor: Actor, action: string, entityType: string, entityId: string, reason: string) {
     await db.query("INSERT INTO audit_event(id,actor_id,action,entity_type,entity_id,reason) VALUES($1,$2,$3,$4,$5,$6)",[randomUUID(),actor.userId,action,entityType,entityId,reason]);
@@ -105,9 +138,11 @@ export function createCommerce(options: CommerceOptions) {
   }
   async function productsDto(db:Connection,rows:Row[]):Promise<ProductDto[]>{
     if(!rows.length)return [];
-    const variants=await query(db,"SELECT v.*,i.on_hand-i.reserved AS available FROM variant v JOIN inventory_balance i ON i.variant_id=v.id WHERE v.product_id=ANY($1::uuid[]) AND v.active ORDER BY v.volume_ml",[rows.map((row)=>row.id)]);
+    const variants=await query(db,"SELECT v.*,i.on_hand-i.reserved AS available FROM variant v JOIN inventory_balance i ON i.variant_id=v.id WHERE v.product_id=ANY($1::uuid[]) AND v.active ORDER BY v.product_id,v.volume_ml,v.id",[rows.map((row)=>row.id)]);
     const images=await query(db,readyGallerySql,[rows.map((row)=>row.id),deploymentEnv!=="live"]);
-    return Promise.all(rows.map((row)=>productDto(db,row,variants.filter((variant)=>variant.product_id===row.id),images.filter((image)=>image.product_id===row.id))));
+    function grouped(children:Row[]){const groups=new Map<unknown,Row[]>();for(const child of children){const group=groups.get(child.product_id) ?? [];group.push(child);groups.set(child.product_id,group);}return groups;}
+    const byProduct={variants:grouped(variants),images:grouped(images)};
+    return Promise.all(rows.map((row)=>productDto(db,row,byProduct.variants.get(row.id) ?? [],byProduct.images.get(row.id) ?? [])));
   }
   async function listProducts(filter: { search?: string; family?: string; available?: boolean } = {}): Promise<ProductDto[]> {
     const search = normalizeSearch(filter.search ?? "").slice(0,120);
@@ -116,6 +151,95 @@ export function createCommerce(options: CommerceOptions) {
   }
   async function listAdminProducts(actor: Actor): Promise<ProductDto[]> {
     await assertActor(pool,actor,"catalog.write"); return productsDto(pool,await query(pool,"SELECT * FROM product ORDER BY created_at DESC LIMIT 300"));
+  }
+  function productPageFilter(input:AdminProductPageInput,admin:boolean){
+    const {page,pageSize,offset}=pagination(input),search=literalSearch(searchInput(input.search));
+    const family=input.family===undefined ? "" : boundedString(input.family,"خانوادهٔ رایحه",80,0);
+    const concentration=input.concentration===undefined ? "" : boundedString(input.concentration,"غلظت",80,0);
+    if(input.note!==undefined && (typeof input.note!=="string" || input.note.length>120))fail("VALIDATION","نت رایحه معتبر نیست.");
+    const note=input.note ?? "";
+    function priceBound(value:unknown):bigint|null{
+      if(value===undefined)return null;
+      const amount=boundedString(value,"بازهٔ قیمت",40);
+      try{return rangeTomanToIrr(amount);}catch{return fail("VALIDATION","بازهٔ قیمت را به تومان کامل، نامنفی و در محدودهٔ مجاز وارد کنید.");}
+    }
+    const minimum=priceBound(input.minPriceToman),maximum=priceBound(input.maxPriceToman);
+    if(minimum!==null && maximum!==null && minimum>maximum)fail("VALIDATION","حداقل قیمت نباید از حداکثر بیشتر باشد.");
+    if(input.available!==undefined && typeof input.available!=="boolean")fail("VALIDATION","فیلتر موجودی معتبر نیست.");
+    if(input.volumeMl!==undefined && (!Number.isInteger(input.volumeMl) || input.volumeMl<1 || input.volumeMl>5000))fail("VALIDATION","فیلتر حجم معتبر نیست.");
+    const sort=input.sort ?? "name";
+    if(!["name","price_asc","price_desc"].includes(sort))fail("VALIDATION","ترتیب نتایج معتبر نیست.");
+    if(input.status!==undefined && !["draft","published","archived"].includes(input.status))fail("VALIDATION","وضعیت محصول معتبر نیست.");
+    const values:unknown[]=[admin ? input.status ?? "" : "published",search,family,concentration,input.volumeMl ?? null,input.available ?? false,note,minimum?.toString() ?? null,maximum?.toString() ?? null];
+    const matchingVariant="v.product_id=p.id AND v.active AND ($5::integer IS NULL OR v.volume_ml=$5) AND (NOT $6::boolean OR i.on_hand>i.reserved) AND ($8::bigint IS NULL OR v.price_irr>=$8) AND ($9::bigint IS NULL OR v.price_irr<=$9)";
+    const where=`($1='' OR p.status=$1) AND ($2='' OR p.search_key ILIKE '%' || $2 || '%') AND ($3='' OR p.family=$3) AND ($4='' OR p.concentration=$4) AND (($5::integer IS NULL AND NOT $6::boolean AND $8::bigint IS NULL AND $9::bigint IS NULL) OR EXISTS(SELECT 1 FROM variant v JOIN inventory_balance i ON i.variant_id=v.id WHERE ${matchingVariant})) AND ($7='' OR p.top_notes @> jsonb_build_array($7::text) OR p.heart_notes @> jsonb_build_array($7::text) OR p.base_notes @> jsonb_build_array($7::text))`;
+    const sortSql=sort==="name" ? "p.name ASC,p.id ASC" : `(SELECT min(v.price_irr) FROM variant v JOIN inventory_balance i ON i.variant_id=v.id WHERE ${matchingVariant}) ${sort==="price_asc" ? "ASC" : "DESC"} NULLS LAST,p.name ASC,p.id ASC`;
+    return {page,pageSize,offset,values,where,sortSql};
+  }
+  async function productPage(db:PoolClient,input:AdminProductPageInput,admin:boolean):Promise<PageDto<ProductDto>>{
+    const {page,pageSize,offset,values,where,sortSql}=productPageFilter(input,admin);
+    const count=(await one(db,`SELECT count(*)::text AS count FROM product p WHERE ${where}`,values))!;
+    const rows=await query(db,`SELECT p.* FROM product p WHERE ${where} ORDER BY ${sortSql} LIMIT $10 OFFSET $11`,[...values,pageSize,offset]);
+    return pageDto(await productsDto(db,rows),page,pageSize,number(count,"count"));
+  }
+  async function listProductsPage(input:ProductPageInput={}):Promise<CatalogPageDto>{
+    return readSnapshot(async(db)=>{
+      const page=await productPage(db,input,false);
+      // One extra value detects truncation without returning an unbounded facet response.
+      const facets=(await one(db,"SELECT ARRAY(SELECT DISTINCT family FROM product WHERE status='published' AND family<>'' ORDER BY family LIMIT 101) AS families,ARRAY(SELECT DISTINCT concentration FROM product WHERE status='published' AND concentration<>'' ORDER BY concentration LIMIT 101) AS concentrations,ARRAY(SELECT DISTINCT v.volume_ml FROM variant v JOIN product p ON p.id=v.product_id WHERE p.status='published' AND v.active ORDER BY v.volume_ml LIMIT 101) AS volumes,ARRAY(SELECT DISTINCT note FROM product p CROSS JOIN LATERAL jsonb_array_elements_text(p.top_notes || p.heart_notes || p.base_notes) AS n(note) WHERE p.status='published' AND note<>'' ORDER BY note LIMIT 101) AS notes"))!;
+      const families=facets.families as string[],concentrations=facets.concentrations as string[],volumes=facets.volumes as number[],notes=facets.notes as string[];
+      return {...page,facets:{families:families.slice(0,100),concentrations:concentrations.slice(0,100),volumesMl:volumes.slice(0,100),notes:notes.slice(0,100)},facetLimit:100,facetsTruncated:[families,concentrations,volumes,notes].some((values)=>values.length>100)};
+    });
+  }
+  async function listAdminProductsPage(actor:Actor,input:AdminProductPageInput={}):Promise<PageDto<ProductDto>>{return readSnapshot(async(db)=>{await assertActor(db,actor,"catalog.write");return productPage(db,input,true);});}
+  async function resolvePublishedProducts(ids:string[]):Promise<ProductResolutionDto>{
+    if(!Array.isArray(ids) || ids.length>1000)fail("VALIDATION","فهرست محصول‌ها معتبر نیست.");
+    const normalized=[...new Set(ids.map((id)=>{
+      if(typeof id!=="string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id.trim()))fail("VALIDATION","شناسهٔ محصول معتبر نیست.");
+      return id.trim().toLowerCase();
+    }))];
+    if(normalized.length>100)fail("VALIDATION","حداکثر صد محصول را هم‌زمان بررسی کنید.");
+    return readSnapshot(async(db)=>{
+      if(!normalized.length)return {products:[],unavailableIds:[]};
+      const rows=await query(db,"SELECT p.* FROM product p WHERE p.id=ANY($1::uuid[]) AND p.status='published' AND EXISTS(SELECT 1 FROM variant v WHERE v.product_id=p.id AND v.active)",[normalized]);
+      const products=await productsDto(db,rows),byId=new Map(products.map((product)=>[product.id,product]));
+      return {products:normalized.flatMap((id)=>byId.has(id) ? [byId.get(id)!] : []),unavailableIds:normalized.filter((id)=>!byId.has(id))};
+    });
+  }
+  async function listExportProducts(actor:Actor,maximum=10_000):Promise<ProductDto[]>{
+    exportLimit(maximum);
+    return readSnapshot(async(db)=>{
+      await assertActor(db,actor,"catalog.write");const count=(await one(db,"SELECT count(*)::text AS count FROM product"))!;
+      if(number(count,"count")>maximum)fail("CONFLICT","تعداد محصولات از سقف خروجی بیشتر است؛ خروجی کامل تهیه نشد.",409);
+      return productsDto(db,await query(db,"SELECT * FROM product ORDER BY created_at DESC,id DESC LIMIT $1",[maximum]));
+    });
+  }
+  async function listSitemapProducts(maximum=10_000):Promise<SitemapProductDto[]>{
+    exportLimit(maximum);
+    return readSnapshot(async(db)=>{
+      const where="p.status='published' AND EXISTS(SELECT 1 FROM variant v WHERE v.product_id=p.id AND v.active)";
+      const count=(await one(db,`SELECT count(*)::text AS count FROM product p WHERE ${where}`))!;
+      if(number(count,"count")>maximum)fail("CONFLICT","تعداد محصولات از سقف فهرست سایت بیشتر است؛ فهرست کامل تهیه نشد.",409);
+      const rows=await query(db,`SELECT p.id,p.slug,p.updated_at FROM product p WHERE ${where} ORDER BY p.slug,p.id LIMIT $1`,[maximum]);
+      return rows.map((row)=>({id:text(row,"id"),slug:text(row,"slug"),updatedAt:date(row.updated_at)}));
+    });
+  }
+  async function listVariantsPage(actor:Actor,input:VariantPageInput={}):Promise<PageDto<VariantDto>>{
+    const {page,pageSize,offset}=pagination(input),search=literalSearch(searchInput(input.search));
+    return readSnapshot(async(db)=>{
+      await assertActor(db,actor);if(actor.kind!=="admin")fail("FORBIDDEN","اجازهٔ مشاهدهٔ حجم‌ها را ندارید.",403);
+      const grant=await one(db,"SELECT session_id FROM admin_grant WHERE session_id=$1 AND expires_at>now()",[actor.sessionId]);
+      const roles=await query(db,"SELECT role FROM role_membership WHERE user_id=$1",[actor.userId]);
+      const permissions=new Set(roles.flatMap((row)=>ROLE_PERMISSIONS[text(row,"role") as Role] ?? []));
+      const catalog=permissions.has("catalog.write"),inventory=permissions.has("inventory.write");
+      if(!grant || (!catalog && !inventory))fail("FORBIDDEN","اجازهٔ مشاهدهٔ حجم‌ها را ندارید.",403);
+      const normalizedName="regexp_replace(translate(normalize(p.name,NFKC),'يك۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩','یک01234567890123456789'),'[‌[:space:]]+',' ','g')";
+      const from=`FROM variant v JOIN product p ON p.id=v.product_id JOIN inventory_balance i ON i.variant_id=v.id WHERE ($1='' OR v.sku ILIKE '%' || $1 || '%' OR ${normalizedName} ILIKE '%' || $1 || '%')`;
+      const count=(await one(db,`SELECT count(*)::text AS count ${from}`,[search]))!;
+      const columns=`v.id,v.sku,v.volume_ml,v.active,p.name,p.status,p.version,i.on_hand-i.reserved AS available${catalog ? ",v.price_irr::text AS price_irr" : ""}${inventory ? ",i.on_hand,i.reserved" : ""}`;
+      const rows=await query(db,`SELECT ${columns} ${from} ORDER BY p.name,v.volume_ml,v.sku,v.id LIMIT $2 OFFSET $3`,[search,pageSize,offset]);
+      return pageDto(rows.map((row)=>({id:text(row,"id"),sku:text(row,"sku"),productName:text(row,"name"),productStatus:row.status as ProductDto["status"],active:row.active===true,volumeMl:number(row,"volume_ml"),productVersion:number(row,"version"),available:number(row,"available"),...(catalog ? {price:moneyDto(text(row,"price_irr"))} : {}),...(inventory ? {onHand:number(row,"on_hand"),reserved:number(row,"reserved")} : {})})),page,pageSize,number(count,"count"));
+    });
   }
   async function getProduct(slugOrId: string, actor?: Actor): Promise<ProductDto> {
     const row = await one(pool,"SELECT * FROM product WHERE slug=$1 OR id::text=$1",[slugOrId]);
@@ -195,7 +319,7 @@ export function createCommerce(options: CommerceOptions) {
     const normalized=code ? boundedString(code.toUpperCase(),"کد تخفیف",40) : null;
     return transaction(async(db)=>{const row=await cartAccess(db,id,guestToken,actor,true);if(row.version!==expectedVersion)fail("CONFLICT","سبد تغییر کرده است.",409);if(normalized && !await one(db,"SELECT code FROM coupon WHERE code=$1 AND active AND expires_at>now()",[normalized]))fail("VALIDATION","کد تخفیف معتبر نیست.");await db.query("UPDATE cart SET coupon_code=$1,version=version+1,updated_at=now() WHERE id=$2",[normalized,id]);return cartDto(db,(await one(db,"SELECT * FROM cart WHERE id=$1",[id]))!);});
   }
-  async function calculateQuote(db: Connection,cart: CartDto,userId: string,lockCoupon=false): Promise<QuoteDto> {
+  async function calculateQuote(db: Connection,cart: CartDto,userId: string,policy:CommerceShippingPolicy,lockCoupon=false): Promise<QuoteDto> {
     if (!cart.items.length) fail("VALIDATION","سبد خرید خالی است.");
     if (cart.items.some((item)=>!item.published || item.available<item.quantity)) fail("OUT_OF_STOCK","این حجم فعلاً موجود نیست.",409);
     const subtotal=BigInt(cart.subtotal.amountIrr); let discount=0n;
@@ -207,12 +331,15 @@ export function createCommerce(options: CommerceOptions) {
       discount=percentageDiscount(subtotal,number(coupon,"basis_points"));
     }
     const payableSubtotal=subtotal-discount;
-    const quotedShipping=freeShippingThreshold!==undefined && payableSubtotal>=freeShippingThreshold ? 0n : shippingFee;
+    const quotedShipping=policy.freeShippingThresholdIrr!==undefined && payableSubtotal>=policy.freeShippingThresholdIrr ? 0n : policy.shippingFeeIrr;
     const total=payableSubtotal+quotedShipping;parseIrr(total.toString(),false);
-    const fingerprint=digest(JSON.stringify({cartId:cart.id,version:cart.version,items:cart.items.map((item)=>[item.variantId,item.quantity,item.unitPrice.amountIrr]),coupon:cart.couponCode,discount:discount.toString(),shipping:quotedShipping.toString(),policyVersion}));
-    return {cartId:cart.id,cartVersion:cart.version,subtotal:moneyDto(subtotal),discount:moneyDto(discount),shipping:moneyDto(quotedShipping),tax:moneyDto(0n),total:moneyDto(total),fingerprint,policyVersion,shippingMethodId:"standard",expiresAt:new Date(Date.now()+5*60_000).toISOString()};
+    const fingerprint=digest(JSON.stringify({cartId:cart.id,version:cart.version,items:cart.items.map((item)=>[item.variantId,item.quantity,item.unitPrice.amountIrr]),coupon:cart.couponCode,discount:discount.toString(),shipping:quotedShipping.toString(),shippingFee:policy.shippingFeeIrr.toString(),freeShippingThreshold:policy.freeShippingThresholdIrr?.toString() ?? null,policyVersion:policy.policyVersion}));
+    return {cartId:cart.id,cartVersion:cart.version,subtotal:moneyDto(subtotal),discount:moneyDto(discount),shipping:moneyDto(quotedShipping),tax:moneyDto(0n),total:moneyDto(total),fingerprint,policyVersion:policy.policyVersion,shippingMethodId:"standard",expiresAt:new Date(Date.now()+5*60_000).toISOString()};
   }
-  async function quoteCheckout(actor: Actor,guestToken: string,cartId: string) { const cart=await getCart(cartId,guestToken,actor);return calculateQuote(pool,cart,actor.userId); }
+  async function quoteCheckout(actor: Actor,guestToken: string,cartId: string) {
+    // Ordinary short transaction permits the settings reader's shared row/advisory locks.
+    return transaction(async(db)=>{const row=await cartAccess(db,cartId,guestToken,actor);const policy=await shippingPolicy(db);return calculateQuote(db,await cartDto(db,row),actor.userId,policy);});
+  }
   function paymentContext(row: Row): PaymentContext {return {attemptId:text(row,"id"),orderId:text(row,"order_id"),amountIrr:BigInt(text(row,"amount_irr")),currency:"IRR",merchantKey:text(row,"merchant_key"),callbackUrl:`${appBaseUrl}/api/payments/${payments.name}/callback`};}
   async function checkoutDto(orderId:string,attemptId:string): Promise<CheckoutDto> { const row=await one(pool,"SELECT p.*,o.order_number FROM payment_attempt p JOIN orders o ON o.id=p.order_id WHERE p.id=$1 AND o.id=$2",[attemptId,orderId]);if(!row)return fail("NOT_FOUND","پرداخت پیدا نشد.",404);return {orderId,orderNumber:text(row,"order_number"),paymentAttemptId:attemptId,paymentStatus:row.status as CheckoutDto["paymentStatus"],redirectUrl:row.redirect_url as string|null,total:moneyDto(text(row,"amount_irr"))}; }
   async function initializeAttempt(attemptId:string) {
@@ -238,15 +365,16 @@ export function createCommerce(options: CommerceOptions) {
       const idem=(await one(db,"SELECT * FROM checkout_idempotency WHERE user_id=$1 AND operation='checkout' AND key=$2 FOR UPDATE",[actor.userId,key]))!;
       if(idem.fingerprint!==fingerprint)fail("CONFLICT","شناسهٔ درخواست برای اطلاعات دیگری استفاده شده است.",409);
       if(idem.order_id)return {orderId:text(idem,"order_id"),attemptId:text(idem,"attempt_id")};
-      if(input.policyVersion!==policyVersion)fail("PRICE_CHANGED","سیاست فروش را دوباره بررسی کنید.",409);
+      const policy=await shippingPolicy(db);
+      if(input.policyVersion!==policy.policyVersion)fail("PRICE_CHANGED","سیاست فروش را دوباره بررسی کنید.",409);
       const row=await cartAccess(db,input.cartId,guestToken,actor,true);if(row.version!==input.cartVersion)fail("CONFLICT","سبد تغییر کرده است.",409);
-      const cart=await cartDto(db,row);const quote=await calculateQuote(db,cart,actor.userId,true);
+      const cart=await cartDto(db,row);const quote=await calculateQuote(db,cart,actor.userId,policy,true);
       if(quote.fingerprint!==input.quoteFingerprint)fail("PRICE_CHANGED","قیمت تغییر کرده است. مبلغ به‌روز را پیش از پرداخت بررسی کنید.",409);
       const active=await one(db,"SELECT count(*)::int AS count FROM orders o WHERE o.user_id=$1 AND EXISTS(SELECT 1 FROM inventory_reservation r WHERE r.order_id=o.id AND r.status='active')",[actor.userId]);if(number(active!,"count")>=3)fail("CONFLICT","ابتدا وضعیت پرداخت‌های قبلی را بررسی کنید.",409);
       const balances=await query(db,"SELECT * FROM inventory_balance WHERE variant_id=ANY($1::uuid[]) ORDER BY variant_id FOR UPDATE",[cart.items.map((item)=>item.variantId)]);
       for(const item of cart.items){const balance=balances.find((b)=>b.variant_id===item.variantId);if(!balance || number(balance,"on_hand")-number(balance,"reserved")<item.quantity)fail("OUT_OF_STOCK","این حجم فعلاً موجود نیست.",409);}
       const orderId=randomUUID(),attemptId=randomUUID(),orderNumber=`M-${Date.now().toString(36).toUpperCase()}-${randomBytes(3).toString("hex").toUpperCase()}`;
-      await db.query("INSERT INTO orders(id,order_number,user_id,subtotal_irr,discount_irr,shipping_irr,tax_irr,total_irr,address_snapshot,policy_version,shipping_method_id,coupon_code) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb,$10,$11,$12)",[orderId,orderNumber,actor.userId,quote.subtotal.amountIrr,quote.discount.amountIrr,quote.shipping.amountIrr,quote.tax.amountIrr,quote.total.amountIrr,JSON.stringify(address),policyVersion,"standard",cart.couponCode]);
+      await db.query("INSERT INTO orders(id,order_number,user_id,subtotal_irr,discount_irr,shipping_irr,tax_irr,total_irr,address_snapshot,policy_version,shipping_method_id,coupon_code) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb,$10,$11,$12)",[orderId,orderNumber,actor.userId,quote.subtotal.amountIrr,quote.discount.amountIrr,quote.shipping.amountIrr,quote.tax.amountIrr,quote.total.amountIrr,JSON.stringify(address),quote.policyVersion,"standard",cart.couponCode]);
       for(const item of cart.items){const variant=(await one(db,"SELECT sku FROM variant WHERE id=$1",[item.variantId]))!;await db.query("INSERT INTO order_item(id,order_id,variant_id,name,sku,volume_ml,quantity,unit_price_irr,line_total_irr) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)",[randomUUID(),orderId,item.variantId,item.name,variant.sku,item.volumeMl,item.quantity,item.unitPrice.amountIrr,(BigInt(item.unitPrice.amountIrr)*BigInt(item.quantity)).toString()]);await db.query("UPDATE inventory_balance SET reserved=reserved+$1 WHERE variant_id=$2",[item.quantity,item.variantId]);await db.query("INSERT INTO inventory_reservation(id,order_id,variant_id,quantity,expires_at) VALUES($1,$2,$3,$4,now()+$5*interval '1 minute')",[randomUUID(),orderId,item.variantId,item.quantity,reservationMinutes]);await db.query("INSERT INTO inventory_ledger(id,variant_id,order_id,operation_key,on_hand_delta,reserved_delta,reason) VALUES($1,$2,$3,$4,0,$5,'checkout_reserve')",[randomUUID(),item.variantId,orderId,`reserve:${orderId}:${item.variantId}`,item.quantity]);}
       if(cart.couponCode)await db.query("INSERT INTO coupon_redemption(id,coupon_code,user_id,order_id,status) VALUES($1,$2,$3,$4,'reserved')",[randomUUID(),cart.couponCode,actor.userId,orderId]);
       await db.query("UPDATE cart SET user_id=$1,guest_token_digest=$2 WHERE id=$3",[actor.userId,digest(randomBytes(32).toString("base64url")),cart.id]);
@@ -298,31 +426,98 @@ export function createCommerce(options: CommerceOptions) {
       return {orderId:text(order,"id"),status:"paid"};
     });
   }
+  function orderDto(row:Row,items:Row[],shipment:Row|undefined,events:Row[],returns:Row[],refunds:Row[]):OrderDto{
+    return {id:text(row,"id"),orderNumber:text(row,"order_number"),createdAt:date(row.created_at),status:text(row,"status"),paymentStatus:text(row,"payment_status"),subtotal:moneyDto(text(row,"subtotal_irr")),discount:moneyDto(text(row,"discount_irr")),shipping:moneyDto(text(row,"shipping_irr")),tax:moneyDto(text(row,"tax_irr")),total:moneyDto(text(row,"total_irr")),address:row.address_snapshot as AddressInput,policyVersion:text(row,"policy_version"),items:items.map((item)=>({name:text(item,"name"),sku:text(item,"sku"),volumeMl:number(item,"volume_ml"),quantity:number(item,"quantity"),unitPrice:moneyDto(text(item,"unit_price_irr")),lineTotal:moneyDto(text(item,"line_total_irr"))})),shipment:shipment ? {status:text(shipment,"status"),carrier:shipment.carrier as string|null,trackingCode:shipment.tracking_code as string|null,shippedAt:shipment.shipped_at ? date(shipment.shipped_at) : null} : null,events:events.map((e)=>({type:text(e,"type"),createdAt:date(e.created_at)})),returns:returns.map((r)=>({id:text(r,"id"),kind:text(r,"kind"),reason:text(r,"reason"),status:text(r,"status"),createdAt:date(r.created_at)})),refunds:refunds.map((r)=>({id:text(r,"id"),amount:moneyDto(text(r,"amount_irr")),status:text(r,"status"),reason:text(r,"reason")}))};
+  }
+  async function ordersDto(db:Connection,rows:Row[]):Promise<OrderDto[]>{
+    if(!rows.length)return [];
+    const ids=[rows.map((row)=>row.id)];
+    const items=await query(db,"SELECT * FROM order_item WHERE order_id=ANY($1::uuid[]) ORDER BY order_id,id",ids);
+    const shipments=await query(db,"SELECT * FROM shipment WHERE order_id=ANY($1::uuid[])",ids);
+    const events=await query(db,"SELECT * FROM order_event WHERE order_id=ANY($1::uuid[]) ORDER BY order_id,created_at,id",ids);
+    const returns=await query(db,"SELECT * FROM return_request WHERE order_id=ANY($1::uuid[]) ORDER BY order_id,created_at,id",ids);
+    const refunds=await query(db,"SELECT * FROM refund WHERE order_id=ANY($1::uuid[]) ORDER BY order_id,created_at,id",ids);
+    function grouped(children:Row[]){const groups=new Map<unknown,Row[]>();for(const child of children){const group=groups.get(child.order_id) ?? [];group.push(child);groups.set(child.order_id,group);}return groups;}
+    const byOrder={items:grouped(items),shipments:grouped(shipments),events:grouped(events),returns:grouped(returns),refunds:grouped(refunds)};
+    return rows.map((row)=>orderDto(row,byOrder.items.get(row.id) ?? [],byOrder.shipments.get(row.id)?.[0],byOrder.events.get(row.id) ?? [],byOrder.returns.get(row.id) ?? [],byOrder.refunds.get(row.id) ?? []));
+  }
   async function getOrder(actor:Actor,id:string):Promise<OrderDto>{
     await assertActor(pool,actor,actor.kind==="admin" ? "orders.read" : undefined);
     const row=await one(pool,"SELECT * FROM orders WHERE (id::text=$1 OR order_number=$1) AND ($2::boolean OR user_id=$3)",[id,actor.kind==="admin",actor.userId]);if(!row)return fail("NOT_FOUND","سفارش پیدا نشد.",404);
-    const items=await query(pool,"SELECT * FROM order_item WHERE order_id=$1 ORDER BY id",[row.id]);const shipment=await one(pool,"SELECT * FROM shipment WHERE order_id=$1",[row.id]);const events=await query(pool,"SELECT type,created_at FROM order_event WHERE order_id=$1 ORDER BY created_at",[row.id]);const returns=await query(pool,"SELECT * FROM return_request WHERE order_id=$1 ORDER BY created_at",[row.id]);const refunds=await query(pool,"SELECT * FROM refund WHERE order_id=$1 ORDER BY created_at",[row.id]);
-    return {id:text(row,"id"),orderNumber:text(row,"order_number"),createdAt:date(row.created_at),status:text(row,"status"),paymentStatus:text(row,"payment_status"),subtotal:moneyDto(text(row,"subtotal_irr")),discount:moneyDto(text(row,"discount_irr")),shipping:moneyDto(text(row,"shipping_irr")),tax:moneyDto(text(row,"tax_irr")),total:moneyDto(text(row,"total_irr")),address:row.address_snapshot as AddressInput,policyVersion:text(row,"policy_version"),items:items.map((item)=>({name:text(item,"name"),sku:text(item,"sku"),volumeMl:number(item,"volume_ml"),quantity:number(item,"quantity"),unitPrice:moneyDto(text(item,"unit_price_irr")),lineTotal:moneyDto(text(item,"line_total_irr"))})),shipment:shipment ? {status:text(shipment,"status"),carrier:shipment.carrier as string|null,trackingCode:shipment.tracking_code as string|null,shippedAt:shipment.shipped_at ? date(shipment.shipped_at) : null} : null,events:events.map((e)=>({type:text(e,"type"),createdAt:date(e.created_at)})),returns:returns.map((r)=>({id:text(r,"id"),kind:text(r,"kind"),reason:text(r,"reason"),status:text(r,"status"),createdAt:date(r.created_at)})),refunds:refunds.map((r)=>({id:text(r,"id"),amount:moneyDto(text(r,"amount_irr")),status:text(r,"status"),reason:text(r,"reason")}))};
+    return (await ordersDto(pool,[row]))[0]!;
   }
   async function listOrders(actor:Actor){await assertActor(pool,actor,actor.kind==="admin" ? "orders.read" : undefined);const rows=await query(pool,"SELECT id FROM orders WHERE $1::boolean OR user_id=$2 ORDER BY created_at DESC LIMIT 100",[actor.kind==="admin",actor.userId]);return Promise.all(rows.map((row)=>getOrder(actor,text(row,"id"))));}
+  async function listOrdersPage(actor:Actor,input:OrdersPageInput={}):Promise<PageDto<OrderDto>>{
+    const {page,pageSize,offset}=pagination(input),search=literalSearch(searchInput(input.search));
+    if(input.status!==undefined && !["awaiting_payment","confirmed","payment_exception","cancelled","completed"].includes(input.status))fail("VALIDATION","وضعیت سفارش معتبر نیست.");
+    if(input.paymentStatus!==undefined && !["pending","paid","partially_refunded","refunded","failed","unknown"].includes(input.paymentStatus))fail("VALIDATION","وضعیت پرداخت معتبر نیست.");
+    return readSnapshot(async(db)=>{
+      await assertActor(db,actor,actor.kind==="admin" ? "orders.read" : undefined);
+      const values:unknown[]=[actor.kind==="admin",actor.userId,search,input.status ?? "",input.paymentStatus ?? ""];
+      const where="($1::boolean OR user_id=$2) AND ($3='' OR order_number ILIKE '%' || $3 || '%') AND ($4='' OR status=$4) AND ($5='' OR payment_status=$5)";
+      const count=(await one(db,`SELECT count(*)::text AS count FROM orders WHERE ${where}`,values))!;
+      const rows=await query(db,`SELECT * FROM orders WHERE ${where} ORDER BY created_at DESC,id DESC LIMIT $6 OFFSET $7`,[...values,pageSize,offset]);
+      return pageDto(await ordersDto(db,rows),page,pageSize,number(count,"count"));
+    });
+  }
+  async function listExportOrders(actor:Actor,maximum=10_000):Promise<OrderDto[]>{
+    exportLimit(maximum);
+    return readSnapshot(async(db)=>{
+      await assertActor(db,actor,"orders.read");const count=(await one(db,"SELECT count(*)::text AS count FROM orders"))!;
+      if(number(count,"count")>maximum)fail("CONFLICT","تعداد سفارش‌ها از سقف خروجی بیشتر است؛ خروجی کامل تهیه نشد.",409);
+      return ordersDto(db,await query(db,"SELECT * FROM orders ORDER BY created_at DESC,id DESC LIMIT $1",[maximum]));
+    });
+  }
   async function recordShipment(actor:Actor,orderId:string,input:{carrier:string;trackingCode:string;status:"shipped"|"delivered"}){
     const carrier=boundedString(input.carrier,"شرکت ارسال",100),trackingCode=boundedString(input.trackingCode,"کد رهگیری",100);
     if(!["shipped","delivered"].includes(input.status))fail("VALIDATION","وضعیت ارسال معتبر نیست.");
-    await transaction(async(db)=>{await assertActor(db,actor,"orders.fulfill");const order=await one(db,"SELECT * FROM orders WHERE id=$1 FOR UPDATE",[orderId]);if(!order || !order.committed_at || !["paid","partially_refunded"].includes(text(order,"payment_status")))fail("NOT_ELIGIBLE","این سفارش آمادهٔ ارسال نیست.",409);const shipment=await one(db,"SELECT * FROM shipment WHERE order_id=$1 FOR UPDATE",[orderId]);if(!shipment || shipment.status==="cancelled" || (input.status==="delivered" && shipment.status!=="shipped" && shipment.status!=="delivered"))fail("NOT_ELIGIBLE","وضعیت ارسال اجازهٔ این تغییر را نمی‌دهد.",409);await db.query("UPDATE shipment SET carrier=$1,tracking_code=$2,status=$3,shipped_at=coalesce(shipped_at,now()),updated_at=now() WHERE order_id=$4",[carrier,trackingCode,input.status,orderId]);if(input.status==="delivered")await db.query("UPDATE orders SET status='completed',updated_at=now() WHERE id=$1",[orderId]);await event(db,orderId,`shipment.${input.status}`,`shipment:${orderId}:${input.status}`,actor.userId);await enqueue(db,"shipment.updated",`shipment:${orderId}:${input.status}`,{orderId});await audit(db,actor,"shipment.updated","order",orderId,input.status);});return getOrder(actor,orderId);
+    await transaction(async(db)=>{
+      await assertActor(db,actor,"orders.fulfill");const order=await one(db,"SELECT * FROM orders WHERE id=$1 FOR UPDATE",[orderId]);
+      if(!order || !order.committed_at || order.status==="cancelled")fail("NOT_ELIGIBLE","این سفارش آمادهٔ ارسال نیست.",409);
+      const shipment=await one(db,"SELECT * FROM shipment WHERE order_id=$1 FOR UPDATE",[orderId]);
+      if(!shipment || shipment.status==="cancelled" || (shipment.status==="delivered" && input.status==="shipped") || (input.status==="delivered" && shipment.status!=="shipped" && shipment.status!=="delivered"))fail("NOT_ELIGIBLE","وضعیت ارسال اجازهٔ این تغییر را نمی‌دهد.",409);
+      if(shipment.status===input.status && shipment.carrier===carrier && shipment.tracking_code===trackingCode)return;
+      if(!["paid","partially_refunded"].includes(text(order,"payment_status")))fail("NOT_ELIGIBLE","این سفارش آمادهٔ ارسال نیست.",409);
+      await db.query("UPDATE shipment SET carrier=$1,tracking_code=$2,status=$3,shipped_at=coalesce(shipped_at,now()),updated_at=now() WHERE order_id=$4",[carrier,trackingCode,input.status,orderId]);
+      if(input.status==="delivered")await db.query("UPDATE orders SET status='completed',updated_at=now() WHERE id=$1",[orderId]);
+      await event(db,orderId,`shipment.${input.status}`,`shipment:${orderId}:${input.status}`,actor.userId);await enqueue(db,"shipment.updated",`shipment:${orderId}:${input.status}`,{orderId});await audit(db,actor,"shipment.updated","order",orderId,input.status);
+    });return getOrder(actor,orderId);
   }
   async function adjustInventory(actor:Actor,variantId:string,delta:number,reason:string,operationKey:string){if(!Number.isInteger(delta) || Math.abs(delta)>100000)fail("VALIDATION","تغییر موجودی معتبر نیست.");boundedString(reason,"دلیل",500);boundedString(operationKey,"شناسهٔ عملیات",128,8);return transaction(async(db)=>{await assertActor(db,actor,"inventory.write");const prior=await one(db,"SELECT * FROM inventory_ledger WHERE operation_key=$1",[operationKey]);if(prior){if(prior.variant_id!==variantId || prior.on_hand_delta!==delta || prior.reason!==reason)fail("CONFLICT","شناسهٔ عملیات برای تغییر دیگری استفاده شده است.",409);return;}const balance=await one(db,"SELECT * FROM inventory_balance WHERE variant_id=$1 FOR UPDATE",[variantId]);if(!balance)return fail("NOT_FOUND","کالا پیدا نشد.",404);if(number(balance,"on_hand")+delta<number(balance,"reserved"))fail("CONFLICT","موجودی از رزروهای فعال کمتر می‌شود.",409);await db.query("UPDATE inventory_balance SET on_hand=on_hand+$1 WHERE variant_id=$2",[delta,variantId]);await db.query("INSERT INTO inventory_ledger(id,variant_id,operation_key,on_hand_delta,reserved_delta,reason,actor_id) VALUES($1,$2,$3,$4,0,$5,$6)",[randomUUID(),variantId,operationKey,delta,reason,actor.userId]);await audit(db,actor,"inventory.adjusted","variant",variantId,reason);});}
   async function requestReturn(actor:Actor,orderId:string,kind:"cancel"|"return",reason:string){boundedString(reason,"دلیل",1000);return transaction(async(db)=>{await assertActor(db,actor);const order=await one(db,"SELECT * FROM orders WHERE id=$1 AND user_id=$2 FOR UPDATE",[orderId,actor.userId]);if(!order)return fail("NOT_FOUND","سفارش پیدا نشد.",404);const shipment=await one(db,"SELECT * FROM shipment WHERE order_id=$1",[orderId]);if(kind==="cancel" && (shipment?.status==="shipped" || shipment?.status==="delivered" || order.status==="cancelled"))fail("NOT_ELIGIBLE","این سفارش قابل درخواست لغو نیست.",409);if(kind==="return" && shipment?.status!=="delivered")fail("NOT_ELIGIBLE","درخواست مرجوعی پس از تحویل بررسی می‌شود.",409);if(!["return","cancel"].includes(kind))fail("VALIDATION","نوع درخواست معتبر نیست.");const id=randomUUID();await db.query("INSERT INTO return_request(id,order_id,user_id,kind,reason) VALUES($1,$2,$3,$4,$5)",[id,orderId,actor.userId,kind,reason]);await event(db,orderId,`request.${kind}`,`return:${id}`,actor.userId);return {id,status:"pending"};});}
-  async function requestRefund(actor:Actor,orderId:string,receiptId:string,amountIrr:string,reason:string,operationKey:string){const amount=parseIrr(amountIrr,false);if(amount%10n)fail("VALIDATION","مبلغ بازپرداخت باید تومان کامل باشد.");boundedString(reason,"دلیل",1000);boundedString(operationKey,"شناسهٔ عملیات",128,8);return transaction(async(db)=>{await assertActor(db,actor,"refunds.write");const order=await one(db,"SELECT * FROM orders WHERE id=$1 FOR UPDATE",[orderId]);if(!order)return fail("NOT_FOUND","سفارش پیدا نشد.",404);const prior=await one(db,"SELECT * FROM refund WHERE operation_key=$1",[operationKey]);if(prior){if(prior.order_id!==orderId || prior.receipt_id!==receiptId || text(prior,"amount_irr")!==amount.toString() || prior.reason!==reason)fail("CONFLICT","شناسهٔ درخواست برای بازپرداخت دیگری استفاده شده است.",409);return {id:text(prior,"id"),status:text(prior,"status")};}const receipt=await one(db,"SELECT * FROM payment_receipt WHERE id=$1 AND order_id=$2 FOR UPDATE",[receiptId,orderId]);if(!receipt)return fail("NOT_FOUND","دریافت پرداخت پیدا نشد.",404);const refunded=await one(db,"SELECT coalesce(sum(amount_irr),0)::text AS amount FROM refund WHERE receipt_id=$1 AND status IN ('pending','processing','succeeded')",[receiptId]);if(amount>BigInt(text(receipt,"amount_irr"))-BigInt(text(refunded!,"amount")))fail("CONFLICT","مبلغ از ماندهٔ قابل بازپرداخت بیشتر است.",409);const id=randomUUID();await db.query("INSERT INTO refund(id,order_id,receipt_id,amount_irr,reason,operation_key,actor_id) VALUES($1,$2,$3,$4,$5,$6,$7)",[id,orderId,receiptId,amount.toString(),reason,operationKey,actor.userId]);await audit(db,actor,"refund.requested","refund",id,reason);await event(db,orderId,"refund.pending",`refund:${id}`,actor.userId);return {id,status:"pending"};});}
+  async function requestRefund(actor:Actor,orderId:string,receiptId:string,amountIrr:string,reason:string,operationKey:string){
+    const amount=parseIrr(amountIrr,false);if(amount%10n)fail("VALIDATION","مبلغ بازپرداخت باید تومان کامل باشد.");boundedString(reason,"دلیل",1000);boundedString(operationKey,"شناسهٔ عملیات",128,8);
+    return transaction(async(db)=>{
+      await assertActor(db,actor,"refunds.write");await assertFreshAdmin(db,actor,["refunds.write"]);
+      const order=await one(db,"SELECT * FROM orders WHERE id=$1 FOR UPDATE",[orderId]);if(!order)return fail("NOT_FOUND","سفارش پیدا نشد.",404);
+      const prior=await one(db,"SELECT * FROM refund WHERE operation_key=$1 FOR UPDATE",[operationKey]);
+      if(prior){
+        await assertFreshAdmin(db,actor,["refunds.write"],true);
+        if(prior.actor_id!==actor.userId || prior.order_id!==orderId || prior.receipt_id!==receiptId || text(prior,"amount_irr")!==amount.toString() || prior.reason!==reason)fail("CONFLICT","شناسهٔ درخواست برای بازپرداخت دیگری استفاده شده است.",409);
+        return {id:text(prior,"id"),status:text(prior,"status")};
+      }
+      const receipt=await one(db,"SELECT * FROM payment_receipt WHERE id=$1 AND order_id=$2 FOR UPDATE",[receiptId,orderId]);if(!receipt)return fail("NOT_FOUND","دریافت پرداخت پیدا نشد.",404);
+      const refunded=await one(db,"SELECT coalesce(sum(amount_irr),0)::text AS amount FROM refund WHERE receipt_id=$1 AND status IN ('pending','processing','succeeded')",[receiptId]);
+      if(amount>BigInt(text(receipt,"amount_irr"))-BigInt(text(refunded!,"amount")))fail("CONFLICT","مبلغ از ماندهٔ قابل بازپرداخت بیشتر است.",409);
+      await assertFreshAdmin(db,actor,["refunds.write"],true);
+      const id=randomUUID();await db.query("INSERT INTO refund(id,order_id,receipt_id,amount_irr,reason,operation_key,actor_id) VALUES($1,$2,$3,$4,$5,$6,$7)",[id,orderId,receiptId,amount.toString(),reason,operationKey,actor.userId]);await audit(db,actor,"refund.requested","refund",id,reason);await event(db,orderId,"refund.pending",`refund:${id}`,actor.userId);return {id,status:"pending"};
+    });
+  }
   async function completeManualRefund(actor:Actor,refundId:string,evidence:string){
     boundedString(evidence,"مدرک بازپرداخت",1000);
     return transaction(async(db)=>{
-      await assertActor(db,actor,"refunds.write");
+      await assertActor(db,actor,"refunds.write");await assertFreshAdmin(db,actor,["refunds.write"]);
       const hint=await one(db,"SELECT order_id FROM refund WHERE id=$1",[refundId]);
       if(!hint)return fail("NOT_FOUND","بازپرداخت پیدا نشد.",404);
       const order=await one(db,"SELECT * FROM orders WHERE id=$1 FOR UPDATE",[hint.order_id]);
       const refund=await one(db,"SELECT * FROM refund WHERE id=$1 FOR UPDATE",[refundId]);
-      if(refund!.status==="succeeded")return;
+      if(refund!.status==="succeeded"){
+        await assertFreshAdmin(db,actor,["refunds.write"],true);
+        if(refund!.evidence!==evidence)fail("CONFLICT","مدرک این بازپرداخت قبلاً با اطلاعات دیگری ثبت شده است.",409);
+        return;
+      }
       if(refund!.status!=="pending" && refund!.status!=="processing")fail("NOT_ELIGIBLE","این بازپرداخت قابل تأیید نیست.",409);
+      await assertFreshAdmin(db,actor,["refunds.write"],true);
       await db.query("UPDATE refund SET status='succeeded',evidence=$1 WHERE id=$2",[evidence,refundId]);
       // Refunding an extra receipt must not label the primary purchase refunded.
       const total=await one(db,"SELECT coalesce(sum(r.amount_irr),0)::text AS amount FROM refund r JOIN payment_receipt p ON p.id=r.receipt_id WHERE r.order_id=$1 AND r.status='succeeded' AND p.disposition IN ('primary','inventory_exception')",[hint.order_id]);
@@ -413,14 +608,20 @@ export function createCommerce(options: CommerceOptions) {
     }).sort((left,right)=>left.variantId.localeCompare(right.variantId));
     if(new Set(operations.map((operation)=>operation.variantId)).size!==operations.length)fail("VALIDATION","هر حجم را فقط یک بار انتخاب کنید.");
     const fingerprint=digest(JSON.stringify({operations,reason}));
+    const requiredPermissions:Permission[]=[];
+    if(operations.some((operation)=>operation.priceIrr!==undefined))requiredPermissions.push("catalog.write");
+    if(operations.some((operation)=>operation.inventoryDelta!==undefined))requiredPermissions.push("inventory.write");
+    const assertFreshCommit=(db:PoolClient,lock=false)=>assertFreshAdmin(db,actor,requiredPermissions,lock);
     return transaction(async(db)=>{
       if(operations.some((operation)=>operation.priceIrr!==undefined))await assertActor(db,actor,"catalog.write");
       if(operations.some((operation)=>operation.inventoryDelta!==undefined))await assertActor(db,actor,"inventory.write");
       let operationId:string|undefined;
       if(!input.dryRun){
+        await assertFreshCommit(db);
         await db.query("INSERT INTO bulk_operation(id,actor_id,operation_key,fingerprint,reason) VALUES($1,$2,$3,$4,$5) ON CONFLICT(actor_id,operation_key) DO NOTHING",[randomUUID(),actor.userId,operationKey,fingerprint,reason]);
       }
       const prior=await one(db,"SELECT * FROM bulk_operation WHERE actor_id=$1 AND operation_key=$2 FOR UPDATE",[actor.userId,operationKey]);
+      if(!input.dryRun)await assertFreshCommit(db,true);
       if(prior){
         if(prior.fingerprint!==fingerprint)fail("CONFLICT","شناسهٔ عملیات برای تغییر دیگری استفاده شده است.",409);
         if(prior.result){const saved=prior.result as BulkEditDto;return input.dryRun ? {dryRun:true,changes:saved.changes} : saved;}
@@ -444,6 +645,7 @@ export function createCommerce(options: CommerceOptions) {
       });
       if(input.dryRun)return {dryRun:true,changes};
       if(!operationId)throw new Error("Bulk operation record unavailable");
+      await assertFreshCommit(db,true);
       for(const operation of operations){
         if(operation.priceIrr!==undefined)await db.query("UPDATE variant SET price_irr=$1 WHERE id=$2",[operation.priceIrr,operation.variantId]);
         if(operation.inventoryDelta!==undefined){
@@ -509,6 +711,6 @@ export function createCommerce(options: CommerceOptions) {
   }
   async function expireReservations(){return transaction(async(db)=>{const orders=await query(db,"SELECT o.id FROM orders o WHERE EXISTS(SELECT 1 FROM inventory_reservation r WHERE r.order_id=o.id AND r.status='active' AND r.expires_at<=now()) ORDER BY o.id FOR UPDATE SKIP LOCKED LIMIT 50");let count=0;for(const order of orders){const reservations=await query(db,"SELECT * FROM inventory_reservation WHERE order_id=$1 AND status='active' ORDER BY variant_id FOR UPDATE",[order.id]);await query(db,"SELECT variant_id FROM inventory_balance WHERE variant_id=ANY($1::uuid[]) ORDER BY variant_id FOR UPDATE",[reservations.map((r)=>r.variant_id)]);for(const reservation of reservations){await db.query("UPDATE inventory_balance SET reserved=reserved-$1 WHERE variant_id=$2",[reservation.quantity,reservation.variant_id]);await db.query("UPDATE inventory_reservation SET status='released' WHERE id=$1",[reservation.id]);await db.query("INSERT INTO inventory_ledger(id,variant_id,order_id,operation_key,on_hand_delta,reserved_delta,reason) VALUES($1,$2,$3,$4,0,$5,'reservation_expired') ON CONFLICT(operation_key) DO NOTHING",[randomUUID(),reservation.variant_id,order.id,`release:${reservation.id}`,-number(reservation,"quantity")]);count++;}await db.query("UPDATE coupon_redemption SET status='released' WHERE order_id=$1 AND status='reserved'",[order.id]);await event(db,text(order,"id"),"reservation.expired",`expired:${order.id}`);}return count;});}
   async function reconcileAttempt(attemptId:string){const attempt=await one(pool,"SELECT * FROM payment_attempt WHERE id=$1",[attemptId]);if(!attempt || attempt.status==="succeeded" || attempt.status==="failed")return;if(!attempt.authority)throw new Error("create result unknown; provider support reconciliation required");const inquiry=await payments.inquiry({...paymentContext(attempt),authority:text(attempt,"authority")});if(inquiry.kind==="unknown")throw new Error(`inquiry unknown: ${inquiry.code}`);if(inquiry.status==="PAID" || inquiry.status==="VERIFIED"){const verified=await verifyPayment(text(attempt,"authority"));if(verified.status==="unknown")throw new Error("verify remains unknown");}else if(inquiry.status==="IN_BANK")throw new Error("payment in progress");else if(inquiry.status==="FAILED")await pool.query("UPDATE payment_attempt SET status='failed',updated_at=now() WHERE id=$1 AND status<>'succeeded'",[attemptId]);}
-  return {listProducts,listAdminProducts,getProduct,createProduct,updateProduct,publishProduct,archiveProduct,bulkEdit,createCart,getCart,setCartItem,setCartCoupon,quoteCheckout,createCheckout,retryPayment,initializeAttempt,verifyPayment,getOrder,listOrders,recordShipment,adjustInventory,listInventory,getInventoryLedger,requestReturn,decideReturn,requestRefund,completeManualRefund,listReceipts,saveAddress,listAddresses,deleteAddress,setWishlist,listWishlist,listCoupons,saveCoupon,listContent,saveContent,listCollections,saveCollection,importProducts,expireReservations,reconcileAttempt};
+  return {listProducts,listProductsPage,listAdminProducts,listAdminProductsPage,listExportProducts,listSitemapProducts,listVariantsPage,resolvePublishedProducts,getProduct,createProduct,updateProduct,publishProduct,archiveProduct,bulkEdit,createCart,getCart,setCartItem,setCartCoupon,quoteCheckout,createCheckout,retryPayment,initializeAttempt,verifyPayment,getOrder,listOrders,listOrdersPage,listExportOrders,recordShipment,adjustInventory,listInventory,getInventoryLedger,requestReturn,decideReturn,requestRefund,completeManualRefund,listReceipts,saveAddress,listAddresses,deleteAddress,setWishlist,listWishlist,listCoupons,saveCoupon,listContent,saveContent,listCollections,saveCollection,importProducts,expireReservations,reconcileAttempt};
 }
 export type Commerce = ReturnType<typeof createCommerce>;

@@ -11,6 +11,7 @@ import { getConfig } from "@/server/config";
 import { readMockOtp } from "@/server/auth/otp";
 import { getSettings, saveSettings, adminDirectory } from "@/server/admin";
 import { uploadMedia } from "@/server/media";
+import { getShippingSettings, saveShippingSettings } from "@/server/shipping";
 
 export const runtime = "nodejs";
 const id = z.uuid();
@@ -18,6 +19,14 @@ const version = z.number().int().positive();
 const address = z.object({ recipient: z.string().min(1).max(120), phone: z.string().max(40), province: z.string().min(1).max(80), city: z.string().min(1).max(80), address: z.string().min(1).max(1000), plaque: z.string().min(1).max(20), unit: z.string().max(20).optional(), postalCode: z.string().max(20) }).strict();
 const productImage = z.object({url:z.string().max(128),alt:z.string().max(240),variantSku:z.string().max(64).nullable().optional()}).strict();
 const product = z.object({ name: z.string().min(1).max(160), slug: z.string().max(160), description: z.string().max(10000), concentration: z.string().max(80), family: z.string().max(80), topNotes: z.array(z.string().max(120)).max(30), heartNotes: z.array(z.string().max(120)).max(30), baseNotes: z.array(z.string().max(120)).max(30), imageUrl: z.string().max(500).optional(), images:z.array(productImage).max(10).optional(), variants: z.array(z.object({ sku: z.string().max(64), volumeMl: z.number().int().positive().max(5000), priceToman: z.string().max(20), initialStock: z.number().int().min(0).max(100000).optional() }).strict()).min(1).max(20) }).strict();
+const paging=z.object({page:z.coerce.number().int().positive().max(100000).optional(),pageSize:z.coerce.number().int().positive().max(100).optional()});
+const productPage=paging.extend({search:z.string().max(120).optional(),family:z.string().max(80).optional(),concentration:z.string().max(80).optional(),note:z.string().max(120).optional(),minPriceToman:z.string().max(30).optional(),maxPriceToman:z.string().max(30).optional(),volumeMl:z.coerce.number().int().positive().max(5000).optional(),available:z.enum(["true","false"]).transform(value=>value==="true").optional(),sort:z.enum(["name","price_asc","price_desc"]).optional()}).strict();
+const orderPage=paging.extend({search:z.string().max(100).optional(),status:z.enum(["awaiting_payment","confirmed","payment_exception","cancelled","completed"]).optional(),paymentStatus:z.enum(["pending","paid","partially_refunded","refunded","failed","unknown"]).optional()}).strict();
+function pageQuery(request:NextRequest,keys:string[]) {
+  return Object.fromEntries(keys.filter(key=>request.nextUrl.searchParams.has(key)).map(key=>[key,request.nextUrl.searchParams.get(key)]));
+}
+const productPageKeys=["page","pageSize","search","family","concentration","note","minPriceToman","maxPriceToman","volumeMl","available","sort"];
+const orderPageKeys=["page","pageSize","search","status","paymentStatus"];
 const checkout = z.object({ cartId: id, cartVersion: version, address, shippingMethodId: z.literal("standard"), quoteFingerprint: z.string().min(1).max(200), policyVersion: z.string().max(100) }).strict();
 async function body(request: NextRequest, limit=128000) {
   const raw = new TextDecoder().decode(await boundedBody(request,limit));
@@ -64,9 +73,16 @@ async function dispatch(request: NextRequest): Promise<Response> {
   const commerce = getCommerce();
   if (route === "health/live" && method === "GET") return success({ status: "alive", environment: getConfig().DEPLOYMENT_ENV });
   if (route === "health/ready" && method === "GET") { await pool.query("SELECT 1"); return success({ status: "ready" }); }
+  if (route === "catalog/page" && method === "GET") return success(await commerce.listProductsPage(productPage.parse(pageQuery(request,productPageKeys))));
+  if (route === "catalog/resolve" && method === "GET") {
+    const raw=z.string().max(37000).parse(request.nextUrl.searchParams.get("ids") ?? "");
+    const ids=z.array(id).max(100).parse(raw ? raw.split(",").map(value=>value.trim().toLowerCase()) : []);
+    return success(await commerce.resolvePublishedProducts(ids));
+  }
   if (route === "products" && method === "GET") return success(await commerce.listProducts({ search: request.nextUrl.searchParams.get("search") ?? undefined, family: request.nextUrl.searchParams.get("family") ?? undefined, available: request.nextUrl.searchParams.get("available") === "true" }));
   if (path[0] === "products" && path.length === 2 && method === "GET") return success(await commerce.getProduct(path[1]!));
   if (route === "settings" && method === "GET") return success(await getSettings());
+  if (route === "shipping" && method === "GET") return success(await getShippingSettings());
   if (path[0] === "content" && path.length === 2 && method === "GET") { const pages = await commerce.listContent(); const page = pages.find(row => row.slug === path[1]); return success(page ? contentDto(page) : missing()); }
   if (route === "collections" && method === "GET") return success(await commerce.listCollections());
   if (route === "cart" || route === "cart/items" || route === "cart/coupon") {
@@ -99,6 +115,7 @@ async function dispatch(request: NextRequest): Promise<Response> {
   }
   if (path[0] === "orders") {
     const actor = (await customerActor(request.headers))!;
+    if(route === "orders/page" && method === "GET") return success(await commerce.listOrdersPage(actor,orderPage.parse(pageQuery(request,orderPageKeys))));
     if (path.length === 1 && method === "GET") return success(await commerce.listOrders(actor));
     if (path.length === 2 && method === "GET") return success(await commerce.getOrder(actor, path[1]!));
     if (path[2] === "retry-payment" && method === "POST") return success(await commerce.retryPayment(actor, id.parse(path[1]), key(request)));
@@ -144,19 +161,35 @@ async function dispatch(request: NextRequest): Promise<Response> {
   }
   if (route === "admin/session" && method === "GET") { const state = await adminSession(request.headers); return success({user:state.user,role:state.role,roles:state.roles,permissions:state.permissions,mfaRequired:state.mfaRequired,mfaVerified:state.mfaVerified}); }
   if (path[0] === "admin") {
+    if(route === "admin/variants/page" && method === "GET") return success(await commerce.listVariantsPage(await adminActor(request.headers),paging.extend({search:z.string().max(120).optional()}).strict().parse(pageQuery(request,["page","pageSize","search"]))));
+    if(route === "admin/shipping") {
+      const actor=await adminActor(request.headers,"refunds.write",method!=="GET");
+      if(method==="GET") return success(await getShippingSettings());
+      if(method==="PUT") return success(await saveShippingSettings(actor,await body(request)));
+      return missing();
+    }
     if(route === "admin/test-otp" && method === "GET") {await adminActor(request.headers,"roles.write",true);if(getConfig().DEPLOYMENT_ENV === "live")return missing();return success({code:await readMockOtp(request.nextUrl.searchParams.get("phone")??"")});}
     if(route === "admin/export" && method === "GET") {
       const kind=request.nextUrl.searchParams.get("kind");
-      if(kind === "products") {const actor=await adminActor(request.headers,"catalog.write");const products=await commerce.listAdminProducts(actor);return csv([["نام","نامک","شناسهٔ تنوع","حجم میلی‌لیتر","قیمت تومان","موجودی قابل فروش","وضعیت"],...products.flatMap(p=>p.variants.map(v=>[p.name,p.slug,v.sku,v.volumeMl,(BigInt(v.price.amountIrr)/10n).toString(),v.available,p.status]))]);}
-      if(kind === "orders") {const actor=await adminActor(request.headers,"orders.read");const orders=await commerce.listOrders(actor);return csv([["شمارهٔ سفارش","تاریخ","وضعیت","وضعیت پرداخت","وضعیت ارسال"],...orders.map(o=>[o.orderNumber,o.createdAt,o.status,o.paymentStatus,o.shipment?.status??""])]);}
+      if(kind === "products") {const actor=await adminActor(request.headers,"catalog.write",true);const products=await commerce.listExportProducts(actor);return csv([["نام","نامک","شناسهٔ تنوع","حجم میلی‌لیتر","قیمت تومان","موجودی قابل فروش","وضعیت"],...products.flatMap(p=>p.variants.map(v=>[p.name,p.slug,v.sku,v.volumeMl,(BigInt(v.price.amountIrr)/10n).toString(),v.available,p.status]))]);}
+      if(kind === "orders") {const actor=await adminActor(request.headers,"orders.read",true);const orders=await commerce.listExportOrders(actor);return csv([["شمارهٔ سفارش","تاریخ","وضعیت","وضعیت پرداخت","وضعیت ارسال"],...orders.map(o=>[o.orderNumber,o.createdAt,o.status,o.paymentStatus,o.shipment?.status??""])]);}
       return missing();
     }
     if (route === "admin/media" && method === "POST") return success(await uploadMedia(request, await adminActor(request.headers,"catalog.write")), 201);
-    if (route === "admin/bulk" && method === "POST") { const actor=await adminActor(request.headers); const data=z.object({operations:z.array(z.object({variantId:id,expectedProductVersion:version,priceToman:z.string().max(20).optional(),inventoryDelta:z.number().int().min(-100000).max(100000).optional()}).strict()).min(1).max(100),reason:z.string().trim().min(1).max(1000),operationKey:z.string().min(8).max(128),dryRun:z.boolean()}).strict().parse(await body(request));return success(await commerce.bulkEdit(actor,data)); }
+    if (route === "admin/bulk" && method === "POST") {
+      const actor=await adminActor(request.headers);
+      const data=z.object({operations:z.array(z.object({variantId:id,expectedProductVersion:version,priceToman:z.string().max(20).optional(),inventoryDelta:z.number().int().min(-100000).max(100000).optional()}).strict()).min(1).max(100),reason:z.string().trim().min(1).max(1000),operationKey:z.string().min(8).max(128),dryRun:z.boolean()}).strict().parse(await body(request));
+      if(!data.dryRun) await adminActor(request.headers,undefined,true);
+      const result=await commerce.bulkEdit(actor,data);
+      const state=await adminSession(request.headers);
+      const financialVisible=state.permissions.includes("catalog.write");
+      return success(financialVisible?{...result,financialVisible}:{...result,financialVisible,changes:result.changes.map(change=>({variantId:change.variantId,sku:change.sku,productName:change.productName,currentStock:change.currentStock,nextStock:change.nextStock}))});
+    }
     if (route === "admin/settings") { const actor = await adminActor(request.headers,"content.write"); if (method === "GET") return success(await getSettings()); if (method === "PUT") return success(await saveSettings(actor, await body(request))); }
     if (["customers","roles","reports","audit"].includes(path[1]!)) return success(await adminDirectory(request, path, method, method === "GET" ? undefined : await body(request)));
     if (path[1] === "products") {
       const actor = await adminActor(request.headers,"catalog.write");
+      if(route === "admin/products/page" && method === "GET") return success(await commerce.listAdminProductsPage(actor,productPage.extend({status:z.enum(["draft","published","archived"]).optional()}).parse(pageQuery(request,[...productPageKeys,"status"]))));
       if (path.length === 2 && method === "GET") return success(await commerce.listAdminProducts(actor));
       if (path.length === 2 && method === "POST") return success(await commerce.createProduct(actor, product.parse(await body(request))), 201);
       if (path.length === 3 && method === "GET") return success(await commerce.getProduct(id.parse(path[2]), actor));
@@ -167,6 +200,10 @@ async function dispatch(request: NextRequest): Promise<Response> {
     if (path[1] === "orders") {
       const actor = await adminActor(request.headers,"orders.read");
       const state=await adminSession(request.headers);
+      if(route === "admin/orders/page" && method === "GET") {
+        const result=await commerce.listOrdersPage(actor,orderPage.parse(pageQuery(request,orderPageKeys)));
+        return success({...result,items:result.items.map(order=>orderView(order,state.roles))});
+      }
       if (path.length === 2 && method === "GET") return success((await commerce.listOrders(actor)).map(order=>orderView(order,state.roles)));
       const orderId = id.parse(path[2]);
       if (path.length === 3 && method === "GET") return success(orderView(await commerce.getOrder(actor,orderId),state.roles));
@@ -175,12 +212,24 @@ async function dispatch(request: NextRequest): Promise<Response> {
         if(method === "GET") return success((await pool.query("SELECT id,actor_id AS \"actorId\",reason,created_at AS \"createdAt\" FROM audit_event WHERE entity_type='order' AND entity_id=$1 AND action='order.note' ORDER BY created_at",[orderId])).rows);
         if(method === "POST") {const data=z.object({reason:z.string().trim().min(1).max(2000)}).strict().parse(await body(request));await pool.query("INSERT INTO audit_event(id,actor_id,action,entity_type,entity_id,reason) VALUES($1,$2,'order.note','order',$3,$4)",[randomUUID(),actor.userId,orderId,data.reason]);return success({saved:true},201);}
       }
-      if (path[3] === "shipment" && ["PATCH","POST"].includes(method)) { const data = z.object({ carrier: z.string().min(1).max(120), trackingCode: z.string().min(1).max(160), status: z.enum(["shipped","delivered"]) }).strict().parse(await body(request)); return success(await commerce.recordShipment(actor,orderId,data)); }
+      if (path[3] === "shipment" && ["PATCH","POST"].includes(method)) {
+        const data=z.object({carrier:z.string().min(1).max(120),trackingCode:z.string().min(1).max(160),status:z.enum(["shipped","delivered"])}).strict().parse(await body(request));
+        const updated=await commerce.recordShipment(actor,orderId,data);
+        const current=await adminSession(request.headers);
+        if(!current.mfaVerified || !current.permissions.includes("orders.read")) throw new CommerceError("FORBIDDEN","مجوز مشاهدهٔ سفارش را ندارید.",403);
+        return success(orderView(updated,current.roles));
+      }
       if (path[3] === "receipts" && method === "GET") return success(await commerce.listReceipts(await adminActor(request.headers,"refunds.write"),orderId));
       if (path[3] === "refunds" && method === "POST") { const data = z.object({ receiptId: id, amountIrr: z.string().max(20), reason: z.string().min(1).max(1000), operationKey: z.string().min(8).max(128) }).strict().parse(await body(request)); return success(await commerce.requestRefund(await adminActor(request.headers,"refunds.write",true),orderId,data.receiptId,data.amountIrr,data.reason,data.operationKey)); }
     }
     if (path[1] === "refunds" && path[3] === "complete" && method === "POST") { const data = z.object({ evidence: z.string().min(10).max(2000) }).strict().parse(await body(request)); return success(await commerce.completeManualRefund(await adminActor(request.headers,"refunds.write",true),id.parse(path[2]),data.evidence)); }
     if (path[1] === "returns" && path.length === 3 && method === "PATCH") { const data = z.object({ status: z.enum(["approved","rejected","received","closed"]), reason: z.string().min(1).max(1000), restock: z.boolean().optional() }).strict().parse(await body(request)); return success(await commerce.decideReturn(await adminActor(request.headers,"orders.fulfill"),id.parse(path[2]),data)); }
+    if(route === "admin/inventory/ledger" && method === "GET") {
+      await adminActor(request.headers,"inventory.write");
+      const filter=request.nextUrl.searchParams.get("variantId");
+      const rows=await pool.query("SELECT l.id,l.variant_id AS \"variantId\",v.sku,l.on_hand_delta AS delta,l.reserved_delta AS \"reservedDelta\",l.reason,l.created_at AS \"createdAt\" FROM inventory_ledger l JOIN variant v ON v.id=l.variant_id WHERE ($1::uuid IS NULL OR l.variant_id=$1::uuid) ORDER BY l.created_at DESC,l.id DESC LIMIT 200",[filter===null?null:id.parse(filter)]);
+      return success(rows.rows);
+    }
     if (route === "admin/inventory") {
       const actor = await adminActor(request.headers,"inventory.write");
       if (method === "GET") { const variants = await commerce.listInventory(actor); const ledger = await pool.query("SELECT l.id,l.variant_id,l.on_hand_delta,l.reserved_delta,l.reason,l.created_at FROM inventory_ledger l ORDER BY l.created_at DESC LIMIT 200"); return success({ variants: variants.map(v=>({id:v.variant_id,sku:v.sku,productName:v.name,productVersion:v.product_version,volumeMl:v.volume_ml,onHand:v.on_hand,reserved:v.reserved,available:v.available})), ledger: ledger.rows.map(l=>({id:l.id,variantId:l.variant_id,delta:l.on_hand_delta,reservedDelta:l.reserved_delta,reason:l.reason,createdAt:l.created_at})) }); }

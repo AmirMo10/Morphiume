@@ -1,0 +1,20 @@
+[Unit]
+Description=Morphiume staging local health evaluation
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/morphiume
+ExecStart=/usr/bin/python3 /opt/morphiume/deploy/staging/check-health.py --expect-app --expect-backups
+TimeoutStartSec=50s
+User=root
+UMask=0077
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=strict
+MemoryMax=256M
+CPUQuota=25%
+StandardOutput=journal
+StandardError=journal

@@ -29,7 +29,7 @@ function GalleryFixture(){const [sku,setSku]=useState('TEST-50'); return <><labe
 const render=()=>createRoot(document.getElementById('root')).render(location.pathname==='/gallery'?<GalleryFixture/>:<ProductEditor id={fixture.id}/>); render();`;
 const built = await build({ stdin: { contents: entry, resolveDir: root, sourcefile: "gallery-check.tsx", loader: "tsx" }, bundle: true, write: false, platform: "browser", format: "iife", jsx: "automatic", define: { "process.env.NODE_ENV": '"test"' }, plugins: [{ name: "isolated-next-router", setup(builder) {
   builder.onResolve({ filter: /^next\/(link|navigation)$/ }, args => ({ path: args.path, namespace: "test-next" }));
-  builder.onLoad({ filter: /.*/, namespace: "test-next" }, args => ({ contents: args.path === "next/link" ? "import React from 'react';export default function Link(props){return React.createElement('a',props,props.children)}" : "export function useRouter(){return {push(value){window.__navigation=value},replace(value){window.__navigation=value}}}", loader: "js", resolveDir: root }));
+  builder.onLoad({ filter: /.*/, namespace: "test-next" }, args => ({ contents: args.path === "next/link" ? "import React from 'react';export default function Link(props){return React.createElement('a',props,props.children)}" : "export function useSearchParams(){return new URLSearchParams(location.search)}export function useRouter(){return {push(value){window.__navigation=value},replace(value){window.__navigation=value}}}", loader: "js", resolveDir: root }));
 } }] });
 const bundle = built.outputFiles[0].text;
 const tokens = await readFile("public/brand/tokens.css", "utf8");
@@ -47,7 +47,7 @@ const pages = [];
 try {
   await page.route("**/*", async route => {
     const request = route.request(), path = new URL(request.url()).pathname;
-    if (path === "/" || path === "/gallery") return route.fulfill({ contentType: "text/html", body: `<html lang="fa" dir="rtl"><head><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="/app.css"></head><body><main class="page"><div id="root"></div></main><script src="/app.js"></script></body></html>` });
+    if (path === "/" || path === "/gallery") return route.fulfill({ contentType: "text/html", body: `<html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="/app.css"></head><body><main class="page"><div id="root"></div></main><script src="/app.js"></script></body></html>` });
     if (path === "/app.js") return route.fulfill({ contentType: "application/javascript", body: bundle });
     if (path === "/app.css") return route.fulfill({ contentType: "text/css", body: tokens + css });
     if (path.endsWith(".woff2")) return route.fulfill({ contentType: "font/woff2", body: font });

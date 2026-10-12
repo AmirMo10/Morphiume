@@ -36,16 +36,17 @@ function responseOk(response, read = false) {
 function get(path, name) { const response = http.get(`${base}${path}`, { tags: { name } }); responseOk(response, true); return response; }
 export default function () {
   // RPS scenario is independent request arrival; one HTTP request per iteration.
-  if (mode === "rps") { get("/api/products", "GET catalog"); return; }
+  if (mode === "rps") { get("/api/catalog/page?pageSize=24", "GET catalog page"); return; }
   const started = Date.now();
   const user = users[(__VU - 1) % users.length];
   const product = fixture.productIds[Math.floor(Math.random() * fixture.productIds.length)];
   for (const cookie of user.cookies) http.cookieJar().set(base, cookie.name, cookie.value);
   const choice = mode === "smoke" && __ITER === 0 ? 1 : Math.random();
   if (choice < 0.8) {
-    get("/api/products", "GET catalog"); get(`/api/products/${product}`, "GET product"); get("/api/settings", "GET public settings");
+    const page = 1 + Math.floor(Math.random() * 9);
+    get(`/api/catalog/page?pageSize=24&page=${page}`, "GET catalog page"); get(`/api/products/${product}`, "GET product"); get("/api/settings", "GET public settings");
   } else if (choice < 0.9) {
-    get("/api/products?search=QA", "GET search"); get(`/api/products/${product}`, "GET product"); get("/api/settings", "GET public settings");
+    get("/api/catalog/page?pageSize=24&search=QA", "GET search page"); get(`/api/products/${product}`, "GET product"); get("/api/settings", "GET public settings");
   } else {
     get("/api/cart", "GET own cart");
     const update = http.put(`${base}/api/cart/items`, JSON.stringify({ variantId: fixture.variantId, quantity: 1 }), { headers: common, tags: { name: "PUT cart item" } });

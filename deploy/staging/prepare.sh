@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+bash /opt/morphiume/deploy/staging/assert-boundaries.sh
 umask 077
 [[ "$(id -u)" == 0 ]] || { echo 'Run the approved staging preparation as root.' >&2; exit 1; }
 findmnt --mountpoint /srv/morphiume/postgres --noheadings >/dev/null

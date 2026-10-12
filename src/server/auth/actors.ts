@@ -34,8 +34,8 @@ export async function adminActor(headers: Headers, permission?: Permission, fres
   if (!state.mfaVerified) throw new CommerceError("FORBIDDEN", "ابتدا تأیید دومرحله‌ای را کامل کنید.", 403);
   if (permission && !state.permissions.includes(permission)) throw new CommerceError("FORBIDDEN", "مجوز این عملیات را ندارید.", 403);
   if (freshFactor) {
-    const recent = await pool.query("SELECT session_id FROM admin_grant WHERE session_id=$1 AND factor_verified_at>now()-interval '5 minutes' AND expires_at>now()", [state.actor.sessionId]);
-    if (!recent.rowCount) throw new CommerceError("FORBIDDEN", "برای این تغییر حساس، کد دومرحله‌ای تازه را تأیید کنید.", 403);
+    const recent = await pool.query("SELECT session_id FROM admin_grant WHERE session_id=$1 AND factor_verified_at>clock_timestamp()-interval '5 minutes' AND expires_at>clock_timestamp()", [state.actor.sessionId]);
+    if (!recent.rowCount) throw new CommerceError("FORBIDDEN", "برای این عملیات حساس، کد دومرحله‌ای تازه را تأیید کنید.", 403);
   }
   return state.actor;
 }

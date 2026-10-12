@@ -29,6 +29,19 @@ Observed on 2026-10-12. Version pins come from registry manifests or installed-p
 | [PostgreSQL runtime stream selection](https://github.com/brianc/node-postgres/blob/master/packages/pg/lib/stream.js) | Guarded Cloudflare socket versus Node net/tls path |
 | [Debian GnuTLS advisory](https://security-tracker.debian.org/tracker/CVE-2026-95210) | Bookworm and trixie packages both listed vulnerable; distro bump alone does not resolve it |
 | [Official age encryption project](https://github.com/FiloSottile/age) | Ubuntu package installation, dedicated X25519 identity/recipient and authenticated stream encryption/decryption |
+| [systemd timer reference](https://github.com/systemd/systemd/blob/main/man/systemd.timer.xml) | Prepared local timer/calendar behavior; actual installed-unit validation required |
+| [systemd execution reference](https://github.com/systemd/systemd/blob/main/man/systemd.exec.xml) | Read-only host paths, explicit write paths, privilege and tmp restrictions for prepared units |
+| [OpenSSL2026-09-29 advisory](https://openssl-library.org/news/secadv/20260929.txt) | Four scanned OpenSSL IDs fixed in3.5.9; upstream severity/trigger distinctions |
+| [Alpine3.24 signed main index](https://dl-cdn.alpinelinux.org/alpine/v3.24/main/x86_64/APKINDEX.tar.gz) | Actual libcrypto3/libssl3/openssl3.5.9-r0 and zlib1.3.2-r1 availability |
+| [Alpine3.24 security DB](https://secdb.alpinelinux.org/v3.24/main.json) | zlib fixed1.3.2-r1; OpenSSL secfix data lag at observation |
+| [Node official release index](https://nodejs.org/dist/index.json) | Actual latest22/24/26 embedded OpenSSL versions; APK updates do not patch static Node |
+| [Node24.21 SecureContext source](https://github.com/nodejs/node/blob/v24.21.0/src/crypto/crypto_context.cc) | TLS method selection and unknown DTLS method rejection |
+| [Node24.21 TLS source](https://github.com/nodejs/node/blob/v24.21.0/src/crypto/crypto_tls.cc) | SSL_set_SSL_CTX in server SNI context selection |
+| [Node24.21 QUIC documentation](https://github.com/nodejs/node/blob/v24.21.0/doc/api/quic.md) | Experimental QUIC requires a flag; actual release audit remains required |
+| [Docker image save](https://docs.docker.com/reference/cli/docker/image/save/) | Accepted platform tar/gzip export and explicit platform selection |
+| [Docker image load](https://docs.docker.com/reference/cli/docker/image/load/) | Gzip input and platform-filtered loading; no application start |
+| [OCI image configuration](https://github.com/opencontainers/image-spec/blob/main/config.md) | Config SHA256 image ID and uncompressed-layer diff-ID verification |
+| [GitHub artifact download](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/download-workflow-artifacts) | Exact-run authenticated artifact retrieval and expiry |
 
 Encryption preparation actually installed Ubuntu's signed Apt package `age=1.1.1-1ubuntu0.24.04.3`; `age --version` returned1.1.1. A dedicated identity remains outside the repository in ignored user-protected local storage; only its recipient is stored on the server. An actual encryption/decryption digest roundtrip passed. This is encryption evidence, not a completed database restore or offsite backup.
 

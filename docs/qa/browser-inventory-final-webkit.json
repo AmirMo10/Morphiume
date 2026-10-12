@@ -1,0 +1,19 @@
+{
+  "generatedAt": "2026-10-12T14:02:57.517Z",
+  "startedAt": "2026-10-12T14:01:22.895Z",
+  "durationMs": 36869.539,
+  "expected": 1,
+  "unexpected": 0,
+  "skipped": 0,
+  "flaky": 0,
+  "tests": [
+    {
+      "title": "T06/T07/T20: inventory-only native MFA cannot receive or mutate price through variants/bulk",
+      "project": "webkit",
+      "status": "passed",
+      "durationMs": 35587,
+      "retry": 0,
+      "errorCount": 0
+    }
+  ]
+}

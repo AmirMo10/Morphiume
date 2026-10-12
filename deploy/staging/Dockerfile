@@ -1,6 +1,7 @@
 FROM node:24.21.0-alpine3.24@sha256:ebfe2f90462722a7a4de65e91990e97fe0d401c70e0e762c5b53302f905ec1c1 AS builder
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
+RUN apk add --no-cache --upgrade libcrypto3=3.5.9-r0 libssl3=3.5.9-r0 zlib=1.3.2-r1
 RUN npm install --global pnpm@11.25.0
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 RUN pnpm install --frozen-lockfile
@@ -13,6 +14,7 @@ LABEL org.opencontainers.image.source="https://github.com/AmirMo10/Morphiume" \
       org.opencontainers.image.revision="${MORPHIUME_SOURCE_COMMIT}"
 WORKDIR /app
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0
+RUN apk add --no-cache --upgrade libcrypto3=3.5.9-r0 libssl3=3.5.9-r0 zlib=1.3.2-r1
 # Runtime commands use Node directly; package-manager transitive packages and
 # build tools have no job here. Both stages use the same musl platform.
 RUN rm -rf /usr/local/lib/node_modules /opt/yarn-* \
@@ -25,6 +27,13 @@ COPY --from=builder --chown=1001:1001 /app/public /app/public
 COPY --from=builder --chown=1001:1001 /app/dist-runtime /app/runtime
 COPY --from=builder --chown=1001:1001 /app/db/migrations /app/db/migrations
 COPY --from=builder --chown=1001:1001 /app/deploy/staging/runtime.mjs /app/deploy/staging/runtime.mjs
+COPY --from=builder /app/deploy/staging/audit-native.mjs /app/deploy/staging/audit-native.mjs
+# Record ldd and actual Node/Sharp/TLS behavior in the final filesystem. The
+# transient certificate key and OpenSSL CLI are removed in this same build step.
+RUN apk add --no-cache --virtual .morphiume-tls-audit openssl=3.5.9-r0 \
+    && node /app/deploy/staging/audit-native.mjs \
+    && apk del .morphiume-tls-audit \
+    && rm /app/deploy/staging/audit-native.mjs
 USER 1001:1001
 EXPOSE 3000
 ENTRYPOINT ["node", "/app/deploy/staging/runtime.mjs"]

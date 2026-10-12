@@ -16,6 +16,7 @@ docker run --rm "${common[@]}" "$image" node --conditions=react-server /app/runt
 docker run --rm "${common[@]}" --env-file .local/image-seed-env "$image" node --conditions=react-server /app/runtime/seed.mjs
 docker run --rm "${common[@]}" "$image" node --input-type=module -e '
   import {existsSync} from "node:fs";
+  if(process.getuid()!==1001 || process.getgid()!==1001) throw new Error("Runtime is not UID/GID 1001");
   for (const path of ["/usr/local/bin/npm","/usr/local/bin/npx","/usr/local/bin/yarn","/usr/local/bin/pnpm","/app/node_modules/tsx","/app/node_modules/esbuild"]) {
     if(existsSync(path)) throw new Error("Build tool present in runtime: "+path);
   }

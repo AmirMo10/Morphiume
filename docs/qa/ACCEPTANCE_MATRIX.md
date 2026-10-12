@@ -9,7 +9,7 @@
 | T03 | PG واقعی: انقضا، مصرف مجدد، دو verify هم‌زمان و بودجهٔ تلاش پس از resend؛ دو handler بومی هم‌زمان فقط یک سشن صادر کردند | اجرا و موفق |
 | T04 | دادهٔ MFA واقعی در QA تنها پس از TOTP grant گرفت؛ کنترل دامنه در integration بک‌اند گزارش شده | اجرا در لایه‌های ذکرشده؛ آزمون HTTP همهٔ عملیات باقی است |
 | T05 | HTTP سفارش بدون ورود 401؛ سپس مشتری دوم با OTP و cookie واقعی وارد شد و همان سفارش 404 گرفت؛ مالکیت نشانی در suite بک‌اند | سفارش HTTP اجرا و موفق؛ invoice و پیوست همهٔ مسیرها هنوز ثابت نشده |
-| T06 | role لغوشده بلافاصله در guard واقعی BetterAuth رد شد؛ بک‌اند grant لغوشده را رد می‌کند | اجرا در لایه‌های ذکرشده |
+| T06 | دعوت و لغو واقعی fulfillment در UI؛ enrollment و renew بومی TOTP؛ variants/bulk/dryrun/commit/replay بدون پول؛ قیمت403؛ GET و PATCH×2 رهگیری بدون مبلغ/refund/event مالی؛ product CSV و receipt403 و statusCSV پنج‌ستونی مجاز؛ پس از لغو UI سشن صفر و درخواست قبلی401/403 | Chrome/WebKit در اجرای کامل build24244 قبول |
 | T07 | unit حد مالی و مقدار اعشاری/منفی/overflow؛ suite مالی سرور | جزئی؛ ماتریس tamper تمام APIها هنوز باقی است |
 | T08 | رقابت موجودی آخر در PG واقعی، suite مستقل integration بک‌اند | شواهد backend/CHECKS؛ اجرای هماهنگ QA نهایی درج شود |
 | T09 | یک idempotency checkout همان سفارش را برمی‌گرداند | شواهد suite بک‌اند |
@@ -18,12 +18,12 @@
 | T12 | unknown create حفظ می‌شود؛ مرورگر نتیجهٔ نامشخص کنترل‌شده را دید، stock هنوز 3/reserved1 بود و همان تلاش بعداً موفق شد | دو موتور اجرا و موفق؛ اختلال واقعی PSP اجرا نشده |
 | T13 | پرداخت دیرهنگام پس از اتمام موجودی به exception ثبت می‌شود | شواهد suite بک‌اند |
 | T14 | amount mismatch و adapter contract | جزئی؛ ترکیب تمام merchant/currency/orderهای نامنطبق اجرا نشده |
-| T15 | بودجهٔ refund دو درخواست هم‌زمان | شواهد suite بک‌اند |
+| T15 | بودجهٔ refund دو درخواست هم‌زمان؛ UI بازپرداخت جزئی۱۲۳۴۵تومان روی receipt واقعی mock و complete تکراری یک refund۱۲۳۴۵۰IRR نگه داشت | شواهد backend و Chrome/WebKit؛ PSP بازپرداخت واقعی اجرا نشده |
 | T16 | lease منقضی outbox دوباره پردازش می‌شود و اثر دوباره ندارد | شواهد suite بک‌اند؛ restart کانتینر هنوز جداست |
 | T17 | API و filepicker واقعی: PNG به WebP، fetch عمومی، اصل خصوصی 404؛ malformed/MIME ناهماهنگ/SVG/6001px/>20MP/>4MiB رد شد؛ anonymous 401 | دو موتور اجرا و موفق در دامنهٔ موارد ثبت‌شده |
 | T18 | HTTP سفارش owned `private,no-store`؛ همان URL برای anonymous رد شد | جزئی؛ CDN و cache واقعی راه‌اندازی نشده |
 | T19 | اولین ارسال OTP با پاسخ 503 کنترل‌شده مواجه شد؛ phone و address draft حفظ شدند و ارسال بعدی بومی موفق شد | دو موتور اجرا و موفق؛ outage واقعی provider آزموده نشده |
-| T20 | products/account/adminlogin/product/order در ۳۲۰px، keyboard و reduced-motion و axe بدون violation: دو موتور؛ overflow سفارش اصلاح و build بازآزموده شد | دامنهٔ ذکرشده اجرا و موفق؛ zoom/screenreader/device حقیقی باقی است |
+| T20 | صفحات عمومی/product/order و راهنما در۳۲۰px، keyboard/reduced-motion/axe WCAG دو موتور؛ Chrome native۲۰۰٪ با ترجیح پروفایل تازه و viewport:null، هندسهٔ فیزیکی ثابت، چهار route HTTP200/بدون overflow/Tab/WCAG0 | دامنهٔ ذکرشده قبول؛ zoom دستی GUI، screenreader و دستگاه حقیقی باقی‌اند |
 | T21 | کاربر QA مدیر در UI بدون SQL محصول ساخت، پیش‌نمایش دید و منتشر کرد | دو موتور اجرا و موفق؛ SQL فقط حساب fixture را آماده کرد |
 | T22 | DevOps برنامهٔ restore جدا دارد | rehearsal و پرداخت پس از restore هنوز اجرا نشده |
 | T23 | نمایش ۱۲۳٬۴۵۶ تومان، DB snapshot دقیق ۱۲۳۴۵۶۰ IRR، receipt/stock واقعی | دو موتور اجرا و موفق |
@@ -32,7 +32,7 @@
 | T26 | دریافت دوم distinct و یک shipment؛ refund دریافت extra | شواهد suite بک‌اند |
 | T27 | آخرین ظرفیت کوپن و retry همان سفارش | شواهد suite بک‌اند |
 | T28 | stale product expectedVersion رد می‌شود | شواهد suite بک‌اند |
-| T29 | مالکیت و eligibility مرجوعی، restock پس از بررسی کیفیت فقط یک‌بار، cancellation | شواهد suite بک‌اند؛ همهٔ UIها هنوز یکجا اجرا نشده |
+| T29 | مالکیت/eligibility/cancellation در backend؛ Chrome/WebKit پس از shipment delivered، customer returnHTTP و approve/quality restock دوباره، فقط یک ledger و stock3→4 | دامنهٔ ذکرشده قبول؛ همهٔ رابط‌های مرجوعی یکجا اجرا نشده‌اند |
 | T30 | actor/payload binding idempotency | شواهد suite بک‌اند |
 
 محدودیت موتور محلی: دانلود Chromium bundle از CDN پاسخ 403 محدودیت منطقه داشت؛ Google Chrome نصب‌شده **154.0.8037.93** برای موتور Chromium به کار رفت و نسخه با `browser.version()` واقعی خوانده شد. Firefox رسمی ۱۵۷ دانلود شد ولی Windows قبل از شروع browser با `spawn UNKNOWN` رد کرد؛ علت نهایی ثابت نشده است. WebKit **27.2** اجرا شد و نسخه با همان API خوانده شد. این شواهد دستگاه واقعی iOS/Android نیستند. هماهنگ‌کننده بعداً موفقیت واقعی job Linux هر سه موتور را در [CI run 38242058151](https://github.com/AmirMo10/Morphiume/actions/runs/38242058151) / job `114786824976` برای source `7f403a9834aee3f392d182d58f37b1ee12cb56a0` مشاهده کرد؛ شمار دقیق/نسخه‌های آن در TEST_REPORT هماهنگ‌کننده ثبت می‌شوند. شکست launcher محلی Firefox همچنان به‌عنوان محدودیت محیط محلی باقی است.
@@ -60,3 +60,7 @@ traceهای خام، inbox و secret header هرگز در Git قرار نگرف�
 آزمون مستقل `gallery.spec.ts` در هر دو موتور موفق شد، **۲ از ۲، ۳۸٫۱s** (Chrome ۱۱٫۶s، WebKit ۲۳٫۱s): سه upload واقعی، توضیح مستقل، اتصال تصویر به SKU، جابه‌جایی و حذف، save و reload با بررسی FK/ترتیب واقعی PG؛ دو thumbnail با `aria-pressed`، حذف تصویر مخصوص ۵۰ml از نمایش حجم ۱۰۰ml، RTL۳۲۰ و axe بدون violation. خالی‌کردن گالری published رد شد و DB قبلی حفظ شد؛ بایگانی، name/description و گالری ذخیره‌نشده را حفظ کرد و save بعدی واقعاً archived/empty شد؛ public API بعد از بایگانی 404 داد. شکست اولیهٔ این آزمون فقط query اشتباه QA برای ستون `variant_sku` بود؛ query به join روی `variant_id` اصلاح شد و بدون تغییر محصول قبول شد. آخرین browser-summary.json مربوط به همین اجرای متمرکز است؛ چهار قبلی در این بند ثبت‌اند.
 
 دادهٔ پیشنهاد نشانی: source پیشین type=city شش شهر اصلی را نداشت؛ source به snapshot صریح شهر/استان با commit ثابت تغییر کرد. فایل‌های واقعی upstream شهر، استان و MIT مستقل دریافت شدند؛ SHA256 آن‌ها با manifest برابر بود و برای تمام ۳۱ استان/۱۱۱۹ شهر، صفر اختلاف رابطهٔ ID/name دیده شد. suite مستقل `iran-locations.test.ts` **۱۲ از ۱۲ موفق**: hash بایت خروجی/مجوز و source ثابت، ID یکتا، سه «سردشت» با استان‌های متفاوت، شش شهر اصلی، ورودی Arabic y/k و NFC، استان ناشناخته و آرایهٔ پیشنهاد مستقل. این آزمون پوشش جاری تقسیمات رسمی یا حمل واقعی را ثابت نمی‌کند. scoped lint و TypeScript سراسری پس از این تغییرات موفق بودند. قرارداد بازبینی image در `docs/qa/RUNTIME_IMAGE_REVIEW.md` ثبت شد.
+
+سابقهٔ شش spec روی production build `96791`/server`83122` پس از source`1a4fa44`: اجرای جامع **۱۰قبول/۲شکست در۲۵۳٫۹s**، سپس دو سناریوی موجودی هرکدام در موتور مربوط واقعاً قبول شدند. شکست locator قدیمی preview و پاسخ بومی429 هنگام enrollment/renew در گزارش نگه‌داری شده‌اند؛ helper فقط پس از429 بازهٔ ده‌ثانیه‌ای واقعی را صبر می‌کند و TOTP تازه می‌فرستد. آن مرحله پذیرش ترکیبیِ اجراها بود. جزئیات cleanup، CSV با proof قدیمی403 سپس renew بومی200،۳۰۵محصول/۱۲۵سفارش، بازهٔ قیمت همان حجم، دو409ارسال و consent دوباره، coupon/return/refund و zoom در [INTEGRATION_QA.md](INTEGRATION_QA.md) و خلاصه‌های امن ثبت‌اند. T25 این بار PNG مصنوعی آبی۱۶×۲۰ داشت و decode/natural dimensions/HTTP200 پیش از تصویر ثبت شدند.
+
+نتیجهٔ جاری source منجمد، build `24244` و server `48583`: **۱۲ از ۱۲ موفق در۲۷۲٫۵۷۰۷۴۷ثانیه، skipped/flaky/retries صفر**، اجرای کامل Chrome/WebKit با همهٔ شش spec و افزونهٔ خرید/رهگیری fulfillment. GET و mutation تکراری رهگیری، اطلاعات پول/refund/event مالی را پنهان کردند؛ CSV وضعیت با پنج ستون غیرمالی مجاز و CSV محصول/رسید403 بودند. stock6→5/receipt1/shipment1 و لغو UI/session0 واقعاً بررسی شدند. دو اجرای قبلی همین build هرکدام۱۰/۲ بودند و فقط دو فرض QA غلط داشتند: نام `irr` به‌جای `amountIrr` و ممنوعیت نادرست statusCSV؛ خروجی‌ها محفوظ و قرارداد اصلاح شد. هیچ تغییر محصول برای قبول آن فرض‌ها انجام نشد. `browser-summary.json` دقیقاً همین اجرای کامل موفق است؛ scoped ESLint و TypeScript سراسری آخرین source نیز موفق بودند. این نتیجه ظرفیت، restore، Firefox محلی یا release تصویر Linux را ثابت نمی‌کند.

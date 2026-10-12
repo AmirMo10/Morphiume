@@ -1,22 +1,25 @@
 "use client";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { ProductDto, ProductInput, ProductImage as GalleryImage } from "@/contracts/commerce";
+import type { PageDto, ProductDto, ProductInput, ProductImage as GalleryImage } from "@/contracts/commerce";
+import { pageHref, pageNumber, pageQuery } from "./catalog-query";
+import { Pagination } from "./pagination";
+import { usePagedData } from "./use-paged-data";
+import { AdminReauthentication } from "./admin-reauth";
 import { ProductGallery } from "./product-gallery";
 import { ProductGalleryEditor } from "./product-gallery-editor";
 import { isProductImageUrl, productImages } from "./product-images";
 import { api, ApiError, digits, Empty, errorMessage, faNumber, labelStatus, Loading, money, Notice } from "./commerce-client";
 
 export function AdminProducts() {
-  const [products, setProducts] = useState<ProductDto[] | null>(null);
-  const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("");
-  const [error, setError] = useState("");
-  const load = () => api<ProductDto[]>("/api/admin/products").then(setProducts).catch(e => setError(errorMessage(e)));
-  useEffect(() => { load(); }, []);
-  const filtered = products?.filter(p => (!status || p.status === status) && (p.name + " " + p.slug).toLocaleLowerCase().includes(search.toLocaleLowerCase()));
-  return <><div className="section-heading"><div><p className="eyebrow">کاتالوگ</p><h1>محصولات</h1></div><div className="actions"><Link className="button" href="/admin/products/new">افزودن محصول</Link><a className="button secondary" href="/api/admin/export?kind=products" download>دریافت CSV محصولات</a></div></div><div className="toolbar"><label>جست‌وجوی محصول<input type="search" value={search} onChange={e => setSearch(e.target.value)} /></label><label>وضعیت<select value={status} onChange={e => setStatus(e.target.value)}><option value="">همه</option><option value="draft">پیش‌نویس</option><option value="published">منتشرشده</option><option value="archived">بایگانی‌شده</option></select></label></div>{error && <Notice error>{error}</Notice>}{!products ? <Loading /> : !filtered?.length ? <Empty title="محصولی برای نمایش وجود ندارد."><Link className="button secondary" href="/admin/products/new">ساخت اولین محصول</Link></Empty> : <div className="table-wrap"><table><caption className="sr-only">محصولات فروشگاه</caption><thead><tr><th scope="col">نام محصول</th><th scope="col">وضعیت</th><th scope="col">حجم‌ها</th><th scope="col">موجودی قابل فروش</th><th scope="col">عملیات</th></tr></thead><tbody>{filtered.map(p => <tr key={p.id}><th scope="row"><bdi>{p.name}</bdi><small className="muted block"><bdi>{p.slug}</bdi></small></th><td><span className="status-badge">{labelStatus(p.status)}</span></td><td>{p.variants.map(v => faNumber(v.volumeMl)).join("، ")} میلی‌لیتر</td><td>{faNumber(p.variants.reduce((sum, v) => sum + v.available, 0))}</td><td><Link className="text-link" href={`/admin/products/${p.id}`}>ویرایش و پیش‌نمایش</Link><Link className="text-link block" href={`/admin/products/new?duplicate=${p.id}`}>ساخت کپی پیش‌نویس</Link></td></tr>)}</tbody></table></div>}</>;
+  const router = useRouter();
+  const params = useSearchParams();
+  const search = params.get("search") ?? "";
+  const status = params.get("status") ?? "";
+  const { data, error, reload } = usePagedData<PageDto<ProductDto>>("/api/admin/products/page", pageQuery({ page: pageNumber(params.get("page")), pageSize: pageNumber(params.get("pageSize"), 50, 100), search, status }));
+  const update = (key: string, value: string) => { const next = new URLSearchParams(params.toString()); next.delete("page"); if (value) next.set(key, value); else next.delete(key); router.replace(`/admin/products${next.size ? "?" + next.toString() : ""}`, { scroll: false }); };
+  return <><div className="section-heading"><div><p className="eyebrow">کاتالوگ</p><h1>محصولات</h1></div><div className="actions"><Link className="button" href="/admin/products/new">افزودن محصول</Link><a className="button secondary" href="/api/admin/export?kind=products" download>دریافت CSV محصولات</a></div></div><p className="helper">برای دریافت فایل CSV، تأیید رمزساز در پنج دقیقهٔ گذشته لازم است. پیش از دریافت فایل، تأیید دوباره را انجام دهید.</p><AdminReauthentication /><form className="toolbar" onSubmit={event => { event.preventDefault(); update("search", String(new FormData(event.currentTarget).get("search") ?? "")); }}><label>جست‌وجوی محصول<input name="search" type="search" key={search} defaultValue={search} /></label><button className="secondary">جست‌وجو</button><label>وضعیت<select value={status} onChange={event => update("status", event.target.value)}><option value="">همه</option><option value="draft">پیش‌نویس</option><option value="published">منتشرشده</option><option value="archived">بایگانی‌شده</option></select></label>{(search || status) && <Link className="text-link" href="/admin/products">پاک‌کردن فیلترها</Link>}</form>{error ? <Notice error>{error} <button className="text-button" onClick={reload}>تلاش دوباره</button></Notice> : !data ? <Loading /> : <><p className="small muted" role="status">{faNumber(data.totalItems)} محصول</p>{!data.items.length ? <Empty title={search || status ? "محصولی با این انتخاب پیدا نشد." : "محصولی برای نمایش وجود ندارد."}><Link className="button secondary" href={search || status || data.page > 1 ? "/admin/products" : "/admin/products/new"}>{search || status || data.page > 1 ? "بازگشت به فهرست محصولات" : "ساخت اولین محصول"}</Link></Empty> : <div className="table-wrap" tabIndex={0} role="region" aria-label="محصولات فروشگاه"><table><caption className="sr-only">محصولات فروشگاه</caption><thead><tr><th scope="col">نام محصول</th><th scope="col">وضعیت</th><th scope="col">حجم‌ها</th><th scope="col">موجودی قابل فروش</th><th scope="col">عملیات</th></tr></thead><tbody>{data.items.map(product => <tr key={product.id}><th scope="row"><bdi>{product.name}</bdi><small className="muted block"><bdi>{product.slug}</bdi></small></th><td><span className="status-badge">{labelStatus(product.status)}</span></td><td>{product.variants.map(variant => faNumber(variant.volumeMl)).join("، ")} میلی‌لیتر</td><td>{faNumber(product.variants.reduce((sum, variant) => sum + variant.available, 0))}</td><td><Link className="text-link" href={`/admin/products/${product.id}`}>ویرایش و پیش‌نمایش</Link><Link className="text-link block" href={`/admin/products/new?duplicate=${product.id}`}>ساخت کپی پیش‌نویس</Link></td></tr>)}</tbody></table></div>}<Pagination data={data} href={page => pageHref("/admin/products", params.toString(), page)} label="صفحه‌های محصولات مدیریت" /></>}</>;
 }
 type VariantForm = { sku: string; volumeMl: string; priceToman: string; initialStock: string };
 type ProductForm = Omit<ProductInput, "variants" | "images" | "topNotes" | "heartNotes" | "baseNotes"> & { topNotes: string; heartNotes: string; baseNotes: string; images: GalleryImage[]; variants: VariantForm[] };

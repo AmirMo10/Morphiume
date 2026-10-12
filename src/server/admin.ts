@@ -3,9 +3,10 @@ import { randomUUID } from "node:crypto";
 import { hashPassword } from "better-auth/crypto";
 import { z } from "zod";
 import type { NextRequest } from "next/server";
-import { CommerceError, type Actor } from "@/contracts/commerce";
+import { CommerceError, type Actor, type Role } from "@/contracts/commerce";
 import { pool } from "./db";
 import { adminActor } from "./auth/actors";
+import { ROLE_PERMISSIONS } from "./commerce/permissions";
 
 const defaults = { brandName: "Morphiume", contactPhone: null, email: null, address: null, shippingDescription: null, policyVersion: "staging-policy-v1", version: 1 };
 export async function getSettings() {
@@ -20,6 +21,10 @@ export async function saveSettings(actor: Actor, input: unknown) {
   try {
     await db.query("BEGIN"); await db.query("SELECT pg_advisory_xact_lock(818001)");
     const prior = await db.query("SELECT version FROM store_setting WHERE key='public' FOR UPDATE");
+    const allowed=(Object.keys(ROLE_PERMISSIONS) as Role[]).filter(role=>ROLE_PERMISSIONS[role].includes("content.write"));
+    const authorizationSql="SELECT s.id FROM session s JOIN admin_grant g ON g.session_id=s.id JOIN role_membership r ON r.user_id=s.user_id JOIN \"user\" u ON u.id=s.user_id WHERE s.id=$1 AND s.user_id=$2 AND s.expires_at>clock_timestamp() AND g.expires_at>clock_timestamp() AND r.role=ANY($3::text[]) AND NOT u.disabled AND u.two_factor_enabled";
+    const authorization=await db.query(`${authorizationSql} FOR SHARE OF s,g,r,u`,[actor.sessionId,actor.userId,allowed]);
+    if(!authorization.rowCount || !(await db.query(authorizationSql,[actor.sessionId,actor.userId,allowed])).rowCount) throw new CommerceError("FORBIDDEN","مجوز تغییر تنظیمات را ندارید.",403);
     if ((prior.rows[0]?.version ?? 1) !== data.expectedVersion) throw new CommerceError("CONFLICT", "تنظیمات تغییر کرده است. دوباره بارگذاری کنید.",409);
     await db.query("INSERT INTO store_setting(key,value,version,updated_by) VALUES('public',$1::jsonb,2,$2) ON CONFLICT(key) DO UPDATE SET value=$1::jsonb,version=store_setting.version+1,updated_at=now(),updated_by=$2",[JSON.stringify(value),actor.userId]);
     await db.query("INSERT INTO audit_event(id,actor_id,action,entity_type,entity_id,reason) VALUES($1,$2,'settings.updated','setting','public','تغییر اطلاعات عمومی فروشگاه')",[randomUUID(),actor.userId]);
@@ -45,10 +50,16 @@ export async function adminDirectory(request: NextRequest, path: string[], metho
   const data = invite ? z.object({email:z.email().max(200),name:z.string().min(1).max(120),password:z.string().min(14).max(128),roles:roles.min(1),reason:reasonSchema}).strict().parse(input) : z.object({userId:z.string().min(1).max(100),roles,disabled:z.boolean(),reason:reasonSchema}).strict().parse(input);
   const password = invite && "password" in data ? await hashPassword(data.password) : undefined;
   const db = await pool.connect();
+  const requireOwnerProof=async()=>{
+    const sql="SELECT s.id FROM session s JOIN admin_grant g ON g.session_id=s.id JOIN role_membership r ON r.user_id=s.user_id JOIN \"user\" u ON u.id=s.user_id WHERE s.id=$1 AND s.user_id=$2 AND s.expires_at>clock_timestamp() AND g.expires_at>clock_timestamp() AND g.factor_verified_at>clock_timestamp()-interval '5 minutes' AND r.role='owner' AND NOT u.disabled AND u.two_factor_enabled";
+    const locked=await db.query(`${sql} FOR SHARE OF s,g,r,u`,[actor.sessionId,actor.userId]);
+    // A locking SELECT can evaluate its predicate before waiting for a row.
+    // Use a new wall-clock query after all authorization locks are held.
+    if(!locked.rowCount || !(await db.query(sql,[actor.sessionId,actor.userId])).rowCount) throw new CommerceError("FORBIDDEN","برای این عملیات حساس، ورود و مجوز مالک را دوباره تأیید کنید.",403);
+  };
   try {
     await db.query("BEGIN"); await db.query("SELECT pg_advisory_xact_lock(818002)");
-    const authorization = await db.query("SELECT s.id FROM session s JOIN admin_grant g ON g.session_id=s.id JOIN role_membership r ON r.user_id=s.user_id JOIN \"user\" u ON u.id=s.user_id WHERE s.id=$1 AND s.user_id=$2 AND s.expires_at>now() AND g.expires_at>now() AND g.factor_verified_at>now()-interval '5 minutes' AND r.role='owner' AND NOT u.disabled AND u.two_factor_enabled",[actor.sessionId,actor.userId]);
-    if (!authorization.rowCount) throw new CommerceError("FORBIDDEN","برای این تغییر حساس، ورود و مجوز مالک را دوباره تأیید کنید.",403);
+    await requireOwnerProof();
     let userId: string;
     if (invite && "email" in data) {
       userId = randomUUID();
@@ -63,6 +74,7 @@ export async function adminDirectory(request: NextRequest, path: string[], metho
         const remaining = await db.query('SELECT count(*)::int AS count FROM role_membership r JOIN "user" u ON u.id=r.user_id WHERE r.role=\'owner\' AND r.user_id<>$1 AND NOT u.disabled',[userId]);
         if (!remaining.rows[0].count) throw new CommerceError("CONFLICT","آخرین مالک فعال را نمی‌توان غیرفعال کرد.",409);
       }
+      await requireOwnerProof();
       await db.query('UPDATE "user" SET disabled=$1,updated_at=now() WHERE id=$2',[data.disabled,userId]);
       await db.query("DELETE FROM session WHERE user_id=$1",[userId]);
     } else throw new Error("Invalid role operation");

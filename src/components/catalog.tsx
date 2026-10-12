@@ -2,49 +2,91 @@
 import Link from "next/link";
 import { CspImage as Image } from "./csp-image";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { normalizeSearch } from "@/lib/persian";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { catalogInput, catalogPriceRange, pageHref, pageQuery, type PriceRangeFields } from "./catalog-query";
+import { Pagination } from "./pagination";
+import { usePagedData } from "./use-paged-data";
 import { ProductGallery } from "./product-gallery";
 import { productImages } from "./product-images";
 import { FavoriteButton } from "./wishlist";
-import type { ProductDto } from "@/contracts/commerce";
+import type { CatalogPageDto, ProductDto } from "@/contracts/commerce";
 import { api, Empty, errorMessage, faNumber, Loading, money, Notice, useCommerce } from "./commerce-client";
 
-export function ProductImage({ product, eager = false }: { product: ProductDto; eager?: boolean }) {
+export function ProductImage({ product, eager = false, variantSku }: { product: ProductDto; eager?: boolean; variantSku?: string }) {
   const images = productImages(product);
-  const image = images.find(entry => !entry.variantSku) ?? images[0];
-  return <div className="product-image">{image ? <Image src={image.url} alt={image.alt} width={640} height={800} loading={eager ? "eager" : "lazy"} /> : <div className="image-unavailable"><Image src="/brand/morphiume-mark.svg" alt="" width={72} height={96} /><span>تصویر محصول هنوز ثبت نشده است.</span></div>}</div>;
+  const image = variantSku ? images.find(entry => entry.variantSku === variantSku) ?? images.find(entry => !entry.variantSku) : images.find(entry => !entry.variantSku) ?? images[0];
+  return <div className="product-image">{image ? <Image src={image.url} alt={image.alt} width={640} height={800} loading={eager ? "eager" : "lazy"} /> : <div className="image-unavailable"><Image src="/brand/morphiume-mark.svg" alt="" width={72} height={96} /><span>{variantSku && images.length ? "تصویر این حجم هنوز ثبت نشده است." : "تصویر محصول هنوز ثبت نشده است."}</span></div>}</div>;
 }
-export function ProductTile({ product }: { product: ProductDto }) {
-  const available = product.variants.find(variant => variant.available > 0) ?? product.variants[0];
-  return <article className="product-tile"><Link href={`/products/${product.slug}`} aria-label={`مشاهدهٔ ${product.name}`}><ProductImage product={product} /></Link><div className="tile-meta"><div><p className="eyebrow"><bdi>{product.family || product.concentration}</bdi></p><h3><Link href={`/products/${product.slug}`}><bdi>{product.name}</bdi></Link></h3></div>{available && <div><p>{faNumber(available.volumeMl)} میلی‌لیتر</p><p className="price">{money(available.price)}</p></div>}</div>{!product.variants.some(variant => variant.available > 0) && <p className="muted small">فعلاً ناموجود</p>}</article>;
+export function ProductTile({ product, volumeMl, inStock = false, sort = "name", minPriceToman, maxPriceToman }: { product: ProductDto; volumeMl?: number; inStock?: boolean; sort?: string; minPriceToman?: string; maxPriceToman?: string }) {
+  const range = catalogPriceRange({ minPriceToman, maxPriceToman });
+  const matching = product.variants.filter(variant => range.valid && (!volumeMl || variant.volumeMl === volumeMl) && (!inStock || variant.available > 0) && (range.minimum === undefined || BigInt(variant.price.amountIrr) >= range.minimum) && (range.maximum === undefined || BigInt(variant.price.amountIrr) <= range.maximum));
+  if (!range.valid || ((volumeMl || inStock || minPriceToman !== undefined || maxPriceToman !== undefined) && !matching.length)) return null;
+  const available = sort === "price_asc" || sort === "price_desc" ? matching.reduce<ProductDto["variants"][number] | undefined>((lowest, variant) => !lowest || BigInt(variant.price.amountIrr) < BigInt(lowest.price.amountIrr) ? variant : lowest, undefined) : matching.find(variant => variant.available > 0) ?? matching[0];
+  return <article className="product-tile"><Link href={`/products/${product.slug}`} aria-label={`مشاهدهٔ ${product.name}`}><ProductImage product={product} variantSku={available?.sku} /></Link><div className="tile-meta"><div><p className="eyebrow"><bdi>{product.family || product.concentration}</bdi></p><h3><Link href={`/products/${product.slug}`}><bdi>{product.name}</bdi></Link></h3></div>{available && <div><p>{faNumber(available.volumeMl)} میلی‌لیتر</p><p className="price">{money(available.price)}</p></div>}</div>{!matching.some(variant => variant.available > 0) && <p className="muted small">حجم‌های مطابق این انتخاب فعلاً ناموجودند.</p>}</article>;
 }
-export function Catalog({ featured = false, initialProducts }: { featured?: boolean; initialProducts?: ProductDto[] }) {
+export function Catalog({ featured = false, initialProducts, initialPage, initialError, initialQuery }: { featured?: boolean; initialProducts?: ProductDto[]; initialPage?: CatalogPageDto; initialError?: string; initialQuery?: string }) {
+  if (featured) return <FeaturedProducts initialProducts={initialProducts} />;
+  return <PagedCatalog initialPage={initialPage} initialError={initialError} initialQuery={initialQuery} />;
+}
+function FeaturedProducts({ initialProducts }: { initialProducts?: ProductDto[] }) {
+  const [products, setProducts] = useState<ProductDto[] | null>(initialProducts ?? null);
+  const [error, setError] = useState("");
+  const load = () => api<CatalogPageDto>("/api/catalog/page?page=1&pageSize=4&sort=name").then(result => { setProducts(result.items); setError(""); }).catch(e => setError(errorMessage(e)));
+  useEffect(() => { if (!initialProducts) load(); }, [initialProducts]);
+  if (error) return <Notice error>{error} <button className="text-button" onClick={load}>تلاش دوباره</button></Notice>;
+  if (!products) return <Loading />;
+  return products.length ? <div className="product-grid">{products.slice(0, 4).map(product => <ProductTile key={product.id} product={product} />)}</div> : <Empty title="کاتالوگ در حال آماده‌سازی است."><p>پس از انتشار محصولات، اطلاعات و قیمت آن‌ها در این بخش نمایش داده می‌شود.</p></Empty>;
+}
+function PagedCatalog({ initialPage, initialError, initialQuery }: { initialPage?: CatalogPageDto; initialError?: string; initialQuery?: string }) {
   const router = useRouter();
   const params = useSearchParams();
-  const [remoteProducts, setProducts] = useState<ProductDto[] | null>(null);
-  const products = initialProducts ?? remoteProducts;
-  const [error, setError] = useState("");
-  const family = params.get("family") ?? "";
-  const volume = params.get("volume") ?? "";
-  const concentration = params.get("concentration") ?? "";
-  const sort = params.get("sort") ?? "name";
-  const inStock = params.get("stock") === "1";
-  const load = () => { api<ProductDto[]>("/api/products").then(p => { setProducts(p); setError(""); }).catch(e => setError(errorMessage(e))); };
-  useEffect(() => { if (!initialProducts) load(); }, [initialProducts]);
-  const update = (key: string, value: string) => { const next = new URLSearchParams(params.toString()); if (value) next.set(key, value); else next.delete(key); router.replace(`/products${next.size ? "?" + next.toString() : ""}`, { scroll: false }); };
-  const visible = useMemo(() => {
-    const search = normalizeSearch(params.get("search") ?? "");
-    const result = (products ?? []).filter(product => product.status === "published" && (!search || normalizeSearch(product.name + " " + product.description + " " + product.family).includes(search)) && (!family || product.family === family) && (!concentration || product.concentration === concentration) && (!volume || product.variants.some(variant => String(variant.volumeMl) === volume)) && (!inStock || product.variants.some(variant => variant.available > 0)));
-    const price = (product: ProductDto) => product.variants.length ? product.variants.reduce((min, v) => BigInt(v.price.amountIrr) < min ? BigInt(v.price.amountIrr) : min, BigInt(product.variants[0]!.price.amountIrr)) : 0n;
-    result.sort((a, b) => sort === "price_asc" ? Number(price(a) - price(b)) : sort === "price_desc" ? Number(price(b) - price(a)) : a.name.localeCompare(b.name, "fa"));
-    return featured ? result.slice(0, 4) : result;
-  }, [products, params, family, concentration, volume, inStock, sort, featured]);
-  const families = [...new Set(products?.map(p => p.family).filter(Boolean))];
-  const concentrations = [...new Set(products?.map(p => p.concentration).filter(Boolean))];
-  const volumes = [...new Set(products?.flatMap(p => p.variants.map(v => v.volumeMl)))].sort((a, b) => a - b);
-  return <>{!featured && <form className="catalog-filter" onSubmit={event => { event.preventDefault(); update("search", String(new FormData(event.currentTarget).get("search") ?? "")); }}><label className="search-field">جست‌وجوی عطر<input name="search" type="search" key={params.get("search") ?? ""} defaultValue={params.get("search") ?? ""} placeholder="نام یا خانوادهٔ رایحه" /></label><button className="secondary" type="submit">جست‌وجو</button>{families.length > 0 && <label>خانوادهٔ رایحه<select value={family} onChange={e => update("family", e.target.value)}><option value="">همه</option>{families.map(f => <option key={f}>{f}</option>)}</select></label>}{volumes.length > 0 && <label>حجم<select value={volume} onChange={e => update("volume", e.target.value)}><option value="">همه</option>{volumes.map(v => <option key={v} value={v}>{faNumber(v)} میلی‌لیتر</option>)}</select></label>}{concentrations.length > 1 && <label>غلظت<select value={concentration} onChange={e => update("concentration", e.target.value)}><option value="">همه</option>{concentrations.map(c => <option key={c}>{c}</option>)}</select></label>}<label>مرتب‌سازی<select value={sort} onChange={e => update("sort", e.target.value)}><option value="name">نام محصول</option><option value="price_asc">کمترین قیمت</option><option value="price_desc">بیشترین قیمت</option></select></label><label className="checkbox-row"><input type="checkbox" checked={inStock} onChange={e => update("stock", e.target.checked ? "1" : "")} />فقط موجودها</label></form>}
-    {error ? <Notice error>{error} <button className="text-button" onClick={load}>تلاش دوباره</button></Notice> : products === null ? <Loading label="در حال دریافت عطرها…" /> : <>{!featured && <div className="result-bar"><p>{faNumber(visible.length)} محصول</p>{params.size > 0 && <Link href="/products" className="text-link">پاک‌کردن فیلترها</Link>}</div>}{visible.length ? <div className="product-grid">{visible.map(product => <ProductTile key={product.id} product={product} />)}</div> : <Empty title={products.length ? "محصولی با این انتخاب پیدا نشد." : "کاتالوگ در حال آماده‌سازی است."}><p>{products.length ? "جست‌وجو یا فیلترها را تغییر دهید." : "پس از انتشار محصولات، اطلاعات و قیمت آن‌ها در این بخش نمایش داده می‌شود."}</p>{products.length > 0 && <Link href="/products" className="button secondary">دیدن همهٔ عطرها</Link>}</Empty>}</>}
+  const input = catalogInput(params);
+  const range = catalogPriceRange(input);
+  const query = pageQuery(input);
+  const serverCurrent = initialQuery === undefined || initialQuery === query;
+  const serverPage = serverCurrent ? initialPage : undefined;
+  const serverError = serverCurrent ? initialError : undefined;
+  const remote = usePagedData<CatalogPageDto>("/api/catalog/page", query, !serverPage && !serverError);
+  const data = serverPage ?? remote.data;
+  const [draftErrors, setDraftErrors] = useState<{ query: string; fields: PriceRangeFields } | null>(null);
+  const summary = useRef<HTMLDivElement>(null);
+  const id = useId();
+  const rangeErrors = draftErrors?.query === query && Object.keys(draftErrors.fields).length ? draftErrors.fields : range.fields;
+  const queryError = serverError || (!serverPage ? remote.error : "");
+  const update = (key: string, value: string) => { const next = new URLSearchParams(params.toString()); next.delete("page"); if (key === "volume") next.delete("volumeMl"); if (key === "stock") next.delete("available"); if (value) next.set(key, value); else next.delete(key); setDraftErrors(null); router.replace(`/products${next.size ? "?" + next.toString() : ""}`, { scroll: false }); };
+  const apply = (form: HTMLFormElement) => {
+    const values = new FormData(form);
+    const minPriceToman = String(values.get("minPriceToman") ?? ""), maxPriceToman = String(values.get("maxPriceToman") ?? "");
+    const checked = catalogPriceRange({ minPriceToman, maxPriceToman });
+    setDraftErrors({ query, fields: checked.fields });
+    if (!checked.valid) { requestAnimationFrame(() => summary.current?.focus()); return; }
+    const next = new URLSearchParams(params.toString());
+    next.delete("page");
+    for (const [key, value] of Object.entries({ search: String(values.get("search") ?? ""), minPriceToman, maxPriceToman })) { if (value.trim()) next.set(key, value); else next.delete(key); }
+    router.replace(`/products${next.size ? "?" + next.toString() : ""}`, { scroll: false });
+  };
+  const { families = [], concentrations = [], volumesMl = [] } = data?.facets ?? {};
+  const filtered = !!(input.search || input.family || input.concentration || input.note || input.volumeMl || input.available || input.minPriceToman || input.maxPriceToman);
+  return <>
+    <form className="catalog-filter" onSubmit={event => { event.preventDefault(); apply(event.currentTarget); }} noValidate>
+      <label className="search-field">جست‌وجوی عطر<input name="search" type="search" key={input.search} defaultValue={input.search} placeholder="نام یا خانوادهٔ رایحه" /></label>
+      <button className="secondary" type="submit">جست‌وجو</button>
+      {(families.length > 0 || input.family) && <label>خانوادهٔ رایحه<select value={input.family} onChange={event => update("family", event.target.value)}><option value="">همه</option>{input.family && !families.includes(input.family) && <option>{input.family}</option>}{families.map(family => <option key={family}>{family}</option>)}</select></label>}
+      {(volumesMl.length > 0 || input.volumeMl) && <label>حجم<select value={input.volumeMl ?? ""} onChange={event => update("volume", event.target.value)}><option value="">همه</option>{input.volumeMl && !volumesMl.includes(input.volumeMl) && <option value={input.volumeMl}>{faNumber(input.volumeMl)} میلی‌لیتر</option>}{volumesMl.map(volume => <option key={volume} value={volume}>{faNumber(volume)} میلی‌لیتر</option>)}</select></label>}
+      {(concentrations.length > 1 || input.concentration) && <label>غلظت<select value={input.concentration} onChange={event => update("concentration", event.target.value)}><option value="">همه</option>{input.concentration && !concentrations.includes(input.concentration) && <option>{input.concentration}</option>}{concentrations.map(concentration => <option key={concentration}>{concentration}</option>)}</select></label>}
+      <label>مرتب‌سازی<select value={input.sort} onChange={event => update("sort", event.target.value)}><option value="name">نام محصول</option><option value="price_asc">کمترین قیمت</option><option value="price_desc">بیشترین قیمت</option></select></label>
+      <label className="checkbox-row"><input type="checkbox" checked={!!input.available} onChange={event => update("stock", event.target.checked ? "1" : "")} />فقط موجودها</label>
+      <fieldset className="catalog-price-range"><legend>بازهٔ قیمت (تومان)</legend><div className="catalog-price-fields">
+        {([{ key: "minPriceToman", label: "حداقل قیمت (تومان)" }, { key: "maxPriceToman", label: "حداکثر قیمت (تومان)" }] as const).map(({ key, label }) => <div key={key}><label htmlFor={`${id}-${key}`}>{label}</label><input id={`${id}-${key}`} name={key} key={input[key] ?? ""} defaultValue={input[key] ?? ""} inputMode="numeric" dir="ltr" aria-invalid={!!rangeErrors[key]} aria-describedby={`${id}-price-help${rangeErrors[key] ? ` ${id}-${key}-error` : ""}`} onChange={() => setDraftErrors(null)} />{rangeErrors[key] && <p className="field-error" id={`${id}-${key}-error`}>{rangeErrors[key]}</p>}</div>)}
+      </div><p className="helper" id={`${id}-price-help`}>هر حد را می‌توانید خالی بگذارید. برای اعمال قیمت‌ها، دکمهٔ جست‌وجو را بزنید.</p></fieldset>
+    </form>
+    {Object.keys(rangeErrors).length > 0 && <div ref={summary} className="notice error" role="alert" tabIndex={-1}><p>بازهٔ قیمت را بررسی کنید؛ مقدارهای واردشده حفظ شده‌اند.</p><ul>{Object.entries(rangeErrors).map(([key, message]) => <li key={key}><a href={`#${id}-${key}`}>{message}</a></li>)}</ul></div>}
+    {data?.facetsTruncated && <p className="helper">همهٔ گزینه‌های فیلتر نمایش داده نمی‌شوند. برای یافتن عطر یا رایحهٔ دلخواه، از جست‌وجوی عطرها استفاده کنید.</p>}
+    {queryError ? <Notice error>{queryError} {!serverError && <button className="text-button" onClick={remote.reload}>تلاش دوباره</button>} <Link href="/products" className="text-link">پاک‌کردن فیلترها</Link></Notice> : !range.valid ? null : !data ? <Loading label="در حال دریافت عطرها…" /> : <>
+      <div className="result-bar"><p role="status" aria-live="polite">{faNumber(data.totalItems)} محصول</p>{input.note && <p>نت: <bdi>{input.note}</bdi> <button type="button" className="text-button" onClick={() => update("note", "")}>پاک‌کردن انتخاب نت</button></p>}{filtered && <Link href="/products" className="text-link">پاک‌کردن فیلترها</Link>}</div>
+      {data.items.length ? <div className="product-grid">{data.items.map(product => <ProductTile key={product.id} product={product} volumeMl={input.volumeMl} inStock={input.available} sort={input.sort} minPriceToman={input.minPriceToman} maxPriceToman={input.maxPriceToman} />)}</div> : <Empty title={filtered ? "محصولی با این انتخاب پیدا نشد." : data.page > 1 ? "این صفحه محصولی ندارد." : "کاتالوگ در حال آماده‌سازی است."}><p>{filtered ? "جست‌وجو یا فیلترها را تغییر دهید." : data.page > 1 ? "به صفحهٔ اول نتایج برگردید." : "پس از انتشار محصولات، اطلاعات و قیمت آن‌ها در این بخش نمایش داده می‌شود."}</p>{(filtered || data.page > 1) && <Link href={filtered ? "/products" : pageHref("/products", params.toString(), 1)} className="button secondary">دیدن همهٔ عطرها</Link>}</Empty>}
+      <Pagination data={data} href={page => pageHref("/products", params.toString(), page)} />
+    </>}
   </>;
 }
 export function ProductView({ id, initialProduct }: { id: string; initialProduct?: ProductDto }) {

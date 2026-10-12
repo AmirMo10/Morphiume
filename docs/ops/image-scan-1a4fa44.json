@@ -1,0 +1,386 @@
+{
+  "sourceCommit": "1a4fa4433d720b490ce222e8898cb09f73ba4abf",
+  "ciRun": 38248764072,
+  "imageJob": 114810332985,
+  "scanner": {
+    "name": "grype",
+    "version": "0.120.1"
+  },
+  "result": "failed",
+  "matches": [
+    {
+      "id": "CVE-2026-54873",
+      "severity": "High",
+      "package": "libcrypto3",
+      "version": "3.5.8-r0",
+      "packageType": "apk",
+      "locations": [
+        "/lib/apk/db/installed"
+      ],
+      "fix": {
+        "versions": [],
+        "state": "unknown"
+      },
+      "dataSource": "https://nvd.nist.gov/vuln/detail/CVE-2026-54873",
+      "matchDetails": [
+        {
+          "type": "cpe-match",
+          "matcher": "apk-matcher",
+          "searchedBy": {
+            "namespace": "nvd:cpe",
+            "cpes": [
+              "cpe:2.3:a:openssl:openssl:3.5.8:*:*:*:*:*:*:*"
+            ],
+            "package": {
+              "name": "openssl",
+              "version": "3.5.8-r0"
+            }
+          },
+          "found": {
+            "vulnerabilityID": "CVE-2026-54873",
+            "versionConstraint": ">= 3.4.0, < 3.4.8||>= 3.5.0, < 3.5.9||>= 3.6.0, < 3.6.5||>= 4.0.0, < 4.0.3 (unknown)",
+            "cpes": [
+              "cpe:2.3:a:openssl:openssl:*:*:*:*:*:*:*:*"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "CVE-2026-54873",
+      "severity": "High",
+      "package": "libssl3",
+      "version": "3.5.8-r0",
+      "packageType": "apk",
+      "locations": [
+        "/lib/apk/db/installed"
+      ],
+      "fix": {
+        "versions": [],
+        "state": "unknown"
+      },
+      "dataSource": "https://nvd.nist.gov/vuln/detail/CVE-2026-54873",
+      "matchDetails": [
+        {
+          "type": "cpe-match",
+          "matcher": "apk-matcher",
+          "searchedBy": {
+            "namespace": "nvd:cpe",
+            "cpes": [
+              "cpe:2.3:a:openssl:openssl:3.5.8:*:*:*:*:*:*:*"
+            ],
+            "package": {
+              "name": "openssl",
+              "version": "3.5.8-r0"
+            }
+          },
+          "found": {
+            "vulnerabilityID": "CVE-2026-54873",
+            "versionConstraint": ">= 3.4.0, < 3.4.8||>= 3.5.0, < 3.5.9||>= 3.6.0, < 3.6.5||>= 4.0.0, < 4.0.3 (unknown)",
+            "cpes": [
+              "cpe:2.3:a:openssl:openssl:*:*:*:*:*:*:*:*"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "CVE-2026-84782",
+      "severity": "High",
+      "package": "libcrypto3",
+      "version": "3.5.8-r0",
+      "packageType": "apk",
+      "locations": [
+        "/lib/apk/db/installed"
+      ],
+      "fix": {
+        "versions": [],
+        "state": "unknown"
+      },
+      "dataSource": "https://nvd.nist.gov/vuln/detail/CVE-2026-84782",
+      "matchDetails": [
+        {
+          "type": "cpe-match",
+          "matcher": "apk-matcher",
+          "searchedBy": {
+            "namespace": "nvd:cpe",
+            "cpes": [
+              "cpe:2.3:a:openssl:openssl:3.5.8:*:*:*:*:*:*:*"
+            ],
+            "package": {
+              "name": "openssl",
+              "version": "3.5.8-r0"
+            }
+          },
+          "found": {
+            "vulnerabilityID": "CVE-2026-84782",
+            "versionConstraint": ">= 1.0.2, < 1.0.2zs||>= 1.1.1, < 1.1.1zj||>= 3.0.0, < 3.0.23||>= 3.4.0, < 3.4.8||>= 3.5.0, < 3.5.9||>= 3.6.0, < 3.6.5||>= 4.0.0, < 4.0.3 (unknown)",
+            "cpes": [
+              "cpe:2.3:a:openssl:openssl:*:*:*:*:*:*:*:*"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "CVE-2026-84782",
+      "severity": "High",
+      "package": "libssl3",
+      "version": "3.5.8-r0",
+      "packageType": "apk",
+      "locations": [
+        "/lib/apk/db/installed"
+      ],
+      "fix": {
+        "versions": [],
+        "state": "unknown"
+      },
+      "dataSource": "https://nvd.nist.gov/vuln/detail/CVE-2026-84782",
+      "matchDetails": [
+        {
+          "type": "cpe-match",
+          "matcher": "apk-matcher",
+          "searchedBy": {
+            "namespace": "nvd:cpe",
+            "cpes": [
+              "cpe:2.3:a:openssl:openssl:3.5.8:*:*:*:*:*:*:*"
+            ],
+            "package": {
+              "name": "openssl",
+              "version": "3.5.8-r0"
+            }
+          },
+          "found": {
+            "vulnerabilityID": "CVE-2026-84782",
+            "versionConstraint": ">= 1.0.2, < 1.0.2zs||>= 1.1.1, < 1.1.1zj||>= 3.0.0, < 3.0.23||>= 3.4.0, < 3.4.8||>= 3.5.0, < 3.5.9||>= 3.6.0, < 3.6.5||>= 4.0.0, < 4.0.3 (unknown)",
+            "cpes": [
+              "cpe:2.3:a:openssl:openssl:*:*:*:*:*:*:*:*"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "CVE-2026-84784",
+      "severity": "High",
+      "package": "libcrypto3",
+      "version": "3.5.8-r0",
+      "packageType": "apk",
+      "locations": [
+        "/lib/apk/db/installed"
+      ],
+      "fix": {
+        "versions": [],
+        "state": "unknown"
+      },
+      "dataSource": "https://nvd.nist.gov/vuln/detail/CVE-2026-84784",
+      "matchDetails": [
+        {
+          "type": "cpe-match",
+          "matcher": "apk-matcher",
+          "searchedBy": {
+            "namespace": "nvd:cpe",
+            "cpes": [
+              "cpe:2.3:a:openssl:openssl:3.5.8:*:*:*:*:*:*:*"
+            ],
+            "package": {
+              "name": "openssl",
+              "version": "3.5.8-r0"
+            }
+          },
+          "found": {
+            "vulnerabilityID": "CVE-2026-84784",
+            "versionConstraint": ">= 3.4.0, < 3.4.8||>= 3.5.0, < 3.5.9||>= 3.6.0, < 3.6.5||>= 4.0.0, < 4.0.3 (unknown)",
+            "cpes": [
+              "cpe:2.3:a:openssl:openssl:*:*:*:*:*:*:*:*"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "CVE-2026-84784",
+      "severity": "High",
+      "package": "libssl3",
+      "version": "3.5.8-r0",
+      "packageType": "apk",
+      "locations": [
+        "/lib/apk/db/installed"
+      ],
+      "fix": {
+        "versions": [],
+        "state": "unknown"
+      },
+      "dataSource": "https://nvd.nist.gov/vuln/detail/CVE-2026-84784",
+      "matchDetails": [
+        {
+          "type": "cpe-match",
+          "matcher": "apk-matcher",
+          "searchedBy": {
+            "namespace": "nvd:cpe",
+            "cpes": [
+              "cpe:2.3:a:openssl:openssl:3.5.8:*:*:*:*:*:*:*"
+            ],
+            "package": {
+              "name": "openssl",
+              "version": "3.5.8-r0"
+            }
+          },
+          "found": {
+            "vulnerabilityID": "CVE-2026-84784",
+            "versionConstraint": ">= 3.4.0, < 3.4.8||>= 3.5.0, < 3.5.9||>= 3.6.0, < 3.6.5||>= 4.0.0, < 4.0.3 (unknown)",
+            "cpes": [
+              "cpe:2.3:a:openssl:openssl:*:*:*:*:*:*:*:*"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "CVE-2026-85091",
+      "severity": "High",
+      "package": "zlib",
+      "version": "1.3.2-r0",
+      "packageType": "apk",
+      "locations": [
+        "/lib/apk/db/installed"
+      ],
+      "fix": {
+        "versions": [
+          "1.3.2-r1"
+        ],
+        "state": "fixed",
+        "available": [
+          {
+            "version": "1.3.2-r1",
+            "date": "2026-10-07",
+            "kind": "first-observed"
+          }
+        ]
+      },
+      "dataSource": "https://security.alpinelinux.org/vuln/CVE-2026-85091",
+      "matchDetails": [
+        {
+          "type": "exact-direct-match",
+          "matcher": "apk-matcher",
+          "searchedBy": {
+            "distro": {
+              "type": "alpine",
+              "version": "3.24.2"
+            },
+            "package": {
+              "name": "zlib",
+              "version": "1.3.2-r0"
+            },
+            "namespace": "alpine:distro:alpine:3.24"
+          },
+          "found": {
+            "vulnerabilityID": "CVE-2026-85091",
+            "versionConstraint": "< 1.3.2-r1 (apk)"
+          },
+          "fix": {
+            "suggestedVersion": "1.3.2-r1"
+          }
+        },
+        {
+          "type": "exact-indirect-match",
+          "matcher": "apk-matcher",
+          "searchedBy": {
+            "distro": {
+              "type": "alpine",
+              "version": "3.24.2"
+            },
+            "package": {
+              "name": "zlib",
+              "version": "1.3.2-r0"
+            },
+            "namespace": "alpine:distro:alpine:3.24"
+          },
+          "found": {
+            "vulnerabilityID": "CVE-2026-85091",
+            "versionConstraint": "< 1.3.2-r1 (apk)"
+          },
+          "fix": {
+            "suggestedVersion": "1.3.2-r1"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CVE-2026-72897",
+      "severity": "High",
+      "package": "libcrypto3",
+      "version": "3.5.8-r0",
+      "packageType": "apk",
+      "locations": [
+        "/lib/apk/db/installed"
+      ],
+      "fix": {
+        "versions": [],
+        "state": "unknown"
+      },
+      "dataSource": "https://nvd.nist.gov/vuln/detail/CVE-2026-72897",
+      "matchDetails": [
+        {
+          "type": "cpe-match",
+          "matcher": "apk-matcher",
+          "searchedBy": {
+            "namespace": "nvd:cpe",
+            "cpes": [
+              "cpe:2.3:a:openssl:openssl:3.5.8:*:*:*:*:*:*:*"
+            ],
+            "package": {
+              "name": "openssl",
+              "version": "3.5.8-r0"
+            }
+          },
+          "found": {
+            "vulnerabilityID": "CVE-2026-72897",
+            "versionConstraint": ">= 3.4.0, < 3.4.8||>= 3.5.0, < 3.5.9||>= 3.6.0, < 3.6.5||>= 4.0.0, < 4.0.3 (unknown)",
+            "cpes": [
+              "cpe:2.3:a:openssl:openssl:*:*:*:*:*:*:*:*"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "CVE-2026-72897",
+      "severity": "High",
+      "package": "libssl3",
+      "version": "3.5.8-r0",
+      "packageType": "apk",
+      "locations": [
+        "/lib/apk/db/installed"
+      ],
+      "fix": {
+        "versions": [],
+        "state": "unknown"
+      },
+      "dataSource": "https://nvd.nist.gov/vuln/detail/CVE-2026-72897",
+      "matchDetails": [
+        {
+          "type": "cpe-match",
+          "matcher": "apk-matcher",
+          "searchedBy": {
+            "namespace": "nvd:cpe",
+            "cpes": [
+              "cpe:2.3:a:openssl:openssl:3.5.8:*:*:*:*:*:*:*"
+            ],
+            "package": {
+              "name": "openssl",
+              "version": "3.5.8-r0"
+            }
+          },
+          "found": {
+            "vulnerabilityID": "CVE-2026-72897",
+            "versionConstraint": ">= 3.4.0, < 3.4.8||>= 3.5.0, < 3.5.9||>= 3.6.0, < 3.6.5||>= 4.0.0, < 4.0.3 (unknown)",
+            "cpes": [
+              "cpe:2.3:a:openssl:openssl:*:*:*:*:*:*:*:*"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

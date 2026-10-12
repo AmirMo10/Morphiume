@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
+bash /opt/morphiume/deploy/staging/assert-boundaries.sh
 umask 077
 cd /opt/morphiume
+exec 8>/srv/morphiume/staging/backup.lock
+flock -n 8 || { echo 'Another staging backup is running.' >&2; exit 1; }
 compose=(docker compose --project-name morphiume-staging -f deploy/staging/compose.db.yaml)
 "${compose[@]}" config --quiet
 [[ -s /etc/morphiume-staging/backup-recipients.txt ]] || { echo 'Dedicated backup recipients are required.' >&2; exit 1; }

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+bash /opt/morphiume/deploy/staging/assert-boundaries.sh
 umask 077
 [[ $# == 2 ]] || { echo 'Usage: deploy.sh VERIFIED_SOURCE_COMMIT IMMUTABLE_IMAGE' >&2; exit 1; }
 cd /opt/morphiume

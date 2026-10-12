@@ -1,0 +1,16 @@
+{
+  "reviewDate": "2026-10-12",
+  "observedAtUtc": "2026-10-12T13:01:13Z",
+  "baseCheckpoint": "1a4fa44",
+  "revisionState": "next working-tree changes under integration",
+  "reviewer": "actual /root/persian_editor",
+  "scope": ["paging", "province/city suggestions", "shipping fee/threshold settings", "historical inventory variants", "bulk preview/conflict copy", "MFA instruction contract", "facet truncation"],
+  "sourceCorrectionsObserved": ["after-discount threshold help", "unapproved test-default warning", "shipping settings revision label", "plain settings introduction and zero-threshold help", "out-of-range page text", "free-text city suggestion help", "unreserved inventory label", "inactive variant explanation", "dry-run preview wording", "stale-version reload and explicit discard label", "expiring confirmation instructions", "bulk commit fresh-factor check", "filter truncation wording", "selected facet value preservation"],
+  "reviewerOwnedEdits": ["src/lib/fa-copy/admin.ts", "src/lib/fa-copy/validation.ts", "docs/persian/REVISION_REVIEW.md", "docs/persian/revision-evidence.json"],
+  "pendingAtRecord": ["final built-page QA", "independent threshold/conflict/fresh-factor flow tests"],
+  "executedScopedChecks": { "eslintExitCode": 0, "typescriptExitCode": 0, "typescriptMode": "ignoreConfig; ES2022; bundler; three copy modules", "evidenceJsonParsed": true, "diffCheckExitCode": 0 },
+  "newBrowserTestsExecuted": false,
+  "newDatabaseTestsExecuted": false,
+  "newPaymentsExecuted": false,
+  "noNewClaims": ["live shipping approval", "carrier/SLA", "legal terms", "real device/network", "full flow acceptance", "security certification"]
+}
