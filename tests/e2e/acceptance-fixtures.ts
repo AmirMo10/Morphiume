@@ -1,9 +1,10 @@
 import { randomInt, randomUUID } from "node:crypto";
-import { expect, type BrowserContext, type Page } from "@playwright/test";
+import { expect, type BrowserContext, type Locator, type Page } from "@playwright/test";
 import { hashPassword } from "better-auth/crypto";
 import pg from "pg";
 import type { ProductDto, Role } from "../../src/contracts/commerce";
 import { totpForUri } from "../integration/auth/helpers";
+import { nativeAuthAction } from "./native-auth-actions";
 
 export function isolatedPool() {
   const target = new URL(process.env.DATABASE_URL!);
@@ -19,28 +20,24 @@ export async function createAdmin(pool: pg.Pool, role: Role = "owner") {
   return { userId, email, password };
 }
 
-export async function verifyAdminTotp(page: Page, uri: string, codeLabel = "کد رمزساز برای تأیید دوباره", buttonName = "تأیید دوباره") {
-  // Native BetterAuth 1.7.7 applies max3/window10 to all two-factor requests.
-  // Only an observed 429 permits one retry after its full native window.
-  for (let attempt = 0; attempt < 2; attempt++) {
-    await page.getByLabel(codeLabel, { exact: true }).fill(totpForUri(uri));
-    const renewal = page.waitForResponse(response => response.url().endsWith("/api/admin/auth/two-factor/verify-totp") && response.request().method() === "POST");
-    await page.getByRole("button", { name: buttonName, exact: true }).click();
-    const response = await renewal;
-    if (response.status() !== 429 || attempt === 1) { expect(response.status()).toBe(200); return; }
-    const retryAfter = Number(response.headers()["retry-after"] ?? "10");
-    expect(Number.isFinite(retryAfter) && retryAfter >= 0 && retryAfter <= 60).toBe(true);
-    await page.waitForTimeout(Math.max(10_100, retryAfter * 1000 + 100));
-  }
+export async function verifyAdminTotp(page: Page, uri: string, codeLabel = "کد رمزساز برای تأیید دوباره", buttonName = "تأیید دوباره", scope?: Locator) {
+  const controls = scope ?? page;
+  await nativeAuthAction(page, buttonName === "تأیید و ورود به مدیریت" ? "totp-enrollment" : "totp-renewal", async () => {
+    // Regenerate from the real enrolled secret immediately before every attempt.
+    await controls.getByLabel(codeLabel, { exact: true }).fill(totpForUri(uri));
+    await controls.getByRole("button", { name: buttonName, exact: true }).click();
+  });
 }
 
 export async function loginAdmin(page: Page, credentials: { email: string; password: string }) {
   await page.goto("/admin/login");
-  await page.getByLabel("ایمیل مدیر", { exact: true }).fill(credentials.email);
-  await page.getByLabel("رمز عبور", { exact: true }).fill(credentials.password);
-  await page.getByRole("button", { name: "ورود و ادامه", exact: true }).click();
+  await nativeAuthAction(page, "password-sign-in", async () => {
+    await page.getByLabel("ایمیل مدیر", { exact: true }).fill(credentials.email);
+    await page.getByLabel("رمز عبور", { exact: true }).fill(credentials.password);
+    await page.getByRole("button", { name: "ورود و ادامه", exact: true }).click();
+  });
   await expect(page.getByRole("heading", { name: "راه‌اندازی تأیید دومرحله‌ای" })).toBeVisible();
-  await page.getByRole("button", { name: "ساخت کلید رمزساز", exact: true }).click();
+  await nativeAuthAction(page, "mfa-enable", () => page.getByRole("button", { name: "ساخت کلید رمزساز", exact: true }).click());
   const secret = await page.getByLabel("کلید حساب", { exact: true }).inputValue();
   const uri = `otpauth://totp/Morphiume?secret=${secret}`;
   await verifyAdminTotp(page, uri, "کد شش‌رقمی برنامهٔ رمزساز", "تأیید و ورود به مدیریت");

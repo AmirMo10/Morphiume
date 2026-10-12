@@ -5,7 +5,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { hashPassword } from "better-auth/crypto";
 import pg from "pg";
 import sharp from "sharp";
-import { totpForUri } from "../integration/auth/helpers";
+import { loginAdmin } from "./acceptance-fixtures";
 
 test("T01/T12/T17/T19/T20/T21/T23/T25: real admin product → guest purchase → mock verification → stock → owned tracking", async ({ browser, page, baseURL }, info) => {
   const target = new URL(process.env.DATABASE_URL!);
@@ -23,16 +23,7 @@ test("T01/T12/T17/T19/T20/T21/T23/T25: real admin product → guest purchase →
     await pool.query('INSERT INTO "user"(id,name,email,email_verified) VALUES($1,\'QA browser admin\',$2,true)', [adminId, email]);
     await pool.query("INSERT INTO account(id,user_id,account_id,provider_id,password) VALUES($1,$2,$2,'credential',$3)", [randomUUID(), adminId, await hashPassword(password)]);
     await pool.query("INSERT INTO role_membership(user_id,role) VALUES($1,'owner')", [adminId]);
-    await page.goto("/admin/login");
-    await page.getByLabel("ایمیل مدیر").fill(email);
-    await page.getByLabel("رمز عبور", { exact: true }).fill(password);
-    await page.getByRole("button", { name: "ورود و ادامه", exact: true }).click();
-    await expect(page.getByRole("heading", { name: "راه‌اندازی تأیید دومرحله‌ای" })).toBeVisible();
-    await page.getByRole("button", { name: "ساخت کلید رمزساز" }).click();
-    const secret = await page.getByLabel("کلید حساب", { exact: true }).inputValue();
-    await page.getByLabel("کد شش‌رقمی برنامهٔ رمزساز").fill(totpForUri(`otpauth://totp/Morphiume?secret=${secret}`));
-    await page.getByRole("button", { name: "تأیید و ورود به مدیریت", exact: true }).click();
-    await expect(page).toHaveURL(/\/admin$/);
+    await loginAdmin(page, { email, password });
     const png = await sharp({ create: { width: 16, height: 20, channels: 4, background: "#3355B1" } }).png().toBuffer();
     const media = await page.context().request.post("/api/admin/media", { headers: { Origin: baseURL! }, multipart: { file: { name: "qa-test-fixture.png", mimeType: "image/png", buffer: png } } });
     expect(media.status()).toBe(201);

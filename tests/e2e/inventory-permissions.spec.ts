@@ -2,7 +2,6 @@ import { randomUUID } from "node:crypto";
 import { expect, test } from "@playwright/test";
 import type { CheckoutDto, OrderDto, QuoteDto } from "../../src/contracts/commerce";
 import { createAdmin, createProduct, disableUsers, isolatedPool, loginAdmin, loginCustomer, verifyAdminTotp } from "./acceptance-fixtures";
-import { totpForUri } from "../integration/auth/helpers";
 
 function exposesPrice(value: unknown): boolean {
   if (!value || typeof value !== "object") return false;
@@ -27,8 +26,7 @@ test("T06/T07/T20: inventory-only native MFA cannot receive or mutate price thro
     await page.getByLabel("رمز عبور اولیه", { exact: true }).fill(fulfillment.password);
     await page.getByRole("checkbox", { name: "مسئول ارسال و انبار", exact: true }).check();
     await page.getByLabel("دلیل ساخت یا تغییر دسترسی", { exact: true }).fill(`QA synthetic staff invitation ${marker}`);
-    await page.getByLabel("کد رمزساز برای تأیید دوباره", { exact: true }).fill(totpForUri(ownerUri));
-    await page.getByRole("button", { name: "تأیید دوباره", exact: true }).click();
+    await verifyAdminTotp(page, ownerUri);
     await expect(page.locator(".reauth-panel [role=status]")).toContainText("کد تأیید شد.");
     await page.getByRole("button", { name: "بررسی و ثبت دسترسی", exact: true }).click();
     await page.getByRole("dialog").getByRole("button", { name: "تأیید و ثبت دسترسی", exact: true }).click();

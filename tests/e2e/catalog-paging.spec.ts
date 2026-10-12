@@ -3,8 +3,7 @@ import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import type { CatalogPageDto, OrderDto, PageDto } from "../../src/contracts/commerce";
 import { normalizeSearch } from "../../src/lib/persian";
-import { createAdmin, disableUsers, isolatedPool, loginAdmin, loginCustomer } from "./acceptance-fixtures";
-import { totpForUri } from "../integration/auth/helpers";
+import { createAdmin, disableUsers, isolatedPool, loginAdmin, loginCustomer, verifyAdminTotp } from "./acceptance-fixtures";
 
 test("T01/T20/T21: HTTP paging exceeds legacy limits, selected-volume price agrees with guide, CSV and staging SEO", async ({ browser, page, baseURL }) => {
   const pool = isolatedPool(), marker = `qa-paging-${randomUUID()}`, orderMarker = `QA-READ-${randomUUID()}`;
@@ -95,10 +94,7 @@ test("T01/T20/T21: HTTP paging exceeds legacy limits, selected-volume price agre
     await pool.query("UPDATE admin_grant SET factor_verified_at=now()-interval '6 minutes' WHERE session_id IN(SELECT id FROM session WHERE user_id=$1)", [admin.userId]);
     expect((await page.request.get("/api/admin/export?kind=products")).status()).toBe(403);
     await page.goto(`/admin/products?search=${marker}`);
-    await page.getByLabel("کد رمزساز برای تأیید دوباره", { exact: true }).fill(totpForUri(adminUri));
-    const renewal = page.waitForResponse(response => response.url().endsWith("/api/admin/auth/two-factor/verify-totp"));
-    await page.getByRole("button", { name: "تأیید دوباره", exact: true }).click();
-    expect((await renewal).status()).toBe(200); // actual native renewal, never a SQL proof refresh
+    await verifyAdminTotp(page, adminUri); // native renewal; only observed429 permits a bounded retry
     await expect(page.locator(".reauth-panel [role=status]")).toContainText("کد تأیید شد.");
     const csv = await page.request.get("/api/admin/export?kind=products");
     expect(csv.status()).toBe(200);

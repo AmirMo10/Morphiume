@@ -1,0 +1,54 @@
+{
+  "generatedAt": "2026-10-12T15:16:03.897Z",
+  "browserVersion": "154.0.8037.93",
+  "betterAuthVersion": "1.7.7",
+  "scope": "Controlled Windows local mechanism reproduction; does not establish causes of all original Linux CI failures",
+  "preparationStatuses": [
+    {
+      "category": "admin-sign-in-email",
+      "status": 200,
+      "retryAfterSeconds": null
+    },
+    {
+      "category": "admin-sign-in-email",
+      "status": 200,
+      "retryAfterSeconds": null
+    },
+    {
+      "category": "admin-sign-in-email",
+      "status": 200,
+      "retryAfterSeconds": null
+    }
+  ],
+  "firstUiSignIn": {
+    "category": "admin-sign-in-email",
+    "status": 429,
+    "retryAfterSeconds": 10,
+    "mfaSetupHeadingCount": 0
+  },
+  "correctedAction": [
+    {
+      "stage": "password-sign-in",
+      "category": "admin-sign-in-email",
+      "attempt": 1,
+      "status": 429,
+      "retryAfterSeconds": 10,
+      "retryAfterHeader": "x-retry-after"
+    },
+    {
+      "stage": "password-sign-in",
+      "category": "admin-sign-in-email",
+      "attempt": 2,
+      "status": 200,
+      "retryAfterSeconds": null,
+      "retryAfterHeader": "absent"
+    }
+  ],
+  "nativeMfaSetupReached": true,
+  "controls": "No runtime/limit/limiter-row/IP/time modification; four genuine synthetic credential accounts; observed429-only bounded retry",
+  "cleanup": {
+    "syntheticUsersDisabled": 4,
+    "remainingFixtureSessions": 0,
+    "limiterRecordsPreserved": true
+  }
+}

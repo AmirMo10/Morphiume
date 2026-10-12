@@ -4,6 +4,10 @@
 
 | اجرای تازه | نتیجهٔ واقعی |
 |---|---|
+| CI checkpoint76dfcd1 | [run38266486931](https://github.com/AmirMo10/Morphiume/actions/runs/38266486931)،۱۵۰/۱۵۰ در۱۵فایل؛ نصب/اسکن اسرار/migrations/seed/lint/types/audit/build موفق. مرورگر Linux۱۱موفق/هفت شکست در2.2min؛ image skipped، صفر تصویر پذیرفته‌شده |
+| شکست مرورگر همان CI | gallery در Chromium/WebKit و full-purchase در Firefox در صفحهٔ ورود ماندند؛ inventory هر سه موتور heading MFA را نیافت؛ catalog Firefox renewal200 را به‌جای429 انتظار داشت.429 فقط برای مورد مشاهده‌شده قطعی است؛ تشخیص سایر شکست‌ها و helperهای fixture جاری است |
+| اصلاح fixture ورود بومی | روی runtime منجمد48583، سه ورود معتبر200 و ورود UI بعدی429/X-Retry-After10، نبود headingMFA را بازتولید کردند؛ انتظار10.25s و ورود بومی200 آن را بازیابی کرد. چهار حساب مصنوعی غیرفعال/session0؛ این مکانیزم، علت همهٔ شکست‌های قبلی Linux را ثابت نمی‌کند |
+| مرورگر helper اصلاح‌شده |۱۲/۱۲ محلی در272.984489s با صفر skipped/flaky/Playwrightretry؛۴۶diagnostic فقط stage/category/status/interval، دو429 مشاهده‌شده در enrollment/renewal پس از۸.25/۳.25s و TOTP تازه به200 رسیدند. محدودیت/IP/limiter/runtime تغییر نکرد؛ نتیجهٔ Linux تا اجرای همان checkpoint pending |
 | CI منبع1a4fa44 | [run38248764072](https://github.com/AmirMo10/Morphiume/actions/runs/38248764072)، verify موفق:۹۷آزمون در۸فایل و۹مورد Chromium/Firefox/WebKit Linux؛ build/lint/types/audit/Gitleaks موفق |
 | image همان CI | build بدون secret و native musl WebP موفق؛ Grype نه High در OpenSSL/zlib ثبت کرد؛ publication/deployment اجرا نشد |
 | بک‌اند نسخهٔ جاری | full58/58 در۸فایل،168.49s، پیش از آخرین recheck قفل مجوز؛ پس از آن targeted8/8 bulk در32.94s؛ full59 ادعا نمی‌شود |

@@ -4,7 +4,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { hashPassword } from "better-auth/crypto";
 import pg from "pg";
 import sharp from "sharp";
-import { totpForUri } from "../integration/auth/helpers";
+import { loginAdmin } from "./acceptance-fixtures";
 
 test("T01/T05/T17/T20: real gallery upload, reorder, SKU selection and archive retain pending edits", async ({ browser, page, baseURL }) => {
   const database = new URL(process.env.DATABASE_URL!);
@@ -21,16 +21,7 @@ test("T01/T05/T17/T20: real gallery upload, reorder, SKU selection and archive r
     await pool.query('INSERT INTO "user"(id,name,email,email_verified) VALUES($1,\'QA gallery admin\',$2,true)', [adminId, email]);
     await pool.query("INSERT INTO account(id,user_id,account_id,provider_id,password) VALUES($1,$2,$2,'credential',$3)", [randomUUID(), adminId, await hashPassword(password)]);
     await pool.query("INSERT INTO role_membership(user_id,role) VALUES($1,'owner')", [adminId]);
-    await page.goto("/admin/login");
-    await page.getByLabel("ایمیل مدیر", { exact: true }).fill(email);
-    await page.getByLabel("رمز عبور", { exact: true }).fill(password);
-    await page.getByRole("button", { name: "ورود و ادامه", exact: true }).click();
-    await expect(page.getByRole("heading", { name: "راه‌اندازی تأیید دومرحله‌ای" })).toBeVisible();
-    await page.getByRole("button", { name: "ساخت کلید رمزساز", exact: true }).click();
-    const secret = await page.getByLabel("کلید حساب", { exact: true }).inputValue();
-    await page.getByLabel("کد شش‌رقمی برنامهٔ رمزساز", { exact: true }).fill(totpForUri(`otpauth://totp/Morphiume?secret=${secret}`));
-    await page.getByRole("button", { name: "تأیید و ورود به مدیریت", exact: true }).click();
-    await expect(page).toHaveURL(/\/admin$/);
+    await loginAdmin(page, { email, password });
     await page.goto("/admin/products/new");
     await page.getByLabel("نام محصول", { exact: true }).fill(name);
     await page.getByLabel("نامک صفحه", { exact: true }).fill(`qa-gallery-${fixture}`);

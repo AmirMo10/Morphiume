@@ -1,8 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { expect, test } from "@playwright/test";
 import type { QuoteDto } from "../../src/contracts/commerce";
-import { createAdmin, createProduct, disableUsers, isolatedPool, loginAdmin, loginCustomer } from "./acceptance-fixtures";
-import { totpForUri } from "../integration/auth/helpers";
+import { createAdmin, createProduct, disableUsers, isolatedPool, loginAdmin, loginCustomer, verifyAdminTotp } from "./acceptance-fixtures";
 
 test("T07/T15/T19/T21/T23/T29: fresh native shipping approval resets checkout consent; notes, return and refund remain exact", async ({ browser, page, baseURL }) => {
   test.setTimeout(180_000);
@@ -67,8 +66,7 @@ test("T07/T15/T19/T21/T23/T29: fresh native shipping approval resets checkout co
     await page.getByRole("button", { name: "بررسی تغییر سیاست ارسال", exact: true }).click();
     const dialog = page.getByRole("dialog");
     await expect(dialog.getByRole("button", { name: "تأیید و ثبت سیاست ارسال", exact: true })).toBeDisabled();
-    await dialog.getByLabel("کد رمزساز برای تأیید دوباره", { exact: true }).fill(totpForUri(uri));
-    await dialog.getByRole("button", { name: "تأیید دوباره", exact: true }).click();
+    await verifyAdminTotp(page, uri, "کد رمزساز برای تأیید دوباره", "تأیید دوباره", dialog);
     await expect(dialog.getByRole("button", { name: "تأیید و ثبت سیاست ارسال", exact: true })).toBeEnabled();
     await dialog.getByRole("button", { name: "تأیید و ثبت سیاست ارسال", exact: true }).click();
     await expect(page.getByText("سیاست هزینهٔ ارسال ذخیره شد.", { exact: true })).toBeVisible();

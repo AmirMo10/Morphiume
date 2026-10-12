@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-10-12T14:51:46.995Z",
-  "startedAt": "2026-10-12T14:46:21.448Z",
-  "durationMs": 272570.74700000003,
+  "generatedAt": "2026-10-12T15:28:58.176Z",
+  "startedAt": "2026-10-12T15:17:25.619Z",
+  "durationMs": 272984.489,
   "expected": 12,
   "unexpected": 0,
   "skipped": 0,
@@ -11,97 +11,487 @@
       "title": "T01/T20/T21: HTTP paging exceeds legacy limits, selected-volume price agrees with guide, CSV and staging SEO",
       "project": "chromium",
       "status": "passed",
-      "durationMs": 13446,
+      "durationMs": 13269,
       "retry": 0,
-      "errorCount": 0
+      "errorCount": 0,
+      "nativeAuthStatuses": [
+        {
+          "stage": "password-sign-in",
+          "category": "admin-sign-in-email",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "mfa-enable",
+          "category": "admin-two-factor-enable",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-enrollment",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-renewal",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        }
+      ]
     },
     {
       "title": "T01/T20/T21: HTTP paging exceeds legacy limits, selected-volume price agrees with guide, CSV and staging SEO",
       "project": "webkit",
       "status": "passed",
-      "durationMs": 18057,
+      "durationMs": 23654,
       "retry": 0,
-      "errorCount": 0
+      "errorCount": 0,
+      "nativeAuthStatuses": [
+        {
+          "stage": "password-sign-in",
+          "category": "admin-sign-in-email",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "mfa-enable",
+          "category": "admin-two-factor-enable",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-enrollment",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-renewal",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        }
+      ]
     },
     {
       "title": "T01/T12/T17/T19/T20/T21/T23/T25: real admin product → guest purchase → mock verification → stock → owned tracking",
       "project": "chromium",
       "status": "passed",
-      "durationMs": 19768,
+      "durationMs": 20375,
       "retry": 0,
-      "errorCount": 0
+      "errorCount": 0,
+      "nativeAuthStatuses": [
+        {
+          "stage": "password-sign-in",
+          "category": "admin-sign-in-email",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "mfa-enable",
+          "category": "admin-two-factor-enable",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-enrollment",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        }
+      ]
     },
     {
       "title": "T01/T12/T17/T19/T20/T21/T23/T25: real admin product → guest purchase → mock verification → stock → owned tracking",
       "project": "webkit",
       "status": "passed",
-      "durationMs": 32145,
+      "durationMs": 33400,
       "retry": 0,
-      "errorCount": 0
+      "errorCount": 0,
+      "nativeAuthStatuses": [
+        {
+          "stage": "password-sign-in",
+          "category": "admin-sign-in-email",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "mfa-enable",
+          "category": "admin-two-factor-enable",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-enrollment",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        }
+      ]
     },
     {
       "title": "T01/T05/T17/T20: real gallery upload, reorder, SKU selection and archive retain pending edits",
       "project": "chromium",
       "status": "passed",
-      "durationMs": 11031,
+      "durationMs": 9498,
       "retry": 0,
-      "errorCount": 0
+      "errorCount": 0,
+      "nativeAuthStatuses": [
+        {
+          "stage": "password-sign-in",
+          "category": "admin-sign-in-email",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "mfa-enable",
+          "category": "admin-two-factor-enable",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-enrollment",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        }
+      ]
     },
     {
       "title": "T01/T05/T17/T20: real gallery upload, reorder, SKU selection and archive retain pending edits",
       "project": "webkit",
       "status": "passed",
-      "durationMs": 19778,
+      "durationMs": 21201,
       "retry": 0,
-      "errorCount": 0
+      "errorCount": 0,
+      "nativeAuthStatuses": [
+        {
+          "stage": "password-sign-in",
+          "category": "admin-sign-in-email",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "mfa-enable",
+          "category": "admin-two-factor-enable",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-enrollment",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        }
+      ]
     },
     {
       "title": "T06/T07/T20: inventory-only native MFA cannot receive or mutate price through variants/bulk",
       "project": "chromium",
       "status": "passed",
-      "durationMs": 33476,
+      "durationMs": 29749,
       "retry": 0,
-      "errorCount": 0
+      "errorCount": 0,
+      "nativeAuthStatuses": [
+        {
+          "stage": "password-sign-in",
+          "category": "admin-sign-in-email",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "mfa-enable",
+          "category": "admin-two-factor-enable",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-enrollment",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-renewal",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "password-sign-in",
+          "category": "admin-sign-in-email",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "mfa-enable",
+          "category": "admin-two-factor-enable",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-enrollment",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 429,
+          "retryAfterSeconds": 8,
+          "retryAfterHeader": "x-retry-after"
+        },
+        {
+          "stage": "totp-enrollment",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 2,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-renewal",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        }
+      ]
     },
     {
       "title": "T06/T07/T20: inventory-only native MFA cannot receive or mutate price through variants/bulk",
       "project": "webkit",
       "status": "passed",
-      "durationMs": 48487,
+      "durationMs": 39777,
       "retry": 0,
-      "errorCount": 0
+      "errorCount": 0,
+      "nativeAuthStatuses": [
+        {
+          "stage": "password-sign-in",
+          "category": "admin-sign-in-email",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "mfa-enable",
+          "category": "admin-two-factor-enable",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-enrollment",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-renewal",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "password-sign-in",
+          "category": "admin-sign-in-email",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "mfa-enable",
+          "category": "admin-two-factor-enable",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-enrollment",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-renewal",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 429,
+          "retryAfterSeconds": 3,
+          "retryAfterHeader": "x-retry-after"
+        },
+        {
+          "stage": "totp-renewal",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 2,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        }
+      ]
     },
     {
       "title": "T20: public Persian pages remain usable at 320px with keyboard and reduced motion",
       "project": "chromium",
       "status": "passed",
-      "durationMs": 3597,
+      "durationMs": 3779,
       "retry": 0,
-      "errorCount": 0
+      "errorCount": 0,
+      "nativeAuthStatuses": []
     },
     {
       "title": "T20: public Persian pages remain usable at 320px with keyboard and reduced motion",
       "project": "webkit",
       "status": "passed",
-      "durationMs": 5514,
+      "durationMs": 5548,
       "retry": 0,
-      "errorCount": 0
+      "errorCount": 0,
+      "nativeAuthStatuses": []
     },
     {
       "title": "T07/T15/T19/T21/T23/T29: fresh native shipping approval resets checkout consent; notes, return and refund remain exact",
       "project": "chromium",
       "status": "passed",
-      "durationMs": 26678,
+      "durationMs": 26356,
       "retry": 0,
-      "errorCount": 0
+      "errorCount": 0,
+      "nativeAuthStatuses": [
+        {
+          "stage": "password-sign-in",
+          "category": "admin-sign-in-email",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "mfa-enable",
+          "category": "admin-two-factor-enable",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-enrollment",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-renewal",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        }
+      ]
     },
     {
       "title": "T07/T15/T19/T21/T23/T29: fresh native shipping approval resets checkout consent; notes, return and refund remain exact",
       "project": "webkit",
       "status": "passed",
-      "durationMs": 37351,
+      "durationMs": 39190,
       "retry": 0,
-      "errorCount": 0
+      "errorCount": 0,
+      "nativeAuthStatuses": [
+        {
+          "stage": "password-sign-in",
+          "category": "admin-sign-in-email",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "mfa-enable",
+          "category": "admin-two-factor-enable",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-enrollment",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-renewal",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        }
+      ]
     }
   ]
 }
