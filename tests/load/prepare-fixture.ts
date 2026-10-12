@@ -2,12 +2,12 @@ import { randomUUID, randomInt } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import { config } from "dotenv";
 import pg from "pg";
+import { controlledQaDatabase } from "../helpers/qa-target.mjs";
 
 config({ path: ".env.local", quiet: true });
 const base = process.env.LOAD_BASE_URL ?? process.env.APP_BASE_URL;
-const database = process.env.DATABASE_URL;
+const database = controlledQaDatabase(process.env).toString();
 if (!base || !database || !process.env.MOCK_CONTROL_SECRET || !["test", "staging"].includes(process.env.DEPLOYMENT_ENV ?? "") || process.env.PAYMENT_PROVIDER !== "mock" || process.env.SMS_PROVIDER !== "mock") throw new Error("Load fixtures require controlled isolated test/staging configuration");
-if (!new URL(database).pathname.endsWith("morphiume_staging")) throw new Error("Load fixtures refuse a different database");
 const pool = new pg.Pool({ connectionString: database, max: 2 });
 const { customerAuth } = await import("../../src/server/auth/index");
 const { readMockOtp } = await import("../../src/server/auth/otp");

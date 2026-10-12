@@ -1,0 +1,96 @@
+name: ${MORPHIUME_RESTORE_PROJECT:?Set a reviewed fresh runtime restore project}
+services:
+  db:
+    labels: {morphiume.restore.scope: runtime}
+    image: postgres:18.6-bookworm@sha256:afc7e2d441324c0388fa80c3d24f733b4194a4eb7f47dd8ee2b08eb1a24a647c
+    platform: linux/amd64
+    user: "999:999"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 768m
+    cpus: "1.0"
+    shm_size: 128m
+    pids_limit: 128
+    stop_grace_period: 60s
+    command: [postgres, -c, shared_buffers=128MB, -c, max_connections=30]
+    environment:
+      POSTGRES_DB: morphiume_staging_restore
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_bootstrap_password
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256 --data-checksums
+      PGDATA: /var/lib/postgresql/18/docker
+    volumes:
+      - type: bind
+        source: ${MORPHIUME_RESTORE_ROOT:?Set exact fresh runtime restore root}/postgres
+        target: /var/lib/postgresql
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${MORPHIUME_OPS_ROOT:?Set reviewed ops bundle}/runtime/restore-init.sh
+        target: /docker-entrypoint-initdb.d/10-restore.sh
+        read_only: true
+        bind: {create_host_path: false}
+    secrets: [db_bootstrap_password, db_owner_password, db_app_password]
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m,uid=999,gid=999,mode=1777
+      - /var/run/postgresql:rw,nosuid,size=16m,uid=999,gid=999,mode=3775
+    networks: [restore]
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U postgres -d morphiume_staging_restore"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    logging:
+      driver: local
+      options: {max-size: "10m", max-file: "3"}
+  app:
+    labels: {morphiume.restore.scope: runtime}
+    profiles: [application]
+    image: ${MORPHIUME_IMAGE:?Set the accepted immutable runtime image}
+    platform: linux/amd64
+    user: "1001:1001"
+    init: true
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 1280m
+    cpus: "1.5"
+    pids_limit: 128
+    stop_grace_period: 30s
+    command: [node, server.js]
+    ports: ["127.0.0.1:3002:3000"]
+    environment:
+      NODE_ENV: production
+      DEPLOYMENT_ENV: staging
+      PAYMENT_PROVIDER: mock
+      SMS_PROVIDER: mock
+      MORPHIUME_RUNTIME_CONFIG: /run/secrets/runtime_config
+    depends_on:
+      db: {condition: service_healthy}
+    secrets: [{source: app_runtime, target: runtime_config}]
+    volumes:
+      - type: bind
+        source: ${MORPHIUME_RESTORE_ROOT}/media
+        target: /app/media
+        bind: {create_host_path: false}
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=128m,uid=1001,gid=1001,mode=1777
+      - /app/.next/cache:rw,nosuid,size=128m,uid=1001,gid=1001,mode=0750
+    networks: [restore, edge]
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:3000/api/health/ready',{signal:AbortSignal.timeout(4000)}).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+    logging:
+      driver: local
+      options: {max-size: "10m", max-file: "3"}
+networks:
+  restore: {internal: true}
+  edge: {}
+secrets:
+  db_bootstrap_password: {file: "${MORPHIUME_RESTORE_ROOT}/db_bootstrap_password"}
+  db_owner_password: {file: "${MORPHIUME_RESTORE_ROOT}/db_owner_password"}
+  db_app_password: {file: "${MORPHIUME_RESTORE_ROOT}/db_app_password"}
+  app_runtime: {file: "${MORPHIUME_RESTORE_ROOT}/app.json"}

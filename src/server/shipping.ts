@@ -9,10 +9,13 @@ import { pool } from "./db";
 type Queryable=Pick<PoolClient,"query">;
 const stored=z.object({shippingFeeIrr:z.string().regex(/^\d{1,10}$/),freeShippingThresholdIrr:z.string().regex(/^\d{1,10}$/).nullable()}).strict();
 const input=z.object({shippingFeeToman:z.string().max(40),freeShippingThresholdToman:z.string().max(40).nullable(),expectedVersion:z.number().int().positive(),reason:z.string().trim().min(1).max(1000)}).strict();
-const financialAuthorization='SELECT s.id FROM session s JOIN "user" u ON u.id=s.user_id JOIN admin_grant g ON g.session_id=s.id JOIN role_membership r ON r.user_id=u.id WHERE s.id=$1 AND s.user_id=$2 AND s.expires_at>clock_timestamp() AND NOT u.disabled AND u.two_factor_enabled AND g.expires_at>clock_timestamp() AND g.factor_verified_at>clock_timestamp()-interval \'5 minutes\' AND r.role IN (\'owner\',\'finance\') FOR SHARE OF s,u,g,r';
+const financialAuthorization='SELECT s.id,g.factor_verified_at>clock_timestamp()-interval \'5 minutes\' AS factor_fresh FROM session s JOIN "user" u ON u.id=s.user_id JOIN admin_grant g ON g.session_id=s.id JOIN role_membership r ON r.user_id=u.id WHERE s.id=$1 AND s.user_id=$2 AND s.expires_at>clock_timestamp() AND NOT u.disabled AND u.two_factor_enabled AND g.expires_at>clock_timestamp() AND r.role IN (\'owner\',\'finance\')';
 async function requireFinancialProof(db:Queryable,actor:Actor) {
-  const authorized=await db.query(financialAuthorization,[actor.sessionId,actor.userId]);
+  const authorized=await db.query(`${financialAuthorization} FOR SHARE OF s,u,g,r`,[actor.sessionId,actor.userId]);
   if(!authorized.rowCount) throw new CommerceError("FORBIDDEN","برای تغییر مبلغ ارسال، مجوز مالی و تأیید دومرحله‌ای تازه لازم است.",403);
+  const current=await db.query<{factor_fresh:boolean}>(financialAuthorization,[actor.sessionId,actor.userId]);
+  if(!current.rowCount)throw new CommerceError("FORBIDDEN","مجوز تغییر مبلغ ارسال را ندارید.",403);
+  if(!current.rows[0]!.factor_fresh)throw new CommerceError("MFA_REQUIRED","برای تغییر مبلغ ارسال، تأیید دومرحله‌ای تازه لازم است.",403);
 }
 
 function policy(row?:{value:unknown;version:number}) {

@@ -98,10 +98,15 @@ def verify(archive, identity_path, source, config_id, manifest_digest, archive_h
                        'platform': 'linux/amd64', 'user': '1001:1001', 'mode': 'verified-without-extraction'}
 
 
-def load(archive, identity_path, report):
+def load(archive, identity_path, report, namespace='integration'):
     if os.name != 'posix' or os.getuid() != 0:
         raise ValueError('Image loading requires the authorized Linux staging root session')
-    directory = Path('/srv/morphiume/staging/releases') / report['sourceCommit']
+    if namespace not in ('integration', 'runtime'):
+        raise ValueError('Unknown reviewed release namespace')
+    root = Path('/srv/morphiume/staging/runtime') if namespace == 'runtime' else Path('/srv/morphiume/staging')
+    if root.resolve() != root or any(item.is_symlink() for item in (root, *root.parents)):
+        raise ValueError('Reviewed release root resolves through an unexpected path')
+    directory = root / 'releases' / report['sourceCommit']
     if archive.parent != directory or identity_path.parent != directory or directory.is_symlink():
         raise ValueError('Server archive must be in its protected staging release/source directory')
     if directory.stat().st_uid != 0 or directory.stat().st_mode & 0o077:
@@ -119,7 +124,11 @@ def load(archive, identity_path, report):
         raise ValueError('Docker storage lacks the reviewed load headroom')
     import fcntl
     os.umask(0o077)
-    with Path('/srv/morphiume/staging/archive-load.lock').open('a') as lock:
+    # The same lock serializes namespace creation/deployment and archive loads.
+    lock_path = Path('/srv/morphiume/staging/deploy.lock')
+    if lock_path.is_symlink() or (lock_path.exists() and (lock_path.stat().st_uid != 0 or lock_path.stat().st_mode & 0o077)):
+        raise ValueError('Release lock ownership or permissions changed')
+    with lock_path.open('a') as lock:
         fcntl.flock(lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
         subprocess.run(['docker', 'image', 'load', '--platform', 'linux/amd64', '--input', str(archive), '--quiet'], check=True, capture_output=True)
         template = '{{json .Id}}|{{json .Os}}|{{json .Architecture}}|{{json .Config.User}}|{{json (index .Config.Labels "org.opencontainers.image.revision")}}'
@@ -127,7 +136,7 @@ def load(archive, identity_path, report):
         values = [json.loads(item) for item in actual.split('|')]
         if values != [report['testedPlatformConfig'], 'linux', 'amd64', '1001:1001', report['sourceCommit']]:
             raise ValueError('Loaded runtime differs from accepted source/config/platform/user')
-        report = report | {'mode': 'loaded-and-identity-verified', 'applicationStarted': False}
+        report = report | {'mode': 'loaded-and-identity-verified', 'applicationStarted': False, 'namespace': namespace}
         (directory / 'loaded-release.json').write_text(json.dumps(report, indent=2) + '\n')
         return report
 
@@ -141,12 +150,13 @@ if __name__ == '__main__':
     parser.add_argument('--manifest-digest', required=True)
     parser.add_argument('--archive-sha256', required=True)
     parser.add_argument('--load', action='store_true', help='Only after explicit accepted-image dispatch; creates Docker image state but starts no app')
+    parser.add_argument('--namespace', choices=('integration', 'runtime'), default='integration', help='Fixed reviewed server release directory; used only with --load')
     args = parser.parse_args()
     try:
         archive, identity = args.archive.resolve(strict=True), args.identity.resolve(strict=True)
         report = verify(archive, identity, args.source, args.config_id, args.manifest_digest, args.archive_sha256)
         if args.load:
-            report = load(archive, identity, report)
+            report = load(archive, identity, report, args.namespace)
         print(json.dumps(report))
     except (OSError, ValueError, KeyError, tarfile.TarError, subprocess.SubprocessError) as error:
         message = str(error) if isinstance(error, ValueError) else type(error).__name__

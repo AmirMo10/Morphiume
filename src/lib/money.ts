@@ -28,3 +28,10 @@ export function moneyDto(value: bigint): { amountIrr: string; currency: "IRR" } 
   if (value < 0n || value > MAX_AMOUNT_IRR || value % 10n !== 0n) throw new Error("مبلغ مالی معتبر نیست.");
   return { amountIrr: value.toString(), currency: "IRR" };
 }
+
+export function formatSignedAggregateToman(value: string): string {
+  if (!/^-?\d{1,30}$/.test(value)) throw new Error("جمع مبلغ مالی معتبر نیست.");
+  const irr = BigInt(value);
+  if (irr % 10n !== 0n) throw new Error("جمع مبلغ ریالی قابل نمایش دقیق به تومان نیست.");
+  return `${new Intl.NumberFormat("fa-IR").format(irr / 10n)} تومان`;
+}

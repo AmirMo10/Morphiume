@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-10-12T16:02:59.361Z",
-  "startedAt": "2026-10-12T15:57:10.781Z",
-  "durationMs": 275777.459,
-  "expected": 12,
+  "generatedAt": "2026-10-12T17:41:57.836Z",
+  "startedAt": "2026-10-12T17:26:31.340Z",
+  "durationMs": 560980.11,
+  "expected": 22,
   "unexpected": 0,
   "skipped": 0,
   "flaky": 0,
@@ -11,7 +11,7 @@
       "title": "T01/T20/T21: HTTP paging exceeds legacy limits, selected-volume price agrees with guide, CSV and staging SEO",
       "project": "chromium",
       "status": "passed",
-      "durationMs": 12367,
+      "durationMs": 14443,
       "retry": 0,
       "errorCount": 0,
       "nativeAuthStatuses": [
@@ -62,6 +62,29 @@
           "status": 200,
           "retryAfterSeconds": null,
           "retryAfterHeader": "absent"
+        }
+      ],
+      "publicMetadataStatuses": [],
+      "adminReadiness": [
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "observed"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "ready"
         }
       ]
     },
@@ -69,7 +92,7 @@
       "title": "T01/T20/T21: HTTP paging exceeds legacy limits, selected-volume price agrees with guide, CSV and staging SEO",
       "project": "webkit",
       "status": "passed",
-      "durationMs": 17983,
+      "durationMs": 18245,
       "retry": 0,
       "errorCount": 0,
       "nativeAuthStatuses": [
@@ -121,13 +144,150 @@
           "retryAfterSeconds": null,
           "retryAfterHeader": "absent"
         }
+      ],
+      "publicMetadataStatuses": [],
+      "adminReadiness": [
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-login",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "observed"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "ready"
+        }
+      ]
+    },
+    {
+      "title": "T05/T09/T20: collection SSR without JavaScript preserves paging/filter identity and real308/404",
+      "project": "chromium",
+      "status": "passed",
+      "durationMs": 10430,
+      "retry": 0,
+      "errorCount": 0,
+      "nativeAuthStatuses": [
+        {
+          "stage": "password-sign-in",
+          "category": "admin-sign-in-email",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "mfa-enable",
+          "category": "admin-two-factor-enable",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-enrollment",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        }
+      ],
+      "publicMetadataStatuses": [],
+      "adminReadiness": [
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-login",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "observed"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "ready"
+        }
+      ]
+    },
+    {
+      "title": "T05/T09/T20: collection SSR without JavaScript preserves paging/filter identity and real308/404",
+      "project": "webkit",
+      "status": "passed",
+      "durationMs": 13383,
+      "retry": 0,
+      "errorCount": 0,
+      "nativeAuthStatuses": [
+        {
+          "stage": "password-sign-in",
+          "category": "admin-sign-in-email",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "mfa-enable",
+          "category": "admin-two-factor-enable",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-enrollment",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        }
+      ],
+      "publicMetadataStatuses": [],
+      "adminReadiness": [
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-login",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "observed"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "ready"
+        }
       ]
     },
     {
       "title": "T01/T12/T17/T19/T20/T21/T23/T25: real admin product → guest purchase → mock verification → stock → owned tracking",
       "project": "chromium",
       "status": "passed",
-      "durationMs": 21770,
+      "durationMs": 24466,
       "retry": 0,
       "errorCount": 0,
       "nativeAuthStatuses": [
@@ -203,13 +363,56 @@
           "retryAfterSeconds": null,
           "retryAfterHeader": "absent"
         }
+      ],
+      "publicMetadataStatuses": [],
+      "adminReadiness": [
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-login",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "observed"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "ready"
+        },
+        {
+          "expectedAlias": "admin-products-new",
+          "actualAlias": "admin-products-new",
+          "documentHttpStatus": 200,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": true,
+          "readiness": "observed"
+        },
+        {
+          "expectedAlias": "admin-products-new",
+          "actualAlias": "admin-products-new",
+          "documentHttpStatus": 200,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": true,
+          "readiness": "ready"
+        }
       ]
     },
     {
       "title": "T01/T12/T17/T19/T20/T21/T23/T25: real admin product → guest purchase → mock verification → stock → owned tracking",
       "project": "webkit",
       "status": "passed",
-      "durationMs": 32144,
+      "durationMs": 81494,
       "retry": 0,
       "errorCount": 0,
       "nativeAuthStatuses": [
@@ -257,6 +460,14 @@
           "stage": "customer-otp-wrong-code",
           "category": "customer-phone-verify",
           "attempt": 1,
+          "status": 429,
+          "retryAfterSeconds": 25,
+          "retryAfterHeader": "x-retry-after"
+        },
+        {
+          "stage": "customer-otp-wrong-code",
+          "category": "customer-phone-verify",
+          "attempt": 2,
           "status": 400,
           "retryAfterSeconds": null,
           "retryAfterHeader": "absent"
@@ -273,6 +484,14 @@
           "stage": "customer-otp-send",
           "category": "customer-phone-send-otp",
           "attempt": 1,
+          "status": 429,
+          "retryAfterSeconds": 21,
+          "retryAfterHeader": "x-retry-after"
+        },
+        {
+          "stage": "customer-otp-send",
+          "category": "customer-phone-send-otp",
+          "attempt": 2,
           "status": 200,
           "retryAfterSeconds": null,
           "retryAfterHeader": "absent"
@@ -285,13 +504,56 @@
           "retryAfterSeconds": null,
           "retryAfterHeader": "absent"
         }
+      ],
+      "publicMetadataStatuses": [],
+      "adminReadiness": [
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-login",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "observed"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "ready"
+        },
+        {
+          "expectedAlias": "admin-products-new",
+          "actualAlias": "admin-products-new",
+          "documentHttpStatus": 200,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": true,
+          "readiness": "observed"
+        },
+        {
+          "expectedAlias": "admin-products-new",
+          "actualAlias": "admin-products-new",
+          "documentHttpStatus": 200,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": true,
+          "readiness": "ready"
+        }
       ]
     },
     {
       "title": "T01/T05/T17/T20: real gallery upload, reorder, SKU selection and archive retain pending edits",
       "project": "chromium",
       "status": "passed",
-      "durationMs": 13445,
+      "durationMs": 13715,
       "retry": 0,
       "errorCount": 0,
       "nativeAuthStatuses": [
@@ -318,6 +580,49 @@
           "status": 200,
           "retryAfterSeconds": null,
           "retryAfterHeader": "absent"
+        }
+      ],
+      "publicMetadataStatuses": [],
+      "adminReadiness": [
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "observed"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "ready"
+        },
+        {
+          "expectedAlias": "admin-products-new",
+          "actualAlias": "admin-products-new",
+          "documentHttpStatus": 200,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": true,
+          "readiness": "observed"
+        },
+        {
+          "expectedAlias": "admin-products-new",
+          "actualAlias": "admin-products-new",
+          "documentHttpStatus": 200,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": true,
+          "readiness": "ready"
         }
       ]
     },
@@ -325,7 +630,7 @@
       "title": "T01/T05/T17/T20: real gallery upload, reorder, SKU selection and archive retain pending edits",
       "project": "webkit",
       "status": "passed",
-      "durationMs": 18495,
+      "durationMs": 19535,
       "retry": 0,
       "errorCount": 0,
       "nativeAuthStatuses": [
@@ -353,13 +658,78 @@
           "retryAfterSeconds": null,
           "retryAfterHeader": "absent"
         }
+      ],
+      "publicMetadataStatuses": [],
+      "adminReadiness": [
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-login",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "observed"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "ready"
+        },
+        {
+          "expectedAlias": "admin-products-new",
+          "actualAlias": "admin-products-new",
+          "documentHttpStatus": 200,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": false,
+          "readiness": "observed"
+        },
+        {
+          "expectedAlias": "admin-products-new",
+          "actualAlias": "admin-products-new",
+          "documentHttpStatus": 200,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": true,
+          "readiness": "ready"
+        }
       ]
+    },
+    {
+      "title": "T12/T19/T23: real native auth wrappers bound requests, preserve no-store and issue server request IDs",
+      "project": "chromium",
+      "status": "passed",
+      "durationMs": 59,
+      "retry": 0,
+      "errorCount": 0,
+      "nativeAuthStatuses": [],
+      "publicMetadataStatuses": [],
+      "adminReadiness": []
+    },
+    {
+      "title": "T12/T19/T23: real native auth wrappers bound requests, preserve no-store and issue server request IDs",
+      "project": "webkit",
+      "status": "passed",
+      "durationMs": 56,
+      "retry": 0,
+      "errorCount": 0,
+      "nativeAuthStatuses": [],
+      "publicMetadataStatuses": [],
+      "adminReadiness": []
     },
     {
       "title": "T06/T07/T20: inventory-only native MFA cannot receive or mutate price through variants/bulk",
       "project": "chromium",
       "status": "passed",
-      "durationMs": 29198,
+      "durationMs": 31264,
       "retry": 0,
       "errorCount": 0,
       "nativeAuthStatuses": [
@@ -451,13 +821,56 @@
           "retryAfterSeconds": null,
           "retryAfterHeader": "absent"
         }
+      ],
+      "publicMetadataStatuses": [],
+      "adminReadiness": [
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-login",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "observed"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "ready"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "observed"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "ready"
+        }
       ]
     },
     {
       "title": "T06/T07/T20: inventory-only native MFA cannot receive or mutate price through variants/bulk",
       "project": "webkit",
       "status": "passed",
-      "durationMs": 51038,
+      "durationMs": 42053,
       "retry": 0,
       "errorCount": 0,
       "nativeAuthStatuses": [
@@ -522,7 +935,7 @@
           "category": "admin-two-factor-verify-totp",
           "attempt": 1,
           "status": 429,
-          "retryAfterSeconds": 4,
+          "retryAfterSeconds": 2,
           "retryAfterHeader": "x-retry-after"
         },
         {
@@ -544,44 +957,1259 @@
         {
           "stage": "customer-otp-verify",
           "category": "customer-phone-verify",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        }
+      ],
+      "publicMetadataStatuses": [],
+      "adminReadiness": [
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-login",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "observed"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "ready"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-login",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "observed"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "ready"
+        }
+      ]
+    },
+    {
+      "title": "T12/T19/T21: typed Tehran-period report follows real receipts/refunds and Jalali UI preserves read-only queues",
+      "project": "chromium",
+      "status": "passed",
+      "durationMs": 14121,
+      "retry": 0,
+      "errorCount": 0,
+      "nativeAuthStatuses": [
+        {
+          "stage": "password-sign-in",
+          "category": "admin-sign-in-email",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "mfa-enable",
+          "category": "admin-two-factor-enable",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-enrollment",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "customer-otp-send",
+          "category": "customer-phone-send-otp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "customer-otp-verify",
+          "category": "customer-phone-verify",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "password-sign-in",
+          "category": "admin-sign-in-email",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "mfa-enable",
+          "category": "admin-two-factor-enable",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-enrollment",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        }
+      ],
+      "publicMetadataStatuses": [],
+      "adminReadiness": [
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-login",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "observed"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "ready"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-login",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "observed"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "ready"
+        }
+      ]
+    },
+    {
+      "title": "T12/T19/T21: typed Tehran-period report follows real receipts/refunds and Jalali UI preserves read-only queues",
+      "project": "webkit",
+      "status": "passed",
+      "durationMs": 17583,
+      "retry": 0,
+      "errorCount": 0,
+      "nativeAuthStatuses": [
+        {
+          "stage": "password-sign-in",
+          "category": "admin-sign-in-email",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "mfa-enable",
+          "category": "admin-two-factor-enable",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-enrollment",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "customer-otp-send",
+          "category": "customer-phone-send-otp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "customer-otp-verify",
+          "category": "customer-phone-verify",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "password-sign-in",
+          "category": "admin-sign-in-email",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "mfa-enable",
+          "category": "admin-two-factor-enable",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-enrollment",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        }
+      ],
+      "publicMetadataStatuses": [],
+      "adminReadiness": [
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-login",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "observed"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "ready"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-login",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "observed"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "ready"
+        }
+      ]
+    },
+    {
+      "title": "T09/T12/T19/T25: native owner presentation pause refuses new checkout but preserves exact replay and callback",
+      "project": "chromium",
+      "status": "passed",
+      "durationMs": 24349,
+      "retry": 0,
+      "errorCount": 0,
+      "nativeAuthStatuses": [
+        {
+          "stage": "password-sign-in",
+          "category": "admin-sign-in-email",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "mfa-enable",
+          "category": "admin-two-factor-enable",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-enrollment",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "customer-otp-send",
+          "category": "customer-phone-send-otp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "customer-otp-verify",
+          "category": "customer-phone-verify",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "password-sign-in",
+          "category": "admin-sign-in-email",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "mfa-enable",
+          "category": "admin-two-factor-enable",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-enrollment",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-renewal",
+          "category": "admin-two-factor-verify-totp",
           "attempt": 1,
           "status": 429,
-          "retryAfterSeconds": 11,
+          "retryAfterSeconds": 9,
           "retryAfterHeader": "x-retry-after"
         },
         {
-          "stage": "customer-otp-verify",
-          "category": "customer-phone-verify",
+          "stage": "totp-renewal",
+          "category": "admin-two-factor-verify-totp",
           "attempt": 2,
           "status": 200,
           "retryAfterSeconds": null,
           "retryAfterHeader": "absent"
         }
+      ],
+      "publicMetadataStatuses": [],
+      "adminReadiness": [
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "observed"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "ready"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "observed"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "ready"
+        }
+      ]
+    },
+    {
+      "title": "T09/T12/T19/T25: native owner presentation pause refuses new checkout but preserves exact replay and callback",
+      "project": "webkit",
+      "status": "passed",
+      "durationMs": 32810,
+      "retry": 0,
+      "errorCount": 0,
+      "nativeAuthStatuses": [
+        {
+          "stage": "password-sign-in",
+          "category": "admin-sign-in-email",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "mfa-enable",
+          "category": "admin-two-factor-enable",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-enrollment",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "customer-otp-send",
+          "category": "customer-phone-send-otp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "customer-otp-verify",
+          "category": "customer-phone-verify",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "password-sign-in",
+          "category": "admin-sign-in-email",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "mfa-enable",
+          "category": "admin-two-factor-enable",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-enrollment",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-renewal",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        }
+      ],
+      "publicMetadataStatuses": [],
+      "adminReadiness": [
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-login",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "observed"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "ready"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "observed"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "ready"
+        }
       ]
     },
     {
       "title": "T20: public Persian pages remain usable at 320px with keyboard and reduced motion",
       "project": "chromium",
       "status": "passed",
-      "durationMs": 3823,
+      "durationMs": 4261,
       "retry": 0,
       "errorCount": 0,
-      "nativeAuthStatuses": []
+      "nativeAuthStatuses": [],
+      "publicMetadataStatuses": [
+        {
+          "alias": "products",
+          "phase": "navigation",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "observed"
+        },
+        {
+          "alias": "products",
+          "phase": "navigation",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "ready"
+        },
+        {
+          "alias": "products",
+          "phase": "sort-asc",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "observed"
+        },
+        {
+          "alias": "products",
+          "phase": "sort-asc",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "ready"
+        },
+        {
+          "alias": "products",
+          "phase": "sort-desc",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "observed"
+        },
+        {
+          "alias": "products",
+          "phase": "sort-desc",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "ready"
+        },
+        {
+          "alias": "products",
+          "phase": "before-axe",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "observed"
+        },
+        {
+          "alias": "products",
+          "phase": "before-axe",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "ready"
+        },
+        {
+          "alias": "products",
+          "phase": "after-axe",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "observed"
+        },
+        {
+          "alias": "products",
+          "phase": "after-axe",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "ready"
+        },
+        {
+          "alias": "account",
+          "phase": "navigation",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "observed"
+        },
+        {
+          "alias": "account",
+          "phase": "navigation",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "ready"
+        },
+        {
+          "alias": "account",
+          "phase": "before-axe",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "observed"
+        },
+        {
+          "alias": "account",
+          "phase": "before-axe",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "ready"
+        },
+        {
+          "alias": "account",
+          "phase": "after-axe",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "observed"
+        },
+        {
+          "alias": "account",
+          "phase": "after-axe",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "ready"
+        },
+        {
+          "alias": "admin-login",
+          "phase": "navigation",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "observed"
+        },
+        {
+          "alias": "admin-login",
+          "phase": "navigation",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "ready"
+        },
+        {
+          "alias": "admin-login",
+          "phase": "before-axe",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "observed"
+        },
+        {
+          "alias": "admin-login",
+          "phase": "before-axe",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "ready"
+        },
+        {
+          "alias": "admin-login",
+          "phase": "after-axe",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "observed"
+        },
+        {
+          "alias": "admin-login",
+          "phase": "after-axe",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "ready"
+        },
+        {
+          "alias": "products",
+          "phase": "navigation",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "observed"
+        },
+        {
+          "alias": "products",
+          "phase": "navigation",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "ready"
+        }
+      ],
+      "adminReadiness": []
     },
     {
       "title": "T20: public Persian pages remain usable at 320px with keyboard and reduced motion",
       "project": "webkit",
       "status": "passed",
-      "durationMs": 5372,
+      "durationMs": 6145,
       "retry": 0,
       "errorCount": 0,
-      "nativeAuthStatuses": []
+      "nativeAuthStatuses": [],
+      "publicMetadataStatuses": [
+        {
+          "alias": "products",
+          "phase": "navigation",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "observed"
+        },
+        {
+          "alias": "products",
+          "phase": "navigation",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "ready"
+        },
+        {
+          "alias": "products",
+          "phase": "sort-asc",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "observed"
+        },
+        {
+          "alias": "products",
+          "phase": "sort-asc",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "ready"
+        },
+        {
+          "alias": "products",
+          "phase": "sort-desc",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "observed"
+        },
+        {
+          "alias": "products",
+          "phase": "sort-desc",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "ready"
+        },
+        {
+          "alias": "products",
+          "phase": "before-axe",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "observed"
+        },
+        {
+          "alias": "products",
+          "phase": "before-axe",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "ready"
+        },
+        {
+          "alias": "products",
+          "phase": "after-axe",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "observed"
+        },
+        {
+          "alias": "products",
+          "phase": "after-axe",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "ready"
+        },
+        {
+          "alias": "account",
+          "phase": "navigation",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "observed"
+        },
+        {
+          "alias": "account",
+          "phase": "navigation",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "ready"
+        },
+        {
+          "alias": "account",
+          "phase": "before-axe",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "observed"
+        },
+        {
+          "alias": "account",
+          "phase": "before-axe",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "ready"
+        },
+        {
+          "alias": "account",
+          "phase": "after-axe",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "observed"
+        },
+        {
+          "alias": "account",
+          "phase": "after-axe",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "ready"
+        },
+        {
+          "alias": "admin-login",
+          "phase": "navigation",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "observed"
+        },
+        {
+          "alias": "admin-login",
+          "phase": "navigation",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "ready"
+        },
+        {
+          "alias": "admin-login",
+          "phase": "before-axe",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "observed"
+        },
+        {
+          "alias": "admin-login",
+          "phase": "before-axe",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "ready"
+        },
+        {
+          "alias": "admin-login",
+          "phase": "after-axe",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "observed"
+        },
+        {
+          "alias": "admin-login",
+          "phase": "after-axe",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "ready"
+        },
+        {
+          "alias": "products",
+          "phase": "navigation",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "observed"
+        },
+        {
+          "alias": "products",
+          "phase": "navigation",
+          "httpStatus": 200,
+          "titlePresent": true,
+          "expectedTitleMatches": true,
+          "readyState": "complete",
+          "readiness": "ready"
+        }
+      ],
+      "adminReadiness": []
+    },
+    {
+      "title": "T11/T12/T19/T21: kind-aware cancel/return and confirmed refund non-transfer preserve stock, budget and actor-bound replay",
+      "project": "chromium",
+      "status": "passed",
+      "durationMs": 36549,
+      "retry": 0,
+      "errorCount": 0,
+      "nativeAuthStatuses": [
+        {
+          "stage": "password-sign-in",
+          "category": "admin-sign-in-email",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "mfa-enable",
+          "category": "admin-two-factor-enable",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-enrollment",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "customer-otp-send",
+          "category": "customer-phone-send-otp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "customer-otp-verify",
+          "category": "customer-phone-verify",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-renewal",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "password-sign-in",
+          "category": "admin-sign-in-email",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "mfa-enable",
+          "category": "admin-two-factor-enable",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-enrollment",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        }
+      ],
+      "publicMetadataStatuses": [],
+      "adminReadiness": [
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "observed"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "ready"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "observed"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "ready"
+        }
+      ]
+    },
+    {
+      "title": "T11/T12/T19/T21: kind-aware cancel/return and confirmed refund non-transfer preserve stock, budget and actor-bound replay",
+      "project": "webkit",
+      "status": "passed",
+      "durationMs": 80927,
+      "retry": 0,
+      "errorCount": 0,
+      "nativeAuthStatuses": [
+        {
+          "stage": "password-sign-in",
+          "category": "admin-sign-in-email",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "mfa-enable",
+          "category": "admin-two-factor-enable",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-enrollment",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "customer-otp-send",
+          "category": "customer-phone-send-otp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "customer-otp-verify",
+          "category": "customer-phone-verify",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-renewal",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "password-sign-in",
+          "category": "admin-sign-in-email",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "mfa-enable",
+          "category": "admin-two-factor-enable",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-enrollment",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        }
+      ],
+      "publicMetadataStatuses": [],
+      "adminReadiness": [
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-login",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "observed"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "ready"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "observed"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "ready"
+        }
+      ]
     },
     {
       "title": "T07/T15/T19/T21/T23/T29: fresh native shipping approval resets checkout consent; notes, return and refund remain exact",
       "project": "chromium",
       "status": "passed",
-      "durationMs": 28376,
+      "durationMs": 31724,
       "retry": 0,
       "errorCount": 0,
       "nativeAuthStatuses": [
@@ -633,13 +2261,36 @@
           "retryAfterSeconds": null,
           "retryAfterHeader": "absent"
         }
+      ],
+      "publicMetadataStatuses": [],
+      "adminReadiness": [
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "observed"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "ready"
+        }
       ]
     },
     {
       "title": "T07/T15/T19/T21/T23/T29: fresh native shipping approval resets checkout consent; notes, return and refund remain exact",
       "project": "webkit",
       "status": "passed",
-      "durationMs": 38116,
+      "durationMs": 39414,
       "retry": 0,
       "errorCount": 0,
       "nativeAuthStatuses": [
@@ -690,6 +2341,29 @@
           "status": 200,
           "retryAfterSeconds": null,
           "retryAfterHeader": "absent"
+        }
+      ],
+      "publicMetadataStatuses": [],
+      "adminReadiness": [
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-login",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "observed"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "ready"
         }
       ]
     }

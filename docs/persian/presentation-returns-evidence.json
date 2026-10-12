@@ -1,0 +1,15 @@
+{
+  "reviewDate": "2026-10-12",
+  "observedAtUtc": "2026-10-12T16:35:09Z",
+  "observedGitHead": "538ff1c",
+  "reviewer": "actual /root/persian_editor",
+  "reviewState": "bounded source review of new uncommitted slices; quiet DB window preserved",
+  "reviewed": ["admin-presentation", "presentation-form", "home-presentation", "site-shell", "checkout route", "cart maintenance", "admin returns", "customer requests", "manual refund failure", "collection catalog", "StoreReportDto", "docs/REPORTING.md"],
+  "purePresentationCheck": { "command": "node docs/frontend/presentation-form-check.mjs", "exitCode": 0, "invalidCasesRejectedByClientAndSchema": 16, "normalization": true, "plainTextHandling": true, "immutableOrdering": true, "databaseTouched": false, "applicationBuild": false },
+  "scopedCopyVerification": { "eslintExitCode": 0, "typescriptExitCode": 0, "typescriptMode": "ignoreConfig; ES2022; bundler; three copy modules", "evidenceJsonParsed": true, "diffCheckExitCode": 0 },
+  "reviewerOwnedCopyChanges": ["presentation.updated audit label", "refund.failed audit/event label", "payment.retry event label"],
+  "recommendationsPendingOwnerApplication": ["business-facing retry copy", "remove implementation/test prose from return UI", "clear internal-link correction message", "bidi isolation of route examples and descriptions", "actual maintenance fallback in preview", "natural collection empty state", "retry-payment pause wording after backend freeze"],
+  "reportCopy": "proposal only; report-only frontend work activated during review; no editor screen acceptance",
+  "reportSqlDefinitionsInspectedWithoutExecution": ["reserved stock units, not reservation-record count", "pendingJobs includes pending and running", "receipt remainder subtracts completed refunds only; pending refund amount separate"],
+  "notExecuted": ["browser", "native auth", "public/API calls", "database", "production build", "restart", "full security/WCAG/device/flow acceptance"]
+}

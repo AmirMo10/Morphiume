@@ -1,10 +1,11 @@
 import { readFile } from "node:fs/promises";
 import { config } from "dotenv";
 import pg from "pg";
+import { controlledQaDatabase } from "../helpers/qa-target.mjs";
 config({ path: ".env.local", quiet: true });
-if (!["test", "staging"].includes(process.env.DEPLOYMENT_ENV ?? "")) throw new Error("Ledger QA requires isolated environment");
+const database = controlledQaDatabase(process.env);
 const fixture = JSON.parse(await readFile(".local/load-fixture.json", "utf8")) as { productId: string; productIds: string[]; variantId: string; initialStock: number; users: { userId: string }[] };
-const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 2 });
+const pool = new pg.Pool({ connectionString: database.toString(), max: 2 });
 try {
   const balance = (await pool.query("SELECT on_hand,reserved FROM inventory_balance WHERE variant_id=$1", [fixture.variantId])).rows[0]!;
   const totals = (await pool.query("SELECT coalesce(sum(on_hand_delta),0)::int AS on_hand,coalesce(sum(reserved_delta),0)::int AS reserved FROM inventory_ledger WHERE variant_id=$1", [fixture.variantId])).rows[0]!;

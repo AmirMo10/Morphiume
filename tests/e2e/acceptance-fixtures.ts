@@ -2,13 +2,17 @@ import { randomInt, randomUUID } from "node:crypto";
 import { expect, type BrowserContext, type Locator, type Page } from "@playwright/test";
 import { hashPassword } from "better-auth/crypto";
 import pg from "pg";
+import { config } from "dotenv";
+import { controlledQaDatabase } from "../helpers/qa-target.mjs";
 import type { ProductDto, Role } from "../../src/contracts/commerce";
 import { totpForUri } from "../integration/auth/helpers";
 import { nativeAuthAction } from "./native-auth-actions";
+import { assertAdminReady } from "./admin-readiness";
+
+config({ path: ".env.local", quiet: true });
 
 export function isolatedPool() {
-  const target = new URL(process.env.DATABASE_URL!);
-  if (!["test", "staging"].includes(process.env.DEPLOYMENT_ENV ?? "") || process.env.PAYMENT_PROVIDER !== "mock" || !["localhost", "127.0.0.1"].includes(target.hostname) || !target.pathname.endsWith("morphiume_staging")) throw new Error("Acceptance fixtures refuse a nonisolated database");
+  const target = controlledQaDatabase(process.env);
   return new pg.Pool({ connectionString: target.toString(), max: 3 });
 }
 
@@ -41,7 +45,7 @@ export async function loginAdmin(page: Page, credentials: { email: string; passw
   const secret = await page.getByLabel("کلید حساب", { exact: true }).inputValue();
   const uri = `otpauth://totp/Morphiume?secret=${secret}`;
   await verifyAdminTotp(page, uri, "کد شش‌رقمی برنامهٔ رمزساز", "تأیید و ورود به مدیریت");
-  await expect(page).toHaveURL(/\/admin$/);
+  await assertAdminReady(page, "admin-home");
   return uri;
 }
 

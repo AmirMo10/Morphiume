@@ -4,7 +4,7 @@ import { createRequire } from "node:module";
 import { build } from "esbuild";
 import { chromium, expect } from "@playwright/test";
 const fixtures = {
-  "@/server/runtime": "export function getCommerce(){return {getProduct:async()=>globalThis.__structuredProduct}}",
+  "@/server/runtime": "export function getCommerce(){return {resolveProductRoute:async()=>({product:globalThis.__structuredProduct,canonicalSlug:globalThis.__structuredProduct.slug,redirect:false})}}",
   "@/server/config": "export function getConfig(){return globalThis.__structuredConfig}",
   "next/headers": "export async function headers(){return new Headers({'x-nonce':'controlled-jsonld-nonce'})}",
   "next/navigation": "export function notFound(){throw new Error('fixture NOT_FOUND')}export function permanentRedirect(url){throw new Error('fixture redirect '+url)}",

@@ -7,6 +7,7 @@ import { CommerceError, type Actor, type Role } from "@/contracts/commerce";
 import { pool } from "./db";
 import { adminActor } from "./auth/actors";
 import { ROLE_PERMISSIONS } from "./commerce/permissions";
+import { getReport, getWorkQueue } from "./reports";
 
 const defaults = { brandName: "Morphiume", contactPhone: null, email: null, address: null, shippingDescription: null, policyVersion: "staging-policy-v1", version: 1 };
 export async function getSettings() {
@@ -34,6 +35,8 @@ export async function saveSettings(actor: Actor, input: unknown) {
 const roles = z.array(z.enum(["owner","product_manager","fulfillment","support","finance"])).max(5);
 export async function adminDirectory(request: NextRequest, path: string[], method: string, input?: unknown): Promise<unknown> {
   const actor = await adminActor(request.headers, path[1] === "reports" ? "refunds.write" : "roles.write", method !== "GET");
+  if (method === "GET" && path[1] === "reports" && path[2] === "period" && path.length === 3) return getReport(actor, Object.fromEntries(request.nextUrl.searchParams));
+  if (method === "GET" && path[1] === "reports" && path[2] === "queue" && path.length === 3) return getWorkQueue(actor, Object.fromEntries(request.nextUrl.searchParams));
   if (method === "GET" && path[1] === "audit") return (await pool.query("SELECT id,actor_id AS \"actorId\",action,entity_type AS \"entityType\",entity_id AS \"entityId\",reason,created_at AS \"createdAt\" FROM audit_event ORDER BY created_at DESC LIMIT 300")).rows;
   if (method === "GET" && path[1] === "reports") {
     const result = await pool.query("SELECT (SELECT count(*)::int FROM orders WHERE payment_status='paid') AS \"paidOrders\",(SELECT coalesce(sum(amount_irr),0)::text FROM payment_receipt) AS \"receivedIrr\",(SELECT coalesce(sum(amount_irr),0)::text FROM refund WHERE status='succeeded') AS \"refundedIrr\",(SELECT coalesce(sum(on_hand),0)::int FROM inventory_balance) AS \"inventoryUnits\",(SELECT coalesce(sum(reserved),0)::int FROM inventory_balance) AS \"activeReservations\"");
@@ -51,11 +54,14 @@ export async function adminDirectory(request: NextRequest, path: string[], metho
   const password = invite && "password" in data ? await hashPassword(data.password) : undefined;
   const db = await pool.connect();
   const requireOwnerProof=async()=>{
-    const sql="SELECT s.id FROM session s JOIN admin_grant g ON g.session_id=s.id JOIN role_membership r ON r.user_id=s.user_id JOIN \"user\" u ON u.id=s.user_id WHERE s.id=$1 AND s.user_id=$2 AND s.expires_at>clock_timestamp() AND g.expires_at>clock_timestamp() AND g.factor_verified_at>clock_timestamp()-interval '5 minutes' AND r.role='owner' AND NOT u.disabled AND u.two_factor_enabled";
+    const sql="SELECT s.id,g.factor_verified_at>clock_timestamp()-interval '5 minutes' AS factor_fresh FROM session s JOIN admin_grant g ON g.session_id=s.id JOIN role_membership r ON r.user_id=s.user_id JOIN \"user\" u ON u.id=s.user_id WHERE s.id=$1 AND s.user_id=$2 AND s.expires_at>clock_timestamp() AND g.expires_at>clock_timestamp() AND r.role='owner' AND NOT u.disabled AND u.two_factor_enabled";
     const locked=await db.query(`${sql} FOR SHARE OF s,g,r,u`,[actor.sessionId,actor.userId]);
     // A locking SELECT can evaluate its predicate before waiting for a row.
     // Use a new wall-clock query after all authorization locks are held.
-    if(!locked.rowCount || !(await db.query(sql,[actor.sessionId,actor.userId])).rowCount) throw new CommerceError("FORBIDDEN","برای این عملیات حساس، ورود و مجوز مالک را دوباره تأیید کنید.",403);
+    if(!locked.rowCount)throw new CommerceError("FORBIDDEN","برای این عملیات حساس، ورود و مجوز مالک را دوباره تأیید کنید.",403);
+    const current=await db.query<{factor_fresh:boolean}>(sql,[actor.sessionId,actor.userId]);
+    if(!current.rowCount)throw new CommerceError("FORBIDDEN","مجوز مالک را ندارید.",403);
+    if(!current.rows[0]!.factor_fresh)throw new CommerceError("MFA_REQUIRED","برای این عملیات حساس، تأیید دومرحله‌ای تازه لازم است.",403);
   };
   try {
     await db.query("BEGIN"); await db.query("SELECT pg_advisory_xact_lock(818002)");

@@ -10,17 +10,17 @@ import { CommerceError } from "@/contracts/commerce";
 import { getCommerce } from "@/server/runtime";
 import { getConfig } from "@/server/config";
 
-const publicProduct = cache(async (id: string) => { try { return await getCommerce().getProduct(id); } catch (error) { if (error instanceof CommerceError && error.code === "NOT_FOUND") notFound(); throw error; } });
+const publicProduct = cache(async (id: string) => { try { return await getCommerce().resolveProductRoute(id); } catch (error) { if (error instanceof CommerceError && error.code === "NOT_FOUND") notFound(); throw error; } });
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
-  const product = await publicProduct(id);
-  const canonical = process.env.PUBLIC_SITE_URL ? new URL(`/products/${product.slug}`, process.env.PUBLIC_SITE_URL).toString() : undefined;
-  return { title: product.name, description: product.description.slice(0, 180), ...(canonical ? { alternates: { canonical } } : {}) };
+  const { product } = await publicProduct(id);
+  const config = getConfig(), canonical = new URL(`/products/${product.slug}`, config.PUBLIC_SITE_URL ?? config.APP_BASE_URL).toString();
+  return { title: product.name, description: product.description.slice(0, 180), alternates: { canonical } };
 }
 export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const product = await publicProduct(id);
-  if (id !== product.slug) permanentRedirect(`/products/${product.slug}`);
+  const { product, canonicalSlug, redirect } = await publicProduct(id);
+  if (redirect || id !== canonicalSlug) permanentRedirect(`/products/${canonicalSlug}`);
   const nonce = (await headers()).get("x-nonce") ?? undefined;
   const config = getConfig();
   const base = config.PUBLIC_SITE_URL ?? config.APP_BASE_URL;

@@ -23,7 +23,7 @@ export const digits = normalizeDigits;
 export function canonicalPhone(value: string) {
   try { return normalizePhone(value); } catch { return digits(value).replace(/[\s()-]/g, ""); }
 }
-export const faNumber = (value: number | string) => new Intl.NumberFormat("fa-IR").format(Number(value));
+export { faNumber } from "./number-format";
 export function money(value: MoneyDto) {
   return formatToman(value.amountIrr);
 }

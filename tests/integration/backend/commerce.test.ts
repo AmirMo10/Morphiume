@@ -99,7 +99,7 @@ describe.skipIf(!enabled)("PostgreSQL commerce invariants",()=>{
     await expect(commerce.requestReturn(customerB,order.orderId,"cancel","TEST foreign order")).rejects.toMatchObject({code:"NOT_FOUND"});
     await expect(commerce.requestReturn(customerA,order.orderId,"return","TEST before delivery")).rejects.toMatchObject({code:"NOT_ELIGIBLE"});
     await commerce.recordShipment(admin,order.orderId,{carrier:"TEST",trackingCode:"TEST",status:"shipped"});await commerce.recordShipment(admin,order.orderId,{carrier:"TEST",trackingCode:"TEST",status:"delivered"});
-    const request=await commerce.requestReturn(customerA,order.orderId,"return","TEST return request");await commerce.decideReturn(admin,request.id,{status:"approved",reason:"TEST review approved"});await commerce.decideReturn(admin,request.id,{status:"received",reason:"TEST quality approved",restock:true});await commerce.decideReturn(admin,request.id,{status:"received",reason:"TEST repeated",restock:true});
+    const request=await commerce.requestReturn(customerA,order.orderId,"return","TEST return request");await commerce.decideReturn(admin,request.id,{status:"approved",reason:"TEST review approved"});await commerce.decideReturn(admin,request.id,{status:"received",reason:"TEST quality approved",restock:true});await commerce.decideReturn(admin,request.id,{status:"received",reason:"TEST quality approved",restock:true});
     expect((await pool.query("SELECT on_hand,reserved FROM inventory_balance WHERE variant_id=$1",[p.variants[0]!.id])).rows[0]).toEqual({on_hand:3,reserved:0});expect((await commerce.getOrder(customerA,order.orderId)).paymentStatus).toBe("paid");
   });
   it("releases prepayment cancellation then records late funds without reactivating fulfillment",async()=>{

@@ -1,6 +1,6 @@
-# پذیرش runtime بعدی — هنوز اجرا نشده
+# پذیرش runtime جدید — برنامه و نتیجهٔ اجرا
 
-این فهرست برنامهٔ آزمون است، نه نتیجه. اجرای browser/API/DB فقط پس از اعلام هماهنگ‌کننده دربارهٔ build، migration و slot مشترک آغاز می‌شود. ابزارها و داده‌های auth بومی/checkout قبلی حفظ می‌شوند؛ freshness، limit، IP و زمان دست‌کاری نمی‌شوند.
+فهرست زیر برنامهٔ آزمون اولیه بود. پنج spec جدید اکنون در پذیرش یکپارچهٔ۲۲/۲۲روی build89652/server36884 واقعاً موفق شدند؛ [NEW_SOURCE_QA.md](NEW_SOURCE_QA.md) scope و محدودیت‌ها را ثبت می‌کند. اجرای browser/API/DB فقط پس از اعلام هماهنگ‌کننده دربارهٔ build، migration و slot مشترک آغاز می‌شود. ابزارها و داده‌های auth بومی/checkout قبلی حفظ می‌شوند؛ freshness، limit، IP و زمان دست‌کاری نمی‌شوند.
 
 - collection و alias: مسیر slug اصلی، alias قدیمی با HTTP308 و Location دقیق، slug ناشناخته HTTP404؛ واکنش مرورگر و metadata همان مقصد. source registry/trigger و انتقال نام را با fixture مستقل و audit واقعی بررسی کنیم.
 - presentation/config: بارگذاری عمومی از دادهٔ واقعی منتشرشده، metadata معنایی همان محتوا، محیط آزمون آشکار؛ مدیر مجاز با MFA تازه ذخیره کند و نقش ممنوع/نسخهٔ قدیمی رد شود. policy مشترک فقط با شرط آخرین نویسندهٔ fixture و همان قفل بازگردد.
@@ -8,4 +8,4 @@
 - failure بازپرداخت و return UI: از خرید کنترل‌شدهٔ واقعی به درخواست مشتری، تصمیم مدیر و نتیجهٔ ناموفق/موفق adapter برسیم؛ state terminal/replay و ledger/receipt/shipment واقعی را مستقل بررسی کنیم. failure تاریخی تغییر یا حذف نشود؛ fresh factor/actor/payload conflict طبق source نهایی بررسی شود.
 - reports: HTTP و UI مبلغ‌های تجمیعی دقیق، timezone و permission/no-store را با PG مستقل مقایسه کنیم؛ fixture سفارش پرداخت‌شده از checkout ایجاد شود، نه paid SQL جعلی. مالی برای fulfillment پنهان بماند و CSV مجاز وضعیت فقط پنج ستون غیرمالی داشته باشد.
 
-نتیجهٔ جاری۱۲/۱۲محلی و۱۷/۱۸CI متعلق به برنامهٔ قدیمی است و این قابلیت‌های بعدی را اثبات نمی‌کند. پیشنهاد guard دقیق DB `morphiume_staging_runtime` هنوز فعال نشده؛ پذیرش stage/load/restore تنها پس از تأیید جداگانهٔ هماهنگ‌کننده، تصویر واقعاً پذیرفته‌شده و deployment کنترل‌شده آغاز می‌شود.
+نتیجهٔ۱۲/۱۲محلی و verify۱۸/۱۸CI بعد از اصلاح عنوان متعلق به برنامهٔ قدیمی است؛ مرورگر image قدیمی۱۷/۱۸ و پذیرش image ناموفق باقی است. guard دقیق DB پس از تأیید جداگانهٔ هماهنگ‌کننده فعال و۴۸آزمون خالص آن موفق شد؛ stage/load/restore تنها پس از تصویر واقعاً پذیرفته‌شده و deployment/env/slot کنترل‌شده آغاز می‌شود. source جدید پنج spec مستقل collection-routes، presentation-checkout، refund-return، period-reports و http-boundaries دارد؛ پس از بازشدن slot توسط هماهنگ‌کننده، هر پنج در دو موتور هدفمند و سپس هر۱۱spec/۲۲case یکپارچه روی build89652/server36884/schema10 موفق شدند؛ تصاویر مستقل و guard۴۸/۴۸ جدا ثبت شده‌اند. این شاهد محلی، پذیرش image Linux یا stage/load نیست.

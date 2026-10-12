@@ -5,15 +5,18 @@ import { getCommerce } from "./runtime";
 import { createJobs } from "./jobs/service";
 import { notifyOrderEvent } from "./jobs/notifications";
 import { getConfig } from "./config";
+import { recordJobEvent } from "./observability";
 
-const jobs = createJobs({pool,commerce:getCommerce(),notify:(type,payload,key)=>notifyOrderEvent(pool,getConfig().DEPLOYMENT_ENV,type,payload,key)});
+const jobs = createJobs({pool,commerce:getCommerce(),notify:(type,payload,key)=>notifyOrderEvent(pool,getConfig().DEPLOYMENT_ENV,type,payload,key),
+  onJobEvent: event => recordJobEvent({state:event.event,jobId:event.jobId,type:event.type,attemptNumber:event.attemptNumber,
+    orderId:event.orderId,paymentAttemptId:event.paymentAttemptId})});
 let stopped = false;
 process.on("SIGTERM",()=>{stopped=true;});
 process.on("SIGINT",()=>{stopped=true;});
 async function main() {
   while (!stopped) {
     try { const result = await jobs.tick(); if (process.env.WORKER_HEARTBEAT_PATH) await writeFile(process.env.WORKER_HEARTBEAT_PATH,new Date().toISOString()); console.log(JSON.stringify({event:"worker_tick",...result})); }
-    catch(error) { console.error(JSON.stringify({event:"worker_tick_failed",kind:error instanceof Error?error.name:"unknown"})); }
+    catch { console.error(JSON.stringify({event:"worker_tick_failed"})); }
     for(let i=0;i<15 && !stopped;i++) await new Promise(resolve=>setTimeout(resolve,1000));
   }
   await pool.end();

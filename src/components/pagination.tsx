@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { PageDto } from "@/contracts/commerce";
-import { faNumber } from "./commerce-client";
+import { faNumber } from "./number-format";
 
 export function Pagination({ data, href, onPage, label = "صفحه‌های نتایج" }: { data: Pick<PageDto<unknown>, "page" | "totalPages" | "totalItems">; href?: (page: number) => string; onPage?: (page: number) => void; label?: string }) {
   if (data.totalPages <= 1 && data.page <= 1) return null;

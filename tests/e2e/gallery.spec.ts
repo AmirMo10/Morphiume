@@ -5,10 +5,11 @@ import { hashPassword } from "better-auth/crypto";
 import pg from "pg";
 import sharp from "sharp";
 import { loginAdmin } from "./acceptance-fixtures";
+import { controlledQaDatabase } from "../helpers/qa-target.mjs";
+import { openAdminProductForm } from "./admin-readiness";
 
 test("T01/T05/T17/T20: real gallery upload, reorder, SKU selection and archive retain pending edits", async ({ browser, page, baseURL }) => {
-  const database = new URL(process.env.DATABASE_URL!);
-  if (!["test", "staging"].includes(process.env.DEPLOYMENT_ENV ?? "") || !database.pathname.endsWith("morphiume_staging")) throw new Error("Gallery QA requires the isolated synthetic database");
+  const database = controlledQaDatabase(process.env);
   const pool = new pg.Pool({ connectionString: database.toString(), max: 2 });
   const fixture = randomUUID(), adminId = randomUUID(), email = `qa-gallery-${fixture}@fixture.invalid`;
   const password = `Qa-${randomUUID()}-Password!`, name = `گالری آزمایشی Morphiume ${fixture.slice(0, 8)}`;
@@ -22,7 +23,7 @@ test("T01/T05/T17/T20: real gallery upload, reorder, SKU selection and archive r
     await pool.query("INSERT INTO account(id,user_id,account_id,provider_id,password) VALUES($1,$2,$2,'credential',$3)", [randomUUID(), adminId, await hashPassword(password)]);
     await pool.query("INSERT INTO role_membership(user_id,role) VALUES($1,'owner')", [adminId]);
     await loginAdmin(page, { email, password });
-    await page.goto("/admin/products/new");
+    await openAdminProductForm(page);
     await page.getByLabel("نام محصول", { exact: true }).fill(name);
     await page.getByLabel("نامک صفحه", { exact: true }).fill(`qa-gallery-${fixture}`);
     await page.getByLabel("غلظت عطر", { exact: true }).fill("آزمایشی");

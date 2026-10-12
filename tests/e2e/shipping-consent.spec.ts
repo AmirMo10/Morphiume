@@ -113,7 +113,7 @@ test("T07/T15/T19/T21/T23/T29: fresh native shipping approval resets checkout co
     const receive = { status: "received", reason: "QA synthetic quality inspection; no physical delivery", restock: true };
     for (let count = 0; count < 2; count++) expect((await page.request.patch(`/api/admin/returns/${returnId}`, { headers: { Origin: baseURL! }, data: receive })).status()).toBe(200);
     expect((await pool.query("SELECT on_hand,reserved FROM inventory_balance WHERE variant_id=$1", [variant.id])).rows[0]).toEqual({ on_hand: 4, reserved: 0 });
-    expect((await pool.query("SELECT count(*)::int AS n FROM inventory_ledger WHERE operation_key=$1", [`return-stock:${returnId}:${variant.id}`])).rows[0].n).toBe(1);
+    expect((await pool.query("SELECT count(*)::int AS n FROM inventory_ledger WHERE order_id=$1 AND variant_id=$2 AND on_hand_delta=1 AND reserved_delta=0", [orderId, variant.id])).rows[0].n).toBe(1);
 
     await page.reload();
     const receiptId = (await pool.query("SELECT id FROM payment_receipt WHERE order_id=$1", [orderId])).rows[0].id as string;

@@ -64,6 +64,8 @@ export const orderEventLabels: Readonly<Record<string, string>> = {
   "request.closed": "رسیدگی به درخواست پایان یافت",
   "refund.pending": "بازپرداخت در انتظار رسیدگی است",
   "refund.completed": "بازپرداخت ثبت شد",
+  "refund.failed": "عدم انتقال وجه برای این بازپرداخت ثبت شد",
+  "payment.retry": "درخواست پرداخت دوباره ثبت شد",
   "reservation.expired": "مهلت رزرو موقت موجودی پایان یافت",
   "inventory.committed": "موجودی سفارش تخصیص یافت",
 };

@@ -1,8 +1,33 @@
 # آزمون‌های واقعاً اجراشده
 
+## آخرین پذیرش معتبر
+
+| اجرای مشخص | نتیجهٔ مشاهده‌شده |
+|---|---|
+| working tree یکپارچه |۲۲۸/۲۲۸،۲۶فایل،635.89s،exit0؛ اجرای جامع پیش از discovery فایل guard تازه بود |
+| guard اتصال QA بعد از آن |۴۸/۴۸،327ms؛ رد query/fragment/override واقعی parser و هدف‌های غیرمجاز؛ در شمار۲۲۸ نیست |
+| build/server تازه | production89652، closure۵۳۰فایل، Windows WebP واقعی موفق؛ server36884/schema10 و health200 آماده |
+| پنج spec جدید هدفمند | در هر دو Chrome/WebKit موفق: مجموعه۲/۲، ظاهر/توقف خرید۲/۲، HTTP۲/۲، گزارش۲/۲ و refund/return۲/۲؛ شاهد مستقل هر اجرا در docs/qa/NEW_SOURCE_QA.md |
+| مرورگر یکپارچهٔ تازه |۱۱spec/۲۲case،۲۲/۲ در560.980110s؛ صفر unexpected/skip/flaky/Playwrightretry؛ build89652/server36884/source/DB ثابت؛۱۳۱وضعیت امن native-auth،۶۰آمادگی مدیریت و۴۸metadata |
+| اصلاح جداگانهٔ شاهد تصویری | در دو موتور، فرم draft مصنوعیِ واقعاً آماده و تصویر decodeشده؛ کاتالوگ SSR با API client کنترل‌شده و scroll/decode واقعی؛ چهار PNG، بدون خرید/مشتری/پرداخت تازه |
+| Linux static زیرساخت |۱۵/۱۵ آزمون خالص، symlink واقعی، Python/Bash syntax، چهار systemd unit و calendar03UTC موفق؛ هیچ سرویس/PG/Docker/checkout/key/config اصلی تغییر نکرد |
+| ابزار ارتقا/backup واردشده |۹/۹ آزمون محلی با مرزهای DB/Docker/encryption کنترل‌شده؛ فراخوانی واقعی تابع بدون CLI-global، ترتیب backup پیش از migration و حفظ حالت شکست؛ اجرای ارتقا/backup واقعی سرور نیست. CI اجرای Linux هر دو suite خالص را به verify اضافه کرده است |
+| CI آخرین main d7d0c0c | verify۱۵۰/۱۵۰ و۱۸/۱۸ Linux؛ image۱۷/۱۸ و Firefox gallery شکست؛ nativeTLS/Sharp و فرمان Grype exit0؛ worker/publish/export اجرا نشدند |
+| سرور/بازیابی/ظرفیت | برنامه، restore کامل، هشدار واقعی و۲۰۰VU/RPS هنوز اجرا نشده‌اند؛ تصویر پذیرفته‌شده نداریم |
+
+اعداد اجراهای هدفمند، مستقل و جامع جمع نمی‌شوند. اصلاح PUTquantity1 در fixture خرید دوم و ترتیب shipped→delivered، خطای آزمون را رفع کردند؛ منطق برنامه در این بازاجراها تغییر نکرد. گزارش مالی خالص منفی در مرورگر DTO کنترل‌شده داشت؛ شاهد aggregation مالی منفی واقعی از چهار آزمون PG جداست. بررسی امنیت کامل/ASVS پس از رد خودکار عامل امنیت انجام‌شده ادعا نمی‌شود.
+
+## سابقهٔ اجراها
+
+عبارت‌های pending و وضعیت‌های جاری پایین متعلق به اجرای تاریخی همان بندند؛ جدول بالا و گزارش هر اجرای مشخص مقدم‌اند.
+
+تازه‌ترین پذیرش working tree: production89652 و closure۵۳۰/Windows WebP موفق؛ server36884/health200/X-Request-ID آماده. collection-routes۲/۲ در27.7s، Chrome11.3s/WebKit13.6s: normal-UA/noJS308 باLocation canonical و حفظpageSize13/page2؛ unknown/private404؛ public۲۴+۱عضو، same-variantfilter، nativeversion409/hiddenretention/newhidden400 و axe0. سه اجرای ابتدا0/2 قبل از پذیرش نهایی، ناشی از INSERTjsonb/locatorحجم/انتظار پارامتر پیش‌فرض زائد بودند؛ علت هرکدام در fixture اثبات شد. قابلیت‌های دیگر همین build هنوز در حال آزمون‌اند.
+
+CI checkpoint `d7d0c0c`: [run38279356243](https://github.com/AmirMo10/Morphiume/actions/runs/38279356243)، verify۱۵۰/۱۵۰ و۱۸/۱۸ مرورگر4.4min قبول؛ داخل تصویر۱۷/۱۸ در4.1min، فقط Firefox gallery نام محصول را نیافت. Native ldd/inventory/TLS1.3/Sharp و فرمان واقعی Grype fail-on high exit0 داشتند؛ جزئیات count اسکن مستقلاً خوانده نشده. heartbeat/SIGTERM/promotion/export نرسیدند؛ هیچ تصویر پذیرفته‌شده‌ای وجود ندارد. این CI برنامهٔ قدیمی76df را اجرا کرد، نه working tree جدید.
+
 تازه‌ترین CI منبع `538ff1c`: [run38275593404](https://github.com/AmirMo10/Morphiume/actions/runs/38275593404)،۱۵۰/۱۵۰ واحد/DB و۱۷/۱۸ مرورگر Linux؛ تمام ورود/OTP/خرید قبول شدند. تنها Firefox public-rtl با document-title خالی در axe شکست خورد؛ route/علت ثبت نشده و image skipped است. اصلاح تازهٔ صرفاً QA، عنوان دقیق/HTTP200/diagnostics محدود را به آزمون اضافه می‌کند؛ هیچ قاعدهٔ axe حذف نشده است. probe خواندنی شش صفحهٔ واقعی Chrome/WebKit در21.972s، HTTP200/عنوان دقیق/axe0 داشت؛ API client کنترل‌شده بود. دو fixture دیررس بازیابی و دو عنوانِ همیشه خالی رد شدند. این، بازتولید Firefox اصلی نیست.
 
-working tree بعدی: full تجارت۱۳۱/۱۳۱ در۱۵فایل،573.10s، صفر skip/error و fingerprint public ثابت؛ پس از آن فقط متن توقف پرداخت اصلاح شد. PUBLIC0010 در2.35s با checksum ثبت‌شده اعمال شد؛ هر۲۶جدول قدیمی ثابت و return_decision خالی بود. root گزارش مالی۴/۴PG در6.31s، واحد بازه/مبلغ۴/۴ در418ms و جلالی۳/۳ در353ms با۱۸۰ round-trip قبول شدند. آزمون جامع همین منبع در حال اجراست؛ build/مرورگر جدید، سرور، restore و بار همچنان نتیجه ندارند.
+working tree بعدی: آزمون جامع `pnpm test` با۲۲۸/۲۲۸ در۲۶فایل و635.89s، exit0، قبول شد. guardهای تازهٔ ابزار QA بعد از discovery افزوده شدند و این اجرا شامل آن‌ها نیست؛ نتیجهٔ هدفمندشان جدا ثبت می‌شود. full تجارت۱۳۱/۱۳۱ در۱۵فایل،573.10s، صفر skip/error و fingerprint public ثابت؛ پس از آن فقط متن توقف پرداخت اصلاح شد. PUBLIC0010 در2.35s با checksum ثبت‌شده اعمال شد؛ هر۲۶جدول قدیمی ثابت و return_decision خالی بود. root گزارش مالی۴/۴PG در6.31s، واحد بازه/مبلغ۴/۴ در418ms و جلالی۳/۳ در353ms با۱۸۰ round-trip قبول شدند. شمار اجرای مستقل تجارت و اجرای جامع جمع نمی‌شود. build/مرورگر جدید، سرور، restore و بار همچنان نتیجه ندارند.
 
 آخرین شواهد قبل از checkpoint تازهٔ fixture مشتری: CI منبع `3f999fd`،۱۵۰/۱۵۰ واحد/DB و۱۴/۱۸ مرورگر Linux؛ چهار شکست WebKit و image skipped. سه send429 مشاهده شدند؛ status مورد چهارم ثبت نشده است. اصلاح ادمین پذیرفته‌شده باعث تضعیف محدودیت نشد.
 

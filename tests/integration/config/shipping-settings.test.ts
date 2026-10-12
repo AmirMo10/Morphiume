@@ -71,7 +71,7 @@ describe.skipIf(!enabled)("shipping configuration with native MFA and real isola
     const version=(await shipping.getShippingSettings()).version;
     await expect(shipping.saveShippingSettings(support,settings(version))).rejects.toMatchObject({code:"FORBIDDEN"});
     await pool.query("UPDATE admin_grant SET factor_verified_at=now()-interval '6 minutes' WHERE session_id=$1",[owner.sessionId]);
-    await expect(shipping.saveShippingSettings(owner,settings(version))).rejects.toMatchObject({code:"FORBIDDEN"});
+    await expect(shipping.saveShippingSettings(owner,settings(version))).rejects.toMatchObject({code:"MFA_REQUIRED"});
     await pool.query("DELETE FROM role_membership WHERE user_id=$1",[owner.userId]);
     await pool.query("UPDATE admin_grant SET factor_verified_at=now() WHERE session_id=$1",[owner.sessionId]);
     await expect(shipping.saveShippingSettings(owner,settings(version))).rejects.toMatchObject({code:"FORBIDDEN"});
@@ -108,7 +108,7 @@ describe.skipIf(!enabled)("shipping configuration with native MFA and real isola
       await expect.poll(async()=>Number((await pool.query("SELECT count(*) AS n FROM pg_locks WHERE locktype='advisory' AND classid=0 AND objid=818002 AND mode='ExclusiveLock' AND NOT granted")).rows[0].n)).toBe(1);
       await new Promise(resolve=>setTimeout(resolve,1500));
       await reader.query("COMMIT");
-      expect(await result).toBe("FORBIDDEN");
+      expect(await result).toBe("MFA_REQUIRED");
       expect((await shipping.getShippingSettings()).version).toBe(version);
     } finally {await reader.query("ROLLBACK");reader.release();}
   });

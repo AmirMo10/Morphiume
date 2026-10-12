@@ -1,8 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
 import { config } from "dotenv";
+import { controlledQaDatabase } from "../helpers/qa-target.mjs";
 config({ path: ".env.local", quiet: true });
 
-if (!["test", "staging"].includes(process.env.DEPLOYMENT_ENV ?? "")) throw new Error("Browser QA requires isolated test/staging environment");
+controlledQaDatabase(process.env);
 const baseURL = process.env.E2E_BASE_URL ?? process.env.APP_BASE_URL;
 if (!baseURL) throw new Error("E2E_BASE_URL or APP_BASE_URL is required");
 

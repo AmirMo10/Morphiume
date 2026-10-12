@@ -1,0 +1,11 @@
+# شواهد آمادگی مدیریت پس از ورود بومی
+
+طبق گزارش هماهنگ‌کننده، [run38279356243](https://github.com/AmirMo10/Morphiume/actions/runs/38279356243) روی checkpoint `d7d0c0c`، verify۱۵۰واحد/DB و۱۸/۱۸مرورگر Linux در۴٫۴دقیقه موفق داشت. پذیرش مرورگر **داخل image** در۴٫۱دقیقه،۱۷/۱۸موفق شد؛ فقط Firefox gallery پس از loginAdmin و navigation به فرم محصول، فیلد نام محصول را در۱۰ثانیه ندید. URL نهایی و MFAstate در شکست قبلی ثبت نشده‌اند؛ علت مشخص نیست. هیچ artifact پذیرفته‌شده منتشر نشد. scan/nativeTLS/Sharp/ldd طبق گزارش هماهنگ‌کننده موفق؛ heartbeat و SIGTERM worker پس از توقف مرحلهٔ مرورگر اجرا نشدند.
+
+اصلاح QA، صدور بومی MFA را حفظ می‌کند و پس از enrollment یک GET واقعی `/api/admin/session` می‌گیرد: HTTP200، mfaVerified=true و حضور نقش مجاز ثابت لازم‌اند. سپس route دقیق مدیریت باید آماده شود. navigation فرم محصول نیز HTTP200، همان proof سشن، نقش owner/product_manager، route دقیق و فیلد نام محصول قابل مشاهده را لازم دارد. هیچ relogin loop، تغییر TOTP/limiter/زمان، timeout بیشتر یا حذف assertion اضافه نشده است.
+
+diagnostics فقط aliasهای ثابت admin-home/admin-products-new/admin-login/other، status سند/سشن، boolean MFA/نقش/فرم و readiness را صادر می‌کند. پاسخ سشن به‌صورت خصوصی خوانده می‌شود؛ email، URI، cookie، body، شناسهٔ شخص، URL/query یا عنوان واقعی ثبت نمی‌شوند. sanitizer غیرobject/null/array و مقادیر خارج از allowlist را حذف می‌کند.
+
+اولین اجرای هدفمند source جدید روی build89652/server36884، در هر دو موتور صدور سه مرحلهٔ بومی200 و proof سشن200/MFAtrue/roletrue داشت. WebKit در snapshot اولیه aliasadmin-login بود و با همان انتظار معنایی به admin-home رسید؛ enrollment تکرار نشد. آن اجرای اولیه قبل از collection، بابت SQL fixture نامناسب JSONB شکست خورد؛ اصلاح fixture جدا ثبت است.
+
+اجرای نهایی همان runtime،۲۲/۲۲در۵۶۰٫۹۸۰۱۱۰ثانیه موفق و۶۰وضعیت آمادگی امن داشت. T25 و gallery هر دو موتور، doc/session200، MFA/roletrue و route/form حاضر را ثابت کردند. WebKit gallery یک observed formPresentfalse با سشن/route صحیح داشت و semanticwait به true/ready رسید. این شاهد انتقال محلی، علت Firefox Linux image را از گذشته ثابت نمی‌کند. sandbox sanitizer نیز۹annotation خراب/نامعتبر را حذف و۲وضعیت با فقط۸فیلد مجاز صادر کرد؛ هیچ extra آزمایشی صادر نشد. شواهد در [NEW_SOURCE_QA.md](NEW_SOURCE_QA.md) و browser-newsource-combined.json هستند؛ پذیرش image جدید منتظر CI همان source است.

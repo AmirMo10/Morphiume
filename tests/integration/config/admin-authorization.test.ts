@@ -67,7 +67,7 @@ describe.skipIf(!enabled)("native administrator proof at mutation lock boundarie
       await expect.poll(async()=>Number((await pool.query("SELECT count(*) AS n FROM pg_stat_activity WHERE wait_event_type='Lock' AND query='SELECT id FROM \"user\" WHERE id=$1 FOR UPDATE'")).rows[0].n)).toBeGreaterThan(0);
       const seconds=Number((await blocker.query("SELECT greatest(0,extract(epoch FROM factor_verified_at+interval '5 minutes'-clock_timestamp()))::text AS seconds FROM admin_grant WHERE session_id=$1",[owner.actor.sessionId])).rows[0].seconds);
       await blocker.query("SELECT pg_sleep($1)",[seconds+0.1]);await blocker.query("COMMIT");
-      expect(await pending).toBe("FORBIDDEN");
+      expect(await pending).toBe("MFA_REQUIRED");
       expect((await pool.query('SELECT disabled FROM "user" WHERE id=$1',[target.actor.userId])).rows[0]).toEqual(before);
       expect((await pool.query("SELECT role FROM role_membership WHERE user_id=$1",[target.actor.userId])).rows).toEqual([{role:"support"}]);
       expect((await pool.query("SELECT id FROM session WHERE id=$1",[target.actor.sessionId])).rowCount).toBe(1);

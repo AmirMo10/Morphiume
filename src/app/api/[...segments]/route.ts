@@ -12,6 +12,8 @@ import { readMockOtp } from "@/server/auth/otp";
 import { getSettings, saveSettings, adminDirectory } from "@/server/admin";
 import { uploadMedia } from "@/server/media";
 import { getShippingSettings, saveShippingSettings } from "@/server/shipping";
+import { recordCommerceResponse } from "@/server/observability";
+import { getPresentation, getAdminPresentation, savePresentation } from "@/server/presentation";
 
 export const runtime = "nodejs";
 const id = z.uuid();
@@ -22,6 +24,9 @@ const product = z.object({ name: z.string().min(1).max(160), slug: z.string().ma
 const paging=z.object({page:z.coerce.number().int().positive().max(100000).optional(),pageSize:z.coerce.number().int().positive().max(100).optional()});
 const productPage=paging.extend({search:z.string().max(120).optional(),family:z.string().max(80).optional(),concentration:z.string().max(80).optional(),note:z.string().max(120).optional(),minPriceToman:z.string().max(30).optional(),maxPriceToman:z.string().max(30).optional(),volumeMl:z.coerce.number().int().positive().max(5000).optional(),available:z.enum(["true","false"]).transform(value=>value==="true").optional(),sort:z.enum(["name","price_asc","price_desc"]).optional()}).strict();
 const orderPage=paging.extend({search:z.string().max(100).optional(),status:z.enum(["awaiting_payment","confirmed","payment_exception","cancelled","completed"]).optional(),paymentStatus:z.enum(["pending","paid","partially_refunded","refunded","failed","unknown"]).optional()}).strict();
+const collectionIndexPage=paging.extend({search:z.string().max(120).optional()}).strict();
+const adminCollectionIndexPage=collectionIndexPage.extend({published:z.enum(["true","false"]).transform(value=>value==="true").optional()});
+const collectionProductsPage=productPage.extend({sort:z.enum(["position","name","price_asc","price_desc"]).optional()});
 function pageQuery(request:NextRequest,keys:string[]) {
   return Object.fromEntries(keys.filter(key=>request.nextUrl.searchParams.has(key)).map(key=>[key,request.nextUrl.searchParams.get(key)]));
 }
@@ -83,8 +88,11 @@ async function dispatch(request: NextRequest): Promise<Response> {
   if (path[0] === "products" && path.length === 2 && method === "GET") return success(await commerce.getProduct(path[1]!));
   if (route === "settings" && method === "GET") return success(await getSettings());
   if (route === "shipping" && method === "GET") return success(await getShippingSettings());
+  if (route === "presentation" && method === "GET") return success(await getPresentation());
   if (path[0] === "content" && path.length === 2 && method === "GET") { const pages = await commerce.listContent(); const page = pages.find(row => row.slug === path[1]); return success(page ? contentDto(page) : missing()); }
   if (route === "collections" && method === "GET") return success(await commerce.listCollections());
+  if (route === "collections/page" && method === "GET") return success(await commerce.listCollectionsPage(collectionIndexPage.parse(pageQuery(request,["page","pageSize","search"]))));
+  if (path[0] === "collections" && path.length === 3 && path[2] === "page" && method === "GET") return success(await commerce.getCollectionPage(z.string().min(1).max(160).parse(path[1]),collectionProductsPage.parse(pageQuery(request,productPageKeys))));
   if (route === "cart" || route === "cart/items" || route === "cart/coupon") {
     const state = await cartFor(request);
     if (method === "GET" && route === "cart") return cartResponse(state.cart, state);
@@ -111,14 +119,16 @@ async function dispatch(request: NextRequest): Promise<Response> {
   if (route === "checkout" && method === "POST") {
     const actor = (await customerActor(request.headers))!;
     const state = await cartFor(request);
-    return success(await commerce.createCheckout(actor, state.token, checkout.parse(await body(request)), key(request)), 201);
+    const result = await commerce.createCheckout(actor, state.token, checkout.parse(await body(request)), key(request));
+    recordCommerceResponse("checkout.response", { orderId: result.orderId, paymentAttemptId: result.paymentAttemptId, outcome: result.paymentStatus });
+    return success(result, 201);
   }
   if (path[0] === "orders") {
     const actor = (await customerActor(request.headers))!;
     if(route === "orders/page" && method === "GET") return success(await commerce.listOrdersPage(actor,orderPage.parse(pageQuery(request,orderPageKeys))));
     if (path.length === 1 && method === "GET") return success(await commerce.listOrders(actor));
-    if (path.length === 2 && method === "GET") return success(await commerce.getOrder(actor, path[1]!));
-    if (path[2] === "retry-payment" && method === "POST") return success(await commerce.retryPayment(actor, id.parse(path[1]), key(request)));
+    if (path.length === 2 && method === "GET") { const order = await commerce.getOrder(actor, path[1]!); recordCommerceResponse("order.response", { orderId: order.id, outcome: order.status }); return success(order); }
+    if (path[2] === "retry-payment" && method === "POST") { const result = await commerce.retryPayment(actor, id.parse(path[1]), key(request)); recordCommerceResponse("checkout.response", { orderId: result.orderId, paymentAttemptId: result.paymentAttemptId, outcome: result.paymentStatus }); return success(result); }
     if (path[2] === "returns" && method === "POST") { const data = z.object({ kind: z.enum(["cancel","return"]), reason: z.string().min(1).max(1000) }).strict().parse(await body(request)); return success(await commerce.requestReturn(actor, id.parse(path[1]), data.kind, data.reason), 201); }
   }
   if (path[0] === "addresses") {
@@ -151,16 +161,24 @@ async function dispatch(request: NextRequest): Promise<Response> {
     const result = await pool.query("SELECT p.order_id,p.amount_irr::text,p.status FROM payment_attempt p JOIN orders o ON o.id=p.order_id WHERE p.authority=$1 AND p.provider='mock' AND o.user_id=$2", [authority, actor.userId]);
     const attempt = result.rows[0]; if (!attempt) return missing();
     if (method === "GET") return success({ authority, orderId: attempt.order_id, total: { amountIrr: attempt.amount_irr, currency: "IRR" }, status: attempt.status });
-    if (method === "POST") { const data = z.object({ outcome: z.enum(["succeeded","failed","unknown"]) }).strict().parse(await body(request)); await mock.complete(authority, data.outcome === "succeeded" ? "paid" : data.outcome === "failed" ? "failed" : "timeout"); const result = await commerce.verifyPayment(authority); return success({ orderId: result.orderId, paymentStatus: result.status, redirectUrl: `/orders/${result.orderId}` }); }
+    if (method === "POST") { const data = z.object({ outcome: z.enum(["succeeded","failed","unknown"]) }).strict().parse(await body(request)); await mock.complete(authority, data.outcome === "succeeded" ? "paid" : data.outcome === "failed" ? "failed" : "timeout"); const result = await commerce.verifyPayment(authority); recordCommerceResponse("payment.verification.response", { orderId: result.orderId, outcome: result.status }); return success({ orderId: result.orderId, paymentStatus: result.status, redirectUrl: `/orders/${result.orderId}` }); }
   }
   if (path[0] === "payments" && path[2] === "callback" && method === "GET") {
     if (path[1] !== getConfig().PAYMENT_PROVIDER) return missing();
     const authority = z.string().min(10).max(120).parse(request.nextUrl.searchParams.get("Authority"));
     const result = await commerce.verifyPayment(authority);
+    recordCommerceResponse("payment.verification.response", { orderId: result.orderId, outcome: result.status });
     return NextResponse.redirect(new URL(`/orders/${result.orderId}`, getConfig().APP_BASE_URL), 303);
   }
   if (route === "admin/session" && method === "GET") { const state = await adminSession(request.headers); return success({user:state.user,role:state.role,roles:state.roles,permissions:state.permissions,mfaRequired:state.mfaRequired,mfaVerified:state.mfaVerified}); }
   if (path[0] === "admin") {
+    if (route === "admin/presentation") {
+      const actor=await adminActor(request.headers,"content.write");
+      if (method === "GET") return success(await getAdminPresentation(actor));
+      if (method === "PUT") return success(await savePresentation(actor,await body(request)));
+    }
+    if (route === "admin/collections/page" && method === "GET") return success(await commerce.listAdminCollectionsPage(await adminActor(request.headers,"catalog.write"),adminCollectionIndexPage.parse(pageQuery(request,["page","pageSize","search","published"]))));
+    if (path[1] === "collections" && path.length === 3 && method === "GET") return success(await commerce.getAdminCollection(await adminActor(request.headers,"catalog.write"),id.parse(path[2])));
     if(route === "admin/variants/page" && method === "GET") return success(await commerce.listVariantsPage(await adminActor(request.headers),paging.extend({search:z.string().max(120).optional()}).strict().parse(pageQuery(request,["page","pageSize","search"]))));
     if(route === "admin/shipping") {
       const actor=await adminActor(request.headers,"refunds.write",method!=="GET");
@@ -217,12 +235,14 @@ async function dispatch(request: NextRequest): Promise<Response> {
         const updated=await commerce.recordShipment(actor,orderId,data);
         const current=await adminSession(request.headers);
         if(!current.mfaVerified || !current.permissions.includes("orders.read")) throw new CommerceError("FORBIDDEN","مجوز مشاهدهٔ سفارش را ندارید.",403);
+        recordCommerceResponse("shipment.response", { orderId: updated.id, outcome: updated.shipment?.status });
         return success(orderView(updated,current.roles));
       }
       if (path[3] === "receipts" && method === "GET") return success(await commerce.listReceipts(await adminActor(request.headers,"refunds.write"),orderId));
       if (path[3] === "refunds" && method === "POST") { const data = z.object({ receiptId: id, amountIrr: z.string().max(20), reason: z.string().min(1).max(1000), operationKey: z.string().min(8).max(128) }).strict().parse(await body(request)); return success(await commerce.requestRefund(await adminActor(request.headers,"refunds.write",true),orderId,data.receiptId,data.amountIrr,data.reason,data.operationKey)); }
     }
     if (path[1] === "refunds" && path[3] === "complete" && method === "POST") { const data = z.object({ evidence: z.string().min(10).max(2000) }).strict().parse(await body(request)); return success(await commerce.completeManualRefund(await adminActor(request.headers,"refunds.write",true),id.parse(path[2]),data.evidence)); }
+    if (path[1] === "refunds" && path.length === 4 && path[3] === "fail" && method === "POST") { const data = z.object({ outcome:z.literal("confirmed_non_transfer"),reason:z.string().trim().min(1).max(1000),evidence:z.string().trim().min(10).max(1000),operationKey:z.string().min(8).max(128) }).strict().parse(await body(request)); return success(await commerce.failManualRefund(await adminActor(request.headers,"refunds.write",true),id.parse(path[2]),data)); }
     if (path[1] === "returns" && path.length === 3 && method === "PATCH") { const data = z.object({ status: z.enum(["approved","rejected","received","closed"]), reason: z.string().min(1).max(1000), restock: z.boolean().optional() }).strict().parse(await body(request)); return success(await commerce.decideReturn(await adminActor(request.headers,"orders.fulfill"),id.parse(path[2]),data)); }
     if(route === "admin/inventory/ledger" && method === "GET") {
       await adminActor(request.headers,"inventory.write");

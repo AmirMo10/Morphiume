@@ -1,18 +1,19 @@
 import { randomInt, randomUUID } from "node:crypto";
 import { config } from "dotenv";
 import pg from "pg";
-import { afterAll, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import type { Actor, BulkEditInput, ProductDto } from "../../../src/contracts/commerce";
-import { createCommerce } from "../../../src/server/commerce/service";
+import { createCommerce, type Commerce } from "../../../src/server/commerce/service";
 import { MockPaymentProvider } from "../../../src/server/payments/mock";
+import { createIsolatedDatabase } from "./isolated-database";
 
 config({path:".env.local",quiet:true});
 const databaseUrl=process.env.TEST_DATABASE_URL ?? process.env.DATABASE_URL;
-const enabled=!!databaseUrl && ["test","staging"].includes(process.env.DEPLOYMENT_ENV ?? "");
+const migrationUrl=process.env.TEST_MIGRATION_DATABASE_URL ?? process.env.MIGRATION_DATABASE_URL;
+const enabled=!!databaseUrl && !!migrationUrl && ["test","staging"].includes(process.env.DEPLOYMENT_ENV ?? "");
 describe.skipIf(!enabled)("PostgreSQL committed bulk fresh proof",()=>{
-  const applicationName=`TEST-bulk-mfa-${randomUUID()}`;
-  const pool=new pg.Pool({connectionString:databaseUrl,max:4,application_name:applicationName});
-  const commerce=createCommerce({pool,payments:new MockPaymentProvider(pool,"test","http://127.0.0.1:3000"),deploymentEnv:"test",appBaseUrl:"http://127.0.0.1:3000"});
+  let isolated:Awaited<ReturnType<typeof createIsolatedDatabase>>,pool:pg.Pool,commerce:Commerce,applicationName:string;
+  beforeAll(async()=>{isolated=await createIsolatedDatabase(databaseUrl!,migrationUrl!);pool=isolated.pool;applicationName=`TEST-isolated-${isolated.schema}`;commerce=createCommerce({pool,payments:new MockPaymentProvider(pool,"test","http://127.0.0.1:3000"),deploymentEnv:"test",appBaseUrl:"http://127.0.0.1:3000"});},60000);
   const users:string[]=[],products:string[]=[];
   let admin:Actor,product:ProductDto,input:BulkEditInput;
   beforeEach(async()=>{
@@ -23,16 +24,16 @@ describe.skipIf(!enabled)("PostgreSQL committed bulk fresh proof",()=>{
     product=await commerce.createProduct(admin,{name:`TEST bulk MFA ${suffix}`,slug:`test-bulk-mfa-${suffix}`,description:"TEST authorization fixture",family:"TEST",concentration:"TEST",topNotes:[],heartNotes:[],baseNotes:[],imageUrl:"/assets/sample-perfume.svg",variants:[{sku:`TEST-MFA-${suffix}`,volumeMl:50,priceToman:"1000",initialStock:5}]});products.push(product.id);
     input={operations:[{variantId:product.variants[0]!.id,expectedProductVersion:product.version,priceToman:"2000",inventoryDelta:1}],reason:"TEST fresh proof",operationKey:randomUUID(),dryRun:false};
   });
-  afterAll(async()=>{await pool.query("UPDATE product SET status='archived' WHERE id=ANY($1::uuid[])",[products]);await pool.query('UPDATE "user" SET disabled=true WHERE id=ANY($1::text[])',[users]);await pool.query("DELETE FROM admin_grant WHERE session_id IN (SELECT id FROM session WHERE user_id=ANY($1::text[]))",[users]);await pool.end();});
+  afterAll(async()=>{if(isolated)await isolated.close();});
   it("permits an ordinary-grant preview but rejects stale proof before commit effects",async()=>{
     await pool.query("UPDATE admin_grant SET factor_verified_at=clock_timestamp()-interval '6 minutes' WHERE session_id=$1",[admin.sessionId]);
-    expect((await commerce.bulkEdit(admin,{...input,dryRun:true})).dryRun).toBe(true);await expect(commerce.bulkEdit(admin,input)).rejects.toMatchObject({code:"FORBIDDEN"});
+    expect((await commerce.bulkEdit(admin,{...input,dryRun:true})).dryRun).toBe(true);await expect(commerce.bulkEdit(admin,input)).rejects.toMatchObject({code:"MFA_REQUIRED",status:403});
     expect((await commerce.getProduct(product.id,admin)).version).toBe(product.version);expect((await pool.query("SELECT on_hand FROM inventory_balance WHERE variant_id=$1",[product.variants[0]!.id])).rows[0].on_hand).toBe(5);
     expect((await pool.query("SELECT id FROM bulk_operation WHERE actor_id=$1 AND operation_key=$2",[admin.userId,input.operationKey])).rows).toHaveLength(0);
   });
   it("preserves the saved result while replay requires current permission and fresh proof",async()=>{
     const committed=await commerce.bulkEdit(admin,input);await pool.query("UPDATE admin_grant SET factor_verified_at=clock_timestamp()-interval '6 minutes' WHERE session_id=$1",[admin.sessionId]);
-    await expect(commerce.bulkEdit(admin,input)).rejects.toMatchObject({code:"FORBIDDEN"});expect((await commerce.bulkEdit(admin,{...input,dryRun:true})).changes).toEqual(committed.changes);
+    await expect(commerce.bulkEdit(admin,input)).rejects.toMatchObject({code:"MFA_REQUIRED"});expect((await commerce.bulkEdit(admin,{...input,dryRun:true})).changes).toEqual(committed.changes);
     await pool.query("UPDATE admin_grant SET factor_verified_at=clock_timestamp() WHERE session_id=$1",[admin.sessionId]);expect(await commerce.bulkEdit(admin,input)).toEqual(committed);
     await pool.query("UPDATE role_membership SET role='support' WHERE user_id=$1",[admin.userId]);await expect(commerce.bulkEdit(admin,input)).rejects.toMatchObject({code:"FORBIDDEN"});
     const saved=(await pool.query("SELECT result FROM bulk_operation WHERE actor_id=$1 AND operation_key=$2",[admin.userId,input.operationKey])).rows[0].result;expect(saved).toEqual(committed);
@@ -48,7 +49,7 @@ describe.skipIf(!enabled)("PostgreSQL committed bulk fresh proof",()=>{
       expect(waiting).toBe(true);
       const remaining=(await blocker.query<{seconds:string}>("SELECT greatest(0,extract(epoch FROM factor_verified_at+interval '5 minutes'-clock_timestamp()))::text AS seconds FROM admin_grant WHERE session_id=$1",[admin.sessionId])).rows[0]!.seconds;
       await blocker.query("SELECT pg_sleep($1)",[Number(remaining)+0.1]);await blocker.query("COMMIT");
-      expect((await pending).error).toMatchObject({code:"FORBIDDEN"});expect((await commerce.getProduct(product.id,admin)).version).toBe(product.version);
+      expect((await pending).error).toMatchObject({code:"MFA_REQUIRED"});expect((await commerce.getProduct(product.id,admin)).version).toBe(product.version);
       expect((await pool.query("SELECT id FROM bulk_operation WHERE actor_id=$1 AND operation_key=$2",[admin.userId,input.operationKey])).rows).toHaveLength(0);expect((await pool.query("SELECT on_hand FROM inventory_balance WHERE variant_id=$1",[product.variants[0]!.id])).rows[0].on_hand).toBe(5);
     }finally{await blocker.query("ROLLBACK");blocker.release();await pending;}
   });
@@ -61,7 +62,7 @@ describe.skipIf(!enabled)("PostgreSQL committed bulk fresh proof",()=>{
       while(Date.now()<deadline && !done){const rows=(await pool.query("SELECT pid FROM pg_stat_activity WHERE application_name=$1 AND wait_event_type='Lock' AND query LIKE 'SELECT role FROM role_membership%FOR SHARE'",[applicationName])).rows;if(rows.length){waiting=true;break;}}
       expect(waiting).toBe(true);
       const remaining=(await blocker.query<{seconds:string}>("SELECT greatest(0,extract(epoch FROM factor_verified_at+interval '5 minutes'-clock_timestamp()))::text AS seconds FROM admin_grant WHERE session_id=$1",[admin.sessionId])).rows[0]!.seconds;
-      await blocker.query("SELECT pg_sleep($1)",[Number(remaining)+0.1]);await blocker.query("COMMIT");expect((await pending).error).toMatchObject({code:"FORBIDDEN"});
+      await blocker.query("SELECT pg_sleep($1)",[Number(remaining)+0.1]);await blocker.query("COMMIT");expect((await pending).error).toMatchObject({code:"MFA_REQUIRED"});
       expect((await pool.query("SELECT result FROM bulk_operation WHERE actor_id=$1 AND operation_key=$2",[admin.userId,input.operationKey])).rows[0].result).toEqual(committed);
       expect((await pool.query("SELECT on_hand FROM inventory_balance WHERE variant_id=$1",[product.variants[0]!.id])).rows[0].on_hand).toBe(6);
       await pool.query("UPDATE admin_grant SET factor_verified_at=clock_timestamp() WHERE session_id=$1",[admin.sessionId]);expect(await commerce.bulkEdit(admin,input)).toEqual(committed);

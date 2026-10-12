@@ -92,6 +92,7 @@ hr { border: 0; border-block-start: 1px solid var(--color-border-subtle); margin
 .catalog-price-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .catalog-price-fields label { font-size: 14px; }
 .catalog-price-fields input { margin-block-start: 0; }
+.collection-description { white-space: pre-line; }
 @media (max-width: 479px) { .catalog-price-fields { grid-template-columns: 1fr; } }
 .checkbox-row { display: flex; align-items: center; gap: 12px; min-height: 48px; font-weight: 400; }
 .checkbox-row input { margin: 0; }
@@ -243,3 +244,25 @@ thead { background: var(--color-canvas); }
 @media (max-width: 479px) { .menu-button { display: none; } .compact-nav { display: flex; align-items: center; justify-content: space-between; margin-inline: 16px; border-block-start: 1px solid var(--color-border-subtle); font-size: 14px; } .compact-nav .text-button { color: var(--color-ink); text-decoration: none; } .compact-nav svg { width: 18px; height: 18px; } .compact-nav > a { min-height: 44px; display: inline-flex; align-items: center; } }
 
 .bulk-input { min-inline-size: 120px; }
+.plain-copy { white-space: pre-wrap; }
+.desktop-nav { min-inline-size: 0; overflow-x: auto; flex: 1; }
+.desktop-nav a { flex: none; max-inline-size: 240px; overflow-wrap: anywhere; }
+.header-actions, .site-header .brand { flex: none; }
+.store-banner, .maintenance-banner { padding: 20px var(--gutter); border-block-end: 1px solid var(--color-border-subtle); text-align: center; }
+.store-banner { background: var(--color-surface); }
+.store-banner p { margin-block-end: 8px; }
+.store-banner a { display: inline-flex; align-items: center; min-block-size: 44px; text-decoration: underline; }
+.maintenance-banner { background: var(--color-canvas); }
+.maintenance-banner h2 { font-size: 18px; }
+.maintenance-banner p { max-inline-size: 760px; margin-inline: auto; }
+.store-services { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 40px; }
+.store-services article { border-block-start: 1px solid var(--color-border-subtle); padding-block: 24px; }
+.store-services h3 { font-size: 20px; }
+.presentation-editor .field { margin-block-end: 20px; }
+.presentation-editor > fieldset { min-inline-size: 0; }
+.presentation-row { margin-block: 24px; padding-block: 20px; border-block-end: 1px solid var(--color-border-subtle); min-inline-size: 0; }
+.presentation-link { min-inline-size: 0; padding-block: 12px; }
+.presentation-row .actions { margin-block: 12px; }
+.presentation-editor .selection-list li { flex-wrap: wrap; }
+.presentation-editor .selection-list li > span { flex: 1; min-inline-size: 100px; }
+@media (max-width: 767px) { .store-services { grid-template-columns: minmax(0, 1fr); gap: 0; } .store-banner, .maintenance-banner { padding-inline: 16px; } }

@@ -1,0 +1,36 @@
+{
+  "startedAt": "2026-10-12T17:39:21.685Z",
+  "durationMs": 12595,
+  "runtimeBuild": "89652",
+  "runtimeSession": "36884",
+  "status": "passed",
+  "scope": "separate native-admin synthetic draft fixtures plus decoded readonly catalog; not another full purchase run",
+  "results": [
+    {
+      "engine": "chromium",
+      "version": "154.0.8037.93",
+      "draftHttpStatus": 200,
+      "persistedNameReady": true,
+      "publishControlReady": true,
+      "authenticationFieldsAbsent": true,
+      "draftImageDecoded": true,
+      "publicHttpStatus": 200,
+      "catalogImagesDecoded": 2,
+      "publicApiScope": "controlled readonly responses",
+      "checkoutCustomerPaymentCreated": false
+    },
+    {
+      "engine": "webkit",
+      "version": "27.2",
+      "draftHttpStatus": 200,
+      "persistedNameReady": true,
+      "publishControlReady": true,
+      "authenticationFieldsAbsent": true,
+      "draftImageDecoded": true,
+      "publicHttpStatus": 200,
+      "catalogImagesDecoded": 2,
+      "publicApiScope": "controlled readonly responses",
+      "checkoutCustomerPaymentCreated": false
+    }
+  ]
+}

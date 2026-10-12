@@ -3,15 +3,17 @@ import { config } from "dotenv";
 import pg from "pg";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import type { Actor, CheckoutInput, QuoteDto } from "../../../src/contracts/commerce";
-import { createCommerce, type CommerceQueryable, type CommerceShippingPolicy } from "../../../src/server/commerce/service";
+import { createCommerce, type Commerce, type CommerceQueryable, type CommerceShippingPolicy } from "../../../src/server/commerce/service";
 import { MockPaymentProvider } from "../../../src/server/payments/mock";
+import { createIsolatedDatabase } from "./isolated-database";
 
 config({path:".env.local",quiet:true});
 const databaseUrl=process.env.TEST_DATABASE_URL ?? process.env.DATABASE_URL;
-const enabled=!!databaseUrl && ["test","staging"].includes(process.env.DEPLOYMENT_ENV ?? "");
+const migrationUrl=process.env.TEST_MIGRATION_DATABASE_URL ?? process.env.MIGRATION_DATABASE_URL;
+const enabled=!!databaseUrl && !!migrationUrl && ["test","staging"].includes(process.env.DEPLOYMENT_ENV ?? "");
 describe.skipIf(!enabled)("PostgreSQL fresh shipping consent",()=>{
-  const pool=new pg.Pool({connectionString:databaseUrl,max:4}),key=`TEST-shipping-${randomUUID()}`;
-  const mock=new MockPaymentProvider(pool,"test","http://127.0.0.1:3000");
+  const key=`TEST-shipping-${randomUUID()}`;
+  let isolated:Awaited<ReturnType<typeof createIsolatedDatabase>>,pool:pg.Pool,mock:MockPaymentProvider,commerce:Commerce;
   const users:string[]=[],productIds:string[]=[],couponCodes:string[]=[];
   let admin:Actor,customer:Actor,variantId:string,unavailable=false;
   let readerGate:(()=>Promise<void>)|undefined;
@@ -23,7 +25,6 @@ describe.skipIf(!enabled)("PostgreSQL fresh shipping consent",()=>{
     if(readerGate)await readerGate();
     return {shippingFeeIrr:BigInt(row?.value.fee ?? "0"),freeShippingThresholdIrr:row?.value.threshold ? BigInt(row.value.threshold) : undefined,policyVersion:row ? `TEST-shipping-v${row.version}` : "TEST-default-policy"};
   }
-  const commerce=createCommerce({pool,payments:mock,deploymentEnv:"test",appBaseUrl:"http://127.0.0.1:3000",readShippingPolicy:reader});
   async function actor(kind:Actor["kind"]){
     const userId=randomUUID(),sessionId=randomUUID();users.push(userId);
     await pool.query('INSERT INTO "user"(id,name,email,email_verified,phone_number,phone_number_verified) VALUES($1,\'TEST shipping fixture\',$2,true,$3,true)',[userId,`${userId}@fixture.invalid`,`+989${String(randomInt(0,1_000_000_000)).padStart(9,"0")}`]);
@@ -41,16 +42,13 @@ describe.skipIf(!enabled)("PostgreSQL fresh shipping consent",()=>{
   }
   function input(c:{cartId:string;cartVersion:number},quote:QuoteDto):CheckoutInput{return {...c,address,shippingMethodId:"standard",quoteFingerprint:quote.fingerprint,policyVersion:quote.policyVersion};}
   beforeAll(async()=>{
+    isolated=await createIsolatedDatabase(databaseUrl!,migrationUrl!);pool=isolated.pool;mock=new MockPaymentProvider(pool,"test","http://127.0.0.1:3000");commerce=createCommerce({pool,payments:mock,deploymentEnv:"test",appBaseUrl:"http://127.0.0.1:3000",readShippingPolicy:reader});
     admin=await actor("admin");const suffix=randomUUID();
     const product=await commerce.createProduct(admin,{name:`TEST shipping ${suffix}`,slug:`test-shipping-${suffix}`,description:"TEST shipping consent fixture",family:"TEST",concentration:"TEST",topNotes:[],heartNotes:[],baseNotes:[],imageUrl:"/assets/sample-perfume.svg",variants:[{sku:`TEST-SHIP-${suffix}`,volumeMl:50,priceToman:"1003",initialStock:50}]});productIds.push(product.id);
     await commerce.publishProduct(admin,product.id,product.version);variantId=product.variants[0]!.id;
-  });
+  },60000);
   beforeEach(async()=>{readerGate=undefined;unavailable=false;customer=await actor("customer");await pool.query("DELETE FROM store_setting WHERE key=$1",[key]);});
-  afterAll(async()=>{
-    await pool.query("DELETE FROM store_setting WHERE key=$1",[key]);await pool.query("UPDATE product SET status='archived' WHERE id=ANY($1::uuid[])",[productIds]);
-    await pool.query("UPDATE coupon SET active=false WHERE code=ANY($1::text[])",[couponCodes]);await pool.query('UPDATE "user" SET disabled=true WHERE id=ANY($1::text[])',[users]);
-    await pool.query("DELETE FROM admin_grant WHERE session_id IN (SELECT id FROM session WHERE user_id=ANY($1::text[]))",[users]);await pool.end();
-  });
+  afterAll(async()=>{if(isolated)await isolated.close();});
   it("rejects a changed fee before effects and preserves accepted order/idempotent amounts",async()=>{
     await write("200");const c=await cart(),old=await commerce.quoteCheckout(customer,c.guestToken,c.cartId);expect(old.shipping.amountIrr).toBe("200");
     await write("300");const operationKey=randomUUID();await expect(commerce.createCheckout(customer,c.guestToken,input(c,old),operationKey)).rejects.toMatchObject({code:"PRICE_CHANGED"});

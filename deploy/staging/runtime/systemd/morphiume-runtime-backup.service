@@ -1,0 +1,23 @@
+[Unit]
+Description=Morphiume fresh staging runtime encrypted local logical backup
+After=docker.service
+Requires=docker.service
+ConditionPathExists=/etc/morphiume-staging-runtime/schedule-approved.json
+
+[Service]
+Type=oneshot
+WorkingDirectory=/etc/morphiume-staging-runtime
+EnvironmentFile=/etc/morphiume-staging-runtime/deploy.env
+ExecStart=/usr/bin/python3 ${MORPHIUME_OPS_ROOT}/runtime/scheduled.py backup --apply
+TimeoutStartSec=20min
+User=root
+UMask=0077
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=strict
+ReadWritePaths=/srv/morphiume/staging/runtime/backups /srv/morphiume/staging/deploy.lock
+MemoryMax=512M
+CPUQuota=50%
+StandardOutput=journal
+StandardError=journal

@@ -38,9 +38,23 @@ function safeMetadataStatuses(annotations = []) {
   }
   return statuses;
 }
+function safeAdminReadiness(annotations = []) {
+  const statuses = [];
+  for (const annotation of annotations) {
+    if (annotation.type !== "admin-readiness-status") continue;
+    let item;
+    try { item = JSON.parse(annotation.description); } catch { continue; }
+    if (!item || typeof item !== "object" || Array.isArray(item)) continue;
+    if (!["admin-home", "admin-products-new"].includes(item.expectedAlias) || !["admin-home", "admin-products-new", "admin-login", "other"].includes(item.actualAlias)) continue;
+    if (!(item.documentHttpStatus === null || Number.isInteger(item.documentHttpStatus) && item.documentHttpStatus >= 100 && item.documentHttpStatus <= 599) || !Number.isInteger(item.sessionHttpStatus) || item.sessionHttpStatus < 100 || item.sessionHttpStatus > 599) continue;
+    if (typeof item.mfaVerified !== "boolean" || typeof item.roleAllowed !== "boolean" || !(item.formPresent === null || typeof item.formPresent === "boolean") || !["observed", "ready", "failed"].includes(item.readiness)) continue;
+    statuses.push({ expectedAlias: item.expectedAlias, actualAlias: item.actualAlias, documentHttpStatus: item.documentHttpStatus, sessionHttpStatus: item.sessionHttpStatus, mfaVerified: item.mfaVerified, roleAllowed: item.roleAllowed, formPresent: item.formPresent, readiness: item.readiness });
+  }
+  return statuses;
+}
 function walk(suite) {
   for (const spec of suite.specs ?? []) for (const test of spec.tests ?? []) for (const result of test.results ?? []) {
-    tests.push({ title: spec.title, project: test.projectName, status: result.status, durationMs: result.duration, retry: result.retry, errorCount: result.errors?.length ?? 0, nativeAuthStatuses: safeAuthStatuses(test.annotations), publicMetadataStatuses: safeMetadataStatuses(test.annotations) });
+    tests.push({ title: spec.title, project: test.projectName, status: result.status, durationMs: result.duration, retry: result.retry, errorCount: result.errors?.length ?? 0, nativeAuthStatuses: safeAuthStatuses(test.annotations), publicMetadataStatuses: safeMetadataStatuses(test.annotations), adminReadiness: safeAdminReadiness(test.annotations) });
   }
   for (const child of suite.suites ?? []) walk(child);
 }

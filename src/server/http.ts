@@ -4,6 +4,7 @@ import { CommerceError } from "../contracts/commerce";
 import { ZodError } from "zod";
 import { getConfig } from "./config";
 import { validationMessage } from "../lib/fa-copy/validation";
+import { finishRequest, withRequestContext } from "./observability";
 
 export function success(data: unknown, status = 200) {
   return NextResponse.json({ data }, { status, headers: { "Cache-Control": "private, no-store, max-age=0" } });
@@ -30,17 +31,31 @@ export async function boundedBody(request: Request, limit: number): Promise<Uint
   return result;
 }
 
+export async function boundedAuthRequest(request: NextRequest, transform?: (data: Record<string, unknown>) => Record<string, unknown>): Promise<NextRequest> {
+  const bytes = await boundedBody(request, 128000);
+  let payload: BodyInit = new Uint8Array(bytes).buffer;
+  if (transform) {
+    const parsed: unknown = JSON.parse(new TextDecoder().decode(bytes));
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new CommerceError("VALIDATION", "قالب درخواست معتبر نیست.");
+    payload = JSON.stringify(transform(parsed as Record<string, unknown>));
+  }
+  const headers = new Headers(request.headers);
+  headers.delete("Content-Length");
+  return new NextRequest(request.url, { method: request.method, headers, body: payload, signal: request.signal });
+}
+
 export function api(handler: (request: NextRequest) => Promise<Response>, mutation = false) {
   return async (request: NextRequest): Promise<Response> => {
+    return withRequestContext(request, async () => {
     try {
       if (mutation) assertSameOrigin(request);
-      return await handler(request);
+      return finishRequest(await handler(request));
     } catch (error) {
-      if (error instanceof SyntaxError) return NextResponse.json({ error: { code: "VALIDATION", message: "قالب درخواست معتبر نیست." } }, { status: 400, headers: { "Cache-Control": "no-store" } });
-      if (error instanceof CommerceError) return NextResponse.json({ error: { code: error.code, message: error.message } }, { status: error.status, headers: { "Cache-Control": "no-store" } });
-      if (error instanceof ZodError) return NextResponse.json({ error: { code: "VALIDATION", message: "اطلاعات فرم را بررسی کنید.", fields: error.issues.map((issue) => ({ path: issue.path.join("."), message: validationMessage(issue) })) } }, { status: 400, headers: { "Cache-Control": "no-store" } });
-      console.error(JSON.stringify({ event: "request_failed", kind: error instanceof Error ? error.name : "unknown" }));
-      return NextResponse.json({ error: { code: "INTERNAL", message: "درخواست انجام نشد. دوباره تلاش کنید." } }, { status: 500, headers: { "Cache-Control": "no-store" } });
+      if (error instanceof SyntaxError) return finishRequest(NextResponse.json({ error: { code: "VALIDATION", message: "قالب درخواست معتبر نیست." } }, { status: 400, headers: { "Cache-Control": "no-store" } }), "VALIDATION");
+      if (error instanceof CommerceError) return finishRequest(NextResponse.json({ error: { code: error.code, message: error.message } }, { status: error.status, headers: { "Cache-Control": "no-store" } }), error.code);
+      if (error instanceof ZodError) return finishRequest(NextResponse.json({ error: { code: "VALIDATION", message: "اطلاعات فرم را بررسی کنید.", fields: error.issues.map((issue) => ({ path: issue.path.join("."), message: validationMessage(issue) })) } }, { status: 400, headers: { "Cache-Control": "no-store" } }), "VALIDATION");
+      return finishRequest(NextResponse.json({ error: { code: "INTERNAL", message: "درخواست انجام نشد. دوباره تلاش کنید." } }, { status: 500, headers: { "Cache-Control": "no-store" } }), "INTERNAL");
     }
+    });
   };
 }

@@ -1,0 +1,12 @@
+[Unit]
+Description=Evaluate Morphiume fresh staging runtime health every minute
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=60s
+RandomizedDelaySec=5s
+AccuracySec=1s
+Unit=morphiume-runtime-health.service
+
+[Install]
+WantedBy=timers.target

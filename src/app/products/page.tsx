@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import { Catalog } from "@/components/catalog";
 import { getCommerce } from "@/server/runtime";
 import { catalogInput, pageQuery } from "@/components/catalog-query";
@@ -12,5 +13,5 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
   const input = catalogInput(query);
   try { data = await getCommerce().listProductsPage(input); }
   catch (failure) { if (failure instanceof CommerceError && failure.code === "VALIDATION") error = failure.message; else throw failure; }
-  return <main id="main" className="page"><div className="page-heading"><p className="eyebrow">کاتالوگ <bdi>Morphiume</bdi></p><h1>عطرها</h1><p className="muted">با رایحه، حجم و قیمت انتخاب کنید.</p></div><Suspense fallback={<p>در حال دریافت عطرها…</p>}><Catalog initialPage={data} initialError={error} initialQuery={pageQuery(input)} /></Suspense></main>;
+  return <main id="main" className="page"><div className="page-heading"><p className="eyebrow">کاتالوگ <bdi>Morphiume</bdi></p><h1>عطرها</h1><p className="muted">با رایحه، حجم و قیمت انتخاب کنید.</p><Link href="/collections" className="text-link">مشاهدهٔ مجموعه‌ها</Link></div><Suspense fallback={<p>در حال دریافت عطرها…</p>}><Catalog initialPage={data} initialError={error} initialQuery={pageQuery(input)} /></Suspense></main>;
 }

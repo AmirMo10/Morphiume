@@ -4,15 +4,16 @@ import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { Actor } from "../../../src/contracts/commerce";
 import { normalizeSearch } from "../../../src/lib/persian";
-import { createCommerce } from "../../../src/server/commerce/service";
+import { createCommerce, type Commerce } from "../../../src/server/commerce/service";
 import { MockPaymentProvider } from "../../../src/server/payments/mock";
+import { createIsolatedDatabase } from "./isolated-database";
 
 config({path:".env.local",quiet:true});
 const databaseUrl=process.env.TEST_DATABASE_URL ?? process.env.DATABASE_URL;
-const enabled=!!databaseUrl && ["test","staging"].includes(process.env.DEPLOYMENT_ENV ?? "");
+const migrationUrl=process.env.TEST_MIGRATION_DATABASE_URL ?? process.env.MIGRATION_DATABASE_URL;
+const enabled=!!databaseUrl && !!migrationUrl && ["test","staging"].includes(process.env.DEPLOYMENT_ENV ?? "");
 describe.skipIf(!enabled)("PostgreSQL bounded pagination",()=>{
-  const pool=new pg.Pool({connectionString:databaseUrl,max:3});
-  const commerce=createCommerce({pool,payments:new MockPaymentProvider(pool,"test","http://127.0.0.1:3000"),deploymentEnv:"test",appBaseUrl:"http://127.0.0.1:3000"});
+  let isolated:Awaited<ReturnType<typeof createIsolatedDatabase>>,pool:pg.Pool,commerce:Commerce;
   const prefix=`TESTPAGE-${randomUUID().slice(0,8)}`,outside=`TESTFACET-${randomUUID().slice(0,8)}`;
   const users:string[]=[],products:string[]=[],orders:string[]=[];
   const productRows=Array.from({length:323},(_,i)=>({id:randomUUID(),name:`${prefix}-${String(i).padStart(3,"0")}`,slug:`${prefix.toLowerCase()}-${i}`,status:i<320 ? "published" : i<322 ? "draft" : "archived",family:`${prefix}-family`,concentration:`${prefix}-concentration`}));
@@ -21,14 +22,16 @@ describe.skipIf(!enabled)("PostgreSQL bounded pagination",()=>{
   let admin:Actor,customer:Actor,other:Actor;
   let afterCatalogCount:(()=>Promise<void>)|undefined;
   const observed:string[]=[];
-  pool.on("connect",(client)=>{
+  const wrapped=new WeakSet<pg.PoolClient>();
+  function observe(client:pg.PoolClient){
+    if(wrapped.has(client))return;wrapped.add(client);
     const original=client.query.bind(client);
     client.query=new Proxy(original,{apply(target,thisArg,args){
       const sql=String(args[0]);observed.push(sql);const result=Reflect.apply(target,thisArg,args);
       if(afterCatalogCount && sql.startsWith("SELECT count(*)::text AS count FROM product p")){const hook=afterCatalogCount;afterCatalogCount=undefined;return (result as Promise<unknown>).then(async(value)=>{await hook();return value;});}
       return result;
     }}) as typeof client.query;
-  });
+  }
   async function actor(kind:Actor["kind"]){
     const userId=randomUUID(),sessionId=randomUUID();users.push(userId);
     await pool.query('INSERT INTO "user"(id,name,email,email_verified,phone_number,phone_number_verified) VALUES($1,\'TEST pagination fixture\',$2,true,$3,true)',[userId,`${userId}@fixture.invalid`,`+989${String(randomInt(0,1_000_000_000)).padStart(9,"0")}`]);
@@ -37,6 +40,7 @@ describe.skipIf(!enabled)("PostgreSQL bounded pagination",()=>{
     return {userId,sessionId,kind};
   }
   beforeAll(async()=>{
+    isolated=await createIsolatedDatabase(databaseUrl!,migrationUrl!);pool=isolated.pool;pool.on("acquire",observe);commerce=createCommerce({pool,payments:new MockPaymentProvider(pool,"test","http://127.0.0.1:3000"),deploymentEnv:"test",appBaseUrl:"http://127.0.0.1:3000"});
     admin=await actor("admin");customer=await actor("customer");other=await actor("customer");
     const allProducts=[...productRows,facetProduct];products.push(...allProducts.map((p)=>p.id));
     await pool.query("INSERT INTO product(id,name,slug,status,family,concentration,description,search_key,created_at) SELECT id,name,slug,status,family,concentration,'TEST synthetic paging fixture',search_key,'2020-01-01T00:00:00Z' FROM jsonb_to_recordset($1::jsonb) AS x(id uuid,name text,slug text,status text,family text,concentration text,search_key text)",[JSON.stringify(allProducts.map((p)=>({...p,search_key:normalizeSearch(p.name)})))]);
@@ -50,13 +54,8 @@ describe.skipIf(!enabled)("PostgreSQL bounded pagination",()=>{
     await pool.query("INSERT INTO order_item(id,order_id,variant_id,name,sku,volume_ml,quantity,unit_price_irr,line_total_irr) SELECT gen_random_uuid(),unnest($1::uuid[]),$2,'TEST snapshot','TEST-SNAPSHOT',50,1,1000,1000",[orders,variants[0]!.id]);
     await pool.query("INSERT INTO order_event(id,order_id,event_key,type) SELECT gen_random_uuid(),id,id::text || ':paging','TEST.created' FROM orders WHERE id=ANY($1::uuid[])",[orders]);
     await pool.query("INSERT INTO shipment(id,order_id,status,carrier,tracking_code) SELECT gen_random_uuid(),id,'shipped','TEST carrier','TEST tracking' FROM orders WHERE id=ANY($1::uuid[]) AND status='confirmed'",[orders]);
-  });
-  afterAll(async()=>{
-    // Synthetic rows have no attempts/receipts/reservations; retain their clearly marked history.
-    await pool.query("UPDATE product SET status='archived' WHERE id=ANY($1::uuid[])",[products]);
-    await pool.query('UPDATE "user" SET disabled=true WHERE id=ANY($1::text[])',[users]);
-    await pool.query("DELETE FROM admin_grant WHERE session_id IN (SELECT id FROM session WHERE user_id=ANY($1::text[]))",[users]);await pool.end();
-  });
+  },60000);
+  afterAll(async()=>{if(isolated)await isolated.close();});
   it("traverses more than 300 published products deterministically without truncation",async()=>{
     const ids:string[]=[];
     for(let page=1;page<=4;page++){const result=await commerce.listProductsPage({search:prefix,page,pageSize:100});expect(result.totalItems).toBe(320);expect(result.totalPages).toBe(4);expect(result.page).toBe(page);expect(result.pageSize).toBe(100);ids.push(...result.items.map((p)=>p.id));}

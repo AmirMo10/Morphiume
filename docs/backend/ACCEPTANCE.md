@@ -14,5 +14,9 @@ Planned coverage, not a test result. See actual executed evidence in the coordin
 | T15/T27/T28 | Concurrent refund budget; concurrent last coupon; stale product version conflict |
 | T17/T18/T19/T20 | Media, cache, SMS resilience and UI checks owned by respective specialists; backend private DTOs remain uncached |
 | T21/T22/T24/T29 | Product workflow; separate restore/payment reconciliation; live mock/seed rejection; owned state-guarded return requests |
+| SEO section21 / T28 | Transactional current/historical product and collection slug claims; concurrent collision/stale rollback; canonical one-hop public resolution; withdrawn target hidden; paged consistent collection data and bounded sitemap |
+| T04/T06/T15/T29/T30 | Explicit confirmed-non-transfer manual decision; actor/key/refund-bound terminal replay; stale/disabled/revoked or post-lock-expired finance proof denied; unknown transfer never inferred failed; released budget remains serialized |
+| T06/T16/T25/T29/T30 | Transactional checkout pause preserves durable replay/pre-pause work; kind-aware full-order requests and immutable actor/effect decisions; one physical return/restoration; post-lock reviewer denial; repeated distinct late receipts never revive an approved cancellation |
+| Operational correlation | Optional sanitized job started/completed/retry/dead observer; failing/unavailable sink cannot change durable worker outcome; no raw payload/key/error/provider/contact/amount emitted |
 
 No test load against Zarinpal or SMS services is authorized by this matrix. Use local controlled provider state and isolated PostgreSQL.

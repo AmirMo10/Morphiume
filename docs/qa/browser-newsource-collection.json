@@ -1,0 +1,125 @@
+{
+  "generatedAt": "2026-10-12T17:14:27.206Z",
+  "startedAt": "2026-10-12T17:13:16.469Z",
+  "durationMs": 27670.067000000003,
+  "expected": 2,
+  "unexpected": 0,
+  "skipped": 0,
+  "flaky": 0,
+  "tests": [
+    {
+      "title": "T05/T09/T20: collection SSR without JavaScript preserves paging/filter identity and real308/404",
+      "project": "chromium",
+      "status": "passed",
+      "durationMs": 11270,
+      "retry": 0,
+      "errorCount": 0,
+      "nativeAuthStatuses": [
+        {
+          "stage": "password-sign-in",
+          "category": "admin-sign-in-email",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "mfa-enable",
+          "category": "admin-two-factor-enable",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-enrollment",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        }
+      ],
+      "publicMetadataStatuses": [],
+      "adminReadiness": [
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "observed"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "ready"
+        }
+      ]
+    },
+    {
+      "title": "T05/T09/T20: collection SSR without JavaScript preserves paging/filter identity and real308/404",
+      "project": "webkit",
+      "status": "passed",
+      "durationMs": 13626,
+      "retry": 0,
+      "errorCount": 0,
+      "nativeAuthStatuses": [
+        {
+          "stage": "password-sign-in",
+          "category": "admin-sign-in-email",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "mfa-enable",
+          "category": "admin-two-factor-enable",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        },
+        {
+          "stage": "totp-enrollment",
+          "category": "admin-two-factor-verify-totp",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "retryAfterHeader": "absent"
+        }
+      ],
+      "publicMetadataStatuses": [],
+      "adminReadiness": [
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-login",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "observed"
+        },
+        {
+          "expectedAlias": "admin-home",
+          "actualAlias": "admin-home",
+          "documentHttpStatus": null,
+          "sessionHttpStatus": 200,
+          "mfaVerified": true,
+          "roleAllowed": true,
+          "formPresent": null,
+          "readiness": "ready"
+        }
+      ]
+    }
+  ]
+}

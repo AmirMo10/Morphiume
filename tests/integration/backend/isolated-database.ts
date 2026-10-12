@@ -68,7 +68,7 @@ export async function createIsolatedDatabase(databaseUrl:string,migrationUrl:str
     if(resolved.length!==7 || resolved.some((row)=>row.nspname!==schema))throw new Error("Runtime fixture table resolution escaped its generated schema");
     const privileges=(await pool.query<{role:string;schema:string;superuser:boolean;createdb:boolean;createrole:boolean;create_schema:boolean}>("SELECT current_user AS role,current_schema() AS schema,rolsuper AS superuser,rolcreatedb AS createdb,rolcreaterole AS createrole,has_schema_privilege(current_user,$1,'CREATE') AS create_schema FROM pg_roles WHERE rolname=current_user",[schema])).rows[0]!;
     if(privileges.role!==role || privileges.schema!==schema || privileges.superuser || privileges.createdb || privileges.createrole || privileges.create_schema)throw new Error("Fixture runtime must resolve its schema with DML-only privileges");
-    return {pool,schema,async close(){
+    return {pool,schema,migrationUrl:scopedUrl(migrationUrl,schema),async close(){
       try{
         await pool!.end();
         try{const publicAfter=await publicSweepState();if(publicAfter.jobs!==publicBefore.jobs || publicAfter.reservations!==publicBefore.reservations)throw new Error("Public queue/reservation state changed during isolated fixture suite");}

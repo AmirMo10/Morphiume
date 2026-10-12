@@ -1,0 +1,33 @@
+import Link from "next/link";
+import type { CollectionDetailPageDto, CollectionProductsPageInput, CollectionSummaryDto, PageDto } from "@/contracts/commerce";
+import { ProductTile } from "./catalog";
+import { Empty, Notice } from "./commerce-client";
+import { catalogPriceRange, pageHref } from "./catalog-query";
+import { collectionQuery } from "./collection-query";
+import { faNumber } from "./number-format";
+import { Pagination } from "./pagination";
+
+export function CollectionIndex({ data, search = "" }: { data: PageDto<CollectionSummaryDto>; search?: string }) {
+  const query = collectionQuery({ page: data.page, pageSize: data.pageSize, search });
+  return <><h1>مجموعه‌ها</h1><form className="toolbar" action="/collections" method="get"><label>جست‌وجوی مجموعه<input type="search" name="search" maxLength={120} defaultValue={search} /></label>{data.pageSize !== 24 && <input type="hidden" name="pageSize" value={data.pageSize} />}<button className="secondary">جست‌وجو</button>{search && <Link href="/collections" className="text-link">پاک‌کردن جست‌وجو</Link>}</form><p className="small muted" role="status">{faNumber(data.totalItems)} مجموعه</p>{data.items.length ? <div className="collection-list">{data.items.map(collection => <article className="form-section" key={collection.id}><div className="section-heading"><h2><Link href={`/collections/${collection.slug}`}><bdi>{collection.name}</bdi></Link></h2><Link href={`/collections/${collection.slug}`} className="text-link">مشاهدهٔ مجموعه</Link></div>{collection.description && <p className="muted" dir="auto">{collection.description}</p>}<p className="small">{faNumber(collection.productCount)} محصول منتشرشده</p></article>)}</div> : <Empty title={search ? "مجموعه‌ای با این جست‌وجو پیدا نشد." : data.page > 1 ? "این صفحه مجموعه‌ای ندارد." : "هنوز مجموعه‌ای منتشر نشده است."}>{(search || data.page > 1) && <Link href="/collections" className="text-link">بازگشت به فهرست مجموعه‌ها</Link>}</Empty>}<Pagination data={data} href={page => pageHref("/collections", query, page)} label="صفحه‌های مجموعه‌ها" /></>;
+}
+
+export function CollectionCatalog({ detail, input, error }: { detail: CollectionDetailPageDto; input: CollectionProductsPageInput; error?: string }) {
+  const path = `/collections/${detail.canonicalSlug}`, data = detail.products, facets = data.facets;
+  const range = catalogPriceRange(input);
+  const filtered = !!(input.search || input.family || input.concentration || input.note || input.volumeMl || input.available || input.minPriceToman || input.maxPriceToman);
+  const query = collectionQuery(input);
+  return <><form className="catalog-filter" action={path} method="get" noValidate>
+    <label className="search-field">جست‌وجوی عطر در مجموعه<input name="search" type="search" maxLength={120} defaultValue={input.search} /></label><button className="secondary">جست‌وجو</button>
+    {input.pageSize !== 24 && <input type="hidden" name="pageSize" value={input.pageSize} />}
+    <label>خانوادهٔ رایحه<select name="family" defaultValue={input.family ?? ""}><option value="">همه</option>{input.family && !facets.families.includes(input.family) && <option>{input.family}</option>}{facets.families.map(value => <option key={value}>{value}</option>)}</select></label>
+    <label>حجم<select name="volumeMl" defaultValue={input.volumeMl ?? ""}><option value="">همه</option>{input.volumeMl && !facets.volumesMl.includes(input.volumeMl) && <option value={input.volumeMl}>{faNumber(input.volumeMl)} میلی‌لیتر</option>}{facets.volumesMl.map(value => <option key={value} value={value}>{faNumber(value)} میلی‌لیتر</option>)}</select></label>
+    <label>غلظت<select name="concentration" defaultValue={input.concentration ?? ""}><option value="">همه</option>{input.concentration && !facets.concentrations.includes(input.concentration) && <option>{input.concentration}</option>}{facets.concentrations.map(value => <option key={value}>{value}</option>)}</select></label>
+    <label>نت رایحه<select name="note" defaultValue={input.note ?? ""}><option value="">همه</option>{input.note && !facets.notes.includes(input.note) && <option>{input.note}</option>}{facets.notes.map(value => <option key={value}>{value}</option>)}</select></label>
+    <label>مرتب‌سازی<select name="sort" defaultValue={input.sort ?? "position"}><option value="position">ترتیب مجموعه</option><option value="name">نام محصول</option><option value="price_asc">کمترین قیمت</option><option value="price_desc">بیشترین قیمت</option></select></label>
+    <label className="checkbox-row"><input type="checkbox" name="available" value="true" defaultChecked={!!input.available} />فقط موجودها</label>
+    <fieldset className="catalog-price-range"><legend>بازهٔ قیمت (تومان)</legend><div className="catalog-price-fields">{([{ key: "minPriceToman", label: "حداقل قیمت (تومان)" }, { key: "maxPriceToman", label: "حداکثر قیمت (تومان)" }] as const).map(({ key, label }) => <div key={key}><label htmlFor={`collection-${key}`}>{label}</label><input id={`collection-${key}`} name={key} dir="ltr" inputMode="numeric" defaultValue={input[key] ?? ""} aria-invalid={!!range.fields[key]} aria-describedby={range.fields[key] ? `collection-${key}-error` : "collection-price-help"} />{range.fields[key] && <p className="field-error" id={`collection-${key}-error`}>{range.fields[key]}</p>}</div>)}</div><p className="helper" id="collection-price-help">هر حد را می‌توانید خالی بگذارید. برای اعمال انتخاب‌ها، دکمهٔ جست‌وجو را بزنید.</p></fieldset>
+  </form>{data.facetsTruncated && <p className="helper">همهٔ گزینه‌های فیلتر این مجموعه نمایش داده نمی‌شوند. برای یافتن عطر دلخواه، از جست‌وجوی عطر در مجموعه استفاده کنید.</p>}
+    {error ? <Notice error>{error} <Link href={path} className="text-link">پاک‌کردن فیلترها</Link></Notice> : <><div className="result-bar"><p role="status">{faNumber(data.totalItems)} محصول</p>{filtered && <Link href={path} className="text-link">پاک‌کردن فیلترها</Link>}</div>{data.items.length ? <div className="product-grid">{data.items.map(product => <ProductTile key={product.id} product={product} volumeMl={input.volumeMl} inStock={input.available} sort={input.sort} minPriceToman={input.minPriceToman} maxPriceToman={input.maxPriceToman} />)}</div> : <Empty title={filtered ? "محصولی با این انتخاب در مجموعه پیدا نشد." : data.page > 1 ? "این صفحهٔ مجموعه محصولی ندارد." : "در این مجموعه هنوز محصولی برای نمایش وجود ندارد."}><p>جست‌وجو یا صفحهٔ نتایج را تغییر دهید.</p><Link href={path} className="text-link">بازگشت به ابتدای مجموعه</Link></Empty>}<Pagination data={data} href={page => pageHref(path, query, page)} label="صفحه‌های محصولات مجموعه" /></>}
+  </>;
+}

@@ -1,0 +1,11 @@
+import { execFileSync } from "node:child_process";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { resolve } from "node:path";
+const label = process.argv[2];
+if (!label || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(label)) throw new Error("Use a fixed safe report label");
+const workspace = process.cwd(), temporary = resolve(".local/qa-safe-reports", label);
+await mkdir(resolve(temporary, "test-results"), { recursive: true });
+await writeFile(resolve(temporary, "test-results/playwright.json"), await readFile("test-results/playwright.json"));
+execFileSync(process.execPath, [resolve(workspace, "tests/e2e/sanitize-report.mjs")], { cwd: temporary, stdio: "pipe", windowsHide: true });
+await writeFile(`docs/qa/browser-${label}.json`, await readFile(resolve(temporary, "docs/qa/browser-summary.json")));
+console.log("Archived only safe statuses and counts; original current summary preserved.");

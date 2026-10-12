@@ -7,10 +7,13 @@ import pg from "pg";
 import sharp from "sharp";
 import { controlledCustomerOtp, loginAdmin } from "./acceptance-fixtures";
 import { nativeAuthAction } from "./native-auth-actions";
+import { controlledQaDatabase } from "../helpers/qa-target.mjs";
+import { openAdminProductForm } from "./admin-readiness";
+import { readyDraftScreenshot } from "./draft-readiness";
 
 test("T01/T12/T17/T19/T20/T21/T23/T25: real admin product → guest purchase → mock verification → stock → owned tracking", async ({ browser, page, baseURL }, info) => {
-  const target = new URL(process.env.DATABASE_URL!);
-  if (!process.env.MOCK_CONTROL_SECRET || process.env.PAYMENT_PROVIDER !== "mock" || !target.pathname.endsWith("morphiume_staging")) throw new Error("QA refuses unisolated ecommerce fixture configuration");
+  const target = controlledQaDatabase(process.env);
+  if (!process.env.MOCK_CONTROL_SECRET) throw new Error("QA requires private controlled mock credentials");
   const pool = new pg.Pool({ connectionString: target.toString(), max: 2 });
   const fixture = randomUUID(), adminId = randomUUID(), email = `qa-${fixture}@fixture.invalid`, password = `Qa-${randomUUID()}-Password!`;
   const slug = `qa-${fixture}`, productName = `آزمون مستقل Morphiume ${fixture.slice(0, 8)}`;
@@ -49,7 +52,7 @@ test("T01/T12/T17/T19/T20/T21/T23/T25: real admin product → guest purchase →
       const rejected = await page.context().request.post("/api/admin/media", { headers: { Origin: baseURL! }, multipart: { file } });
       expect([400, 413], file.name).toContain(rejected.status());
     }
-    await page.goto("/admin/products/new");
+    await openAdminProductForm(page);
     await page.getByLabel("نام محصول", { exact: true }).fill(productName);
     await page.getByLabel("نامک صفحه", { exact: true }).fill(slug);
     await page.getByLabel("غلظت عطر", { exact: true }).fill("نمونهٔ QA");
@@ -68,6 +71,7 @@ test("T01/T12/T17/T19/T20/T21/T23/T25: real admin product → guest purchase →
     await page.getByRole("button", { name: "ذخیرهٔ تغییرات", exact: true }).click();
     await expect(page).toHaveURL(/\/admin\/products\/[0-9a-f-]+$/);
     productId = page.url().split("/").at(-1)!;
+    await readyDraftScreenshot(page, productName);
     await mkdir("docs/qa/screenshots", { recursive: true });
     await page.screenshot({ path: `docs/qa/screenshots/admin-product-draft-${info.project.name}.png`, fullPage: true });
     await page.getByRole("button", { name: "انتشار محصول", exact: true }).click();

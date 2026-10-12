@@ -16,6 +16,7 @@ export type ProductDto = {
   variants: { id: string; sku: string; volumeMl: number; price: MoneyDto; available: number }[];
 };
 export type ProductResolutionDto = { products: ProductDto[]; unavailableIds: string[] };
+export type ProductRouteDto = { product: ProductDto; canonicalSlug: string; redirect: boolean };
 export type PageDto<T> = { items: T[]; page: number; pageSize: number; totalItems: number; totalPages: number };
 export type ProductPageInput = {
   page?: number; pageSize?: number; search?: string; family?: string; available?: boolean;
@@ -24,6 +25,20 @@ export type ProductPageInput = {
 };
 export type AdminProductPageInput = ProductPageInput & { status?: ProductDto["status"] };
 export type CatalogPageDto = PageDto<ProductDto> & { facets: { families: string[]; concentrations: string[]; volumesMl: number[]; notes: string[] }; facetLimit: number; facetsTruncated: boolean };
+export type CollectionPageInput = { page?: number; pageSize?: number; search?: string };
+export type AdminCollectionPageInput = CollectionPageInput & { published?: boolean };
+export type CollectionSummaryDto = { id: string; name: string; slug: string; description: string; published: boolean; version: number; updatedAt: string; productCount: number };
+export type CollectionProductsPageInput = Omit<ProductPageInput,"sort"> & { sort?: "position" | "name" | "price_asc" | "price_desc" };
+export type CollectionDetailPageDto = { collection: CollectionSummaryDto; canonicalSlug: string; redirect: boolean; products: CatalogPageDto };
+export type AdminCollectionDetailDto = CollectionSummaryDto & { productIds: string[]; members: { id: string; name: string; slug: string; status: ProductDto["status"]; version: number; active: boolean }[] };
+export type CollectionInput = { id?: string; name: string; slug: string; description: string; published: boolean; productIds: string[]; expectedVersion?: number };
+export type SitemapCollectionDto = { id: string; slug: string; updatedAt: string };
+export type ManualRefundFailureInput = { outcome: "confirmed_non_transfer"; reason: string; evidence: string; operationKey: string };
+export type ManualRefundFailureDto = { id: string; status: "failed"; outcome: "confirmed_non_transfer"; reason: string; evidence: string; decidedAt: string };
+export type ReturnKind = "cancel" | "return";
+export type ReturnStatus = "pending" | "approved" | "rejected" | "received" | "closed";
+export type ReturnDecisionInput = { status: Exclude<ReturnStatus,"pending">; reason: string; restock?: boolean };
+export type ReturnDecisionDto = { id: string; status: Exclude<ReturnStatus,"pending"> };
 export type SitemapProductDto = { id: string; slug: string; updatedAt: string };
 export type VariantPageInput = { page?: number; pageSize?: number; search?: string };
 export type VariantDto = {
@@ -72,10 +87,10 @@ export type OrderDto = {
   items: { name: string; sku: string; volumeMl: number; quantity: number; unitPrice: MoneyDto; lineTotal: MoneyDto }[];
   shipment: { status: string; carrier: string | null; trackingCode: string | null; shippedAt: string | null } | null;
   events: { type: string; createdAt: string }[];
-  returns: { id: string; kind: string; reason: string; status: string; createdAt: string }[];
+  returns: { id: string; kind: ReturnKind; reason: string; status: ReturnStatus; createdAt: string }[];
   refunds: { id: string; amount: MoneyDto; status: string; reason: string }[];
 };
-export type DomainErrorCode = "VALIDATION" | "UNAUTHENTICATED" | "FORBIDDEN" | "NOT_FOUND" | "CONFLICT" | "OUT_OF_STOCK" | "PRICE_CHANGED" | "PAYMENT_UNKNOWN" | "NOT_ELIGIBLE" | "CONFIGURATION";
+export type DomainErrorCode = "VALIDATION" | "UNAUTHENTICATED" | "FORBIDDEN" | "MFA_REQUIRED" | "NOT_FOUND" | "CONFLICT" | "OUT_OF_STOCK" | "PRICE_CHANGED" | "PAYMENT_UNKNOWN" | "NOT_ELIGIBLE" | "CONFIGURATION";
 export class CommerceError extends Error {
   constructor(public readonly code: DomainErrorCode, message: string, public readonly status = 400) { super(message); this.name = "CommerceError"; }
 }
