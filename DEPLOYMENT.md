@@ -4,9 +4,9 @@ The Morphiume deployment server is `192.168.240.51` on SSH port `22`.
 
 ## Current status
 
-SSH port 22 is reachable. A dedicated Ed25519 key has been generated locally, but authenticated access has not yet been established. The provisional bootstrap username is `root`.
+SSH public-key authentication was verified as `root` on 2026-10-12. The server hostname is `morphiume`, running Ubuntu 24.04.5 LTS.
 
-A later connection attempt reported a changed server host key. The newly presented Ed25519 fingerprint was `SHA256:8CHT5tdzcOZb0udoponfH65bKCNtmGIIgng/Y+VUuAI`. The original local known-hosts entry has been preserved. Verify the server identity from its console before updating that entry.
+The server's Ed25519 host fingerprint, confirmed through its console, is `SHA256:8CHT5tdzcOZb0udoponfH65bKCNtmGIIgng/Y+VUuAI`. The local known-hosts entry matches this fingerprint, and strict host-key checking is enabled.
 
 ## Deployment key
 
@@ -17,24 +17,26 @@ A later connection attempt reported a changed server host key. The newly present
 
 The private key has no passphrase for unattended deployment and is protected by Windows file permissions. Keep it outside GitHub.
 
-## Finish authentication
+## Connect
 
-Using an existing server login or console, add the public key to the intended SSH user's `~/.ssh/authorized_keys`. For the provisional `root` account, this is `/root/.ssh/authorized_keys`. Preserve any keys already in that file. The SSH directory should have mode `700` and `authorized_keys` mode `600`, owned by that user.
+The deployment public key is authorized for `root`. From this computer, open an SSH session with:
 
-On the server console, check the server's Ed25519 host fingerprint:
-
-```sh
-ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub
+```powershell
+ssh morphiume-deploy
 ```
 
-Compare this trusted result with the presented fingerprint before replacing any local known-hosts entry. Keep strict host-key checking enabled.
-
-Once the key is authorized, test the local SSH alias:
+For a command without an interactive session:
 
 ```powershell
 ssh morphiume-deploy 'id; hostname'
 ```
 
-The alias is configured in `C:\Users\Admin\.ssh\config`. If the server uses another account, update its `User` setting and this document after confirming access.
+The alias is configured in `C:\Users\Admin\.ssh\config` and uses the dedicated deployment key, user `root`, port `22`, and the verified known-hosts file. Password prompts and agent forwarding are disabled.
+
+If the server's host key changes in the future, confirm its fingerprint through the server console before updating the saved host key:
+
+```sh
+ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub
+```
 
 Application deployment commands will be defined when the application and deployment task are specified.
