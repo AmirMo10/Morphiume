@@ -33,15 +33,19 @@ def encrypt_stream(command, output, password=None):
 
 def create_backup(report):
     """Caller holds the release lock and verified release identity; writers are checked here."""
+    proven = c.archived_image(report)
+    c.match_mapping(report, proven)
     c.db_container()
     c.load_configs()
     deployed = json.loads(c.private_file(c.CONFIG / 'deployed-release.json').read_text())
-    if any(deployed.get(key) != report[key] for key in ('sourceCommit', 'testedPlatformConfig', 'opsSha256')):
-        raise ValueError('Backup source differs from the recorded deployed release')
+    c.match_mapping(deployed, proven)
+    profile = c.active_profile(required=True)
+    c.match_mapping(profile, proven)
+    if deployed.get('accessProfileSha256') != c.canonical_hash(profile):
+        raise ValueError('Backup active profile differs from the deployed record')
     ids = c.run(['docker', 'ps', '--all', '--filter', 'label=com.docker.compose.project=' + c.PROJECT, '--format', '{{.ID}}']).splitlines()
     containers = json.loads(c.run(['docker', 'inspect', *ids])) if ids else []
-    if {item['Config']['Labels'].get('com.docker.compose.service') for item in containers} != {'app', 'worker'} or any(item['State']['Running'] or item['Image'] != report['testedPlatformConfig'] for item in containers):
-        raise ValueError('Both runtime app and worker must actually be stopped for the consistent media/DB baseline')
+    c.validate_app_containers(containers, proven, running=False)
     recipient = c.private_file(c.CONFIG / 'backup-recipients.txt')
     c.run(['age', '--version'])
     password = c.private_file(c.CONFIG / 'db_owner_password').read_text()

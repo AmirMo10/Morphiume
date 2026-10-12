@@ -14,11 +14,12 @@ import upgrade as u
 
 def identity(letter):
     return {'sourceCommit': letter * 40, 'testedPlatformConfig': 'sha256:' + letter * 64,
-            'candidateManifestDigest': 'sha256:' + 'c' * 64, 'archiveSha256': 'd' * 64, 'opsSha256': 'e' * 64}
+            'candidateManifestDigest': 'sha256:' + 'c' * 64, 'archiveSha256': 'd' * 64, 'opsSha256': 'e' * 64,
+            'runtimeImageId': 'sha256:' + ('1' if letter == 'a' else '2') * 64, 'engineProofSha256': 'f' * 64}
 
 
 def writers(release):
-    return [{'Image': release['testedPlatformConfig'], 'Config': {'User': '1001:1001', 'Labels': {
+    return [{'Image': release['runtimeImageId'], 'Config': {'User': '1001:1001', 'Labels': {
         'com.docker.compose.service': name, 'org.opencontainers.image.revision': release['sourceCommit']}},
         'State': {'Running': True, 'Health': {'Status': 'healthy'}}} for name in ('app', 'worker')]
 
@@ -70,7 +71,7 @@ class UpgradeSafety(unittest.TestCase):
             old_ops, new_ops = (data / 'releases' / source['sourceCommit'] / 'ops' for source in (self.old, self.new))
             old_ops.mkdir(parents=True); new_ops.mkdir(parents=True)
             (config / 'deployed-release.json').write_text(json.dumps(self.deployed))
-            (config / 'deploy.env').write_text(f"MORPHIUME_IMAGE={self.old['testedPlatformConfig']}\nMORPHIUME_OPS_ROOT={old_ops}\n")
+            (config / 'deploy.env').write_text(f"MORPHIUME_IMAGE={self.old['runtimeImageId']}\nMORPHIUME_OPS_ROOT={old_ops}\n")
             if partial: (config / 'upgrading.json').write_text('{}')
             directory = data / 'backups' / '20261012T000000Z-abcdef12'; directory.mkdir(parents=True)
             manifest = self.manifest | ({'sourceCommit': self.new['sourceCommit']} if backup_failure else {})
@@ -88,7 +89,7 @@ class UpgradeSafety(unittest.TestCase):
                 if 'stop' in arguments: events.append('stop-new' if environment.name == 'deploy.candidate.env' else 'stop-old')
                 if arguments[-1] in ('check-owner', 'check-app', 'migrate'):
                     self.assertEqual(environment.name, 'deploy.candidate.env')
-                    self.assertIn(self.new['testedPlatformConfig'], environment.read_text())
+                    self.assertIn(self.new['runtimeImageId'], environment.read_text())
                     events.append(arguments[-1])
                 if 'up' in arguments:
                     state['candidateStarted'] = True; events.append('start-new')
@@ -151,7 +152,8 @@ class UpgradeSafety(unittest.TestCase):
             base = Path(location).resolve(); root = base / 'runtime'; config = base / 'config'
             (root / 'backups').mkdir(parents=True); (root / 'media').mkdir(); config.mkdir()
             (root / 'media' / 'media.webp').write_bytes(b'abc')
-            (config / 'deployed-release.json').write_text(json.dumps(self.deployed))
+            synthetic_profile = self.old | {'profile': 'ssh-localhost'}
+            (config / 'deployed-release.json').write_text(json.dumps(self.deployed | {'accessProfileSha256': c.canonical_hash(synthetic_profile)}))
             (config / 'db_owner_password').write_text('e' * 64)
             stopped = writers(self.old)
             for item in stopped: item['State']['Running'] = False
@@ -171,6 +173,8 @@ class UpgradeSafety(unittest.TestCase):
             with ExitStack() as stack:
                 stack.enter_context(patch.object(c, 'ROOT', root)); stack.enter_context(patch.object(c, 'CONFIG', config))
                 stack.enter_context(patch.object(c, 'db_container')); stack.enter_context(patch.object(c, 'load_configs'))
+                stack.enter_context(patch.object(c, 'archived_image', return_value=self.old))
+                stack.enter_context(patch.object(c, 'active_profile', return_value=synthetic_profile))
                 stack.enter_context(patch.object(c, 'private_file', side_effect=lambda path, **kwargs: Path(path)))
                 stack.enter_context(patch.object(c, 'run', side_effect=command)); stack.enter_context(patch.object(c, 'psql', side_effect=sql))
                 stack.enter_context(patch.object(c, 'write_private', side_effect=private_write)); stack.enter_context(patch.object(c, 'ops_digest', return_value=self.new['opsSha256']))

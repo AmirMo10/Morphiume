@@ -2,6 +2,7 @@
 import argparse
 import gzip
 import hashlib
+import importlib.util
 import json
 import os
 import re
@@ -11,6 +12,13 @@ from pathlib import Path, PurePosixPath
 
 MAX_ARCHIVE = 4 * 1024 ** 3
 MAX_LAYERS = 16 * 1024 ** 3
+
+
+def engine_module():
+    specification = importlib.util.spec_from_file_location('release_engine_image', Path(__file__).parent / 'runtime/engine_image.py')
+    module = importlib.util.module_from_spec(specification)
+    specification.loader.exec_module(module)
+    return module
 
 
 def digest(stream, maximum):
@@ -80,6 +88,7 @@ def verify(archive, identity_path, source, config_id, manifest_digest, archive_h
         if len(diff_ids) != len(layers) or not 1 <= len(layers) <= 100:
             raise ValueError('Invalid image layer/diff-ID count')
         layer_bytes = 0
+        archive_layers = []
         for name, expected_diff in zip(layers, diff_ids):
             if not re.fullmatch('sha256:[0-9a-f]{64}', expected_diff):
                 raise ValueError('Invalid layer diff-ID')
@@ -94,16 +103,42 @@ def verify(archive, identity_path, source, config_id, manifest_digest, archive_h
             layer_bytes += size
             if 'sha256:' + actual_diff != expected_diff:
                 raise ValueError('Image layer bytes differ from the tested config diff-ID')
+            raw.seek(0)
+            wire_digest, wire_size = digest(raw, MAX_LAYERS)
+            archive_layers.append({'digest': 'sha256:' + wire_digest, 'size': wire_size,
+                                   'mediaType': 'application/vnd.oci.image.layer.v1.tar+gzip' if prefix == b'\x1f\x8b' else 'application/vnd.oci.image.layer.v1.tar'})
     return expected | {'archiveSha256': archive_hash, 'archiveBytes': archive.stat().st_size, 'uncompressedLayerBytes': layer_bytes,
+                       'configBytes': len(config_bytes), 'rootFsDiffIds': diff_ids, 'archiveLayers': archive_layers,
                        'platform': 'linux/amd64', 'user': '1001:1001', 'mode': 'verified-without-extraction'}
 
 
-def load(archive, identity_path, report, namespace='integration'):
+def verify_or_load_image(archive, report, verify_loaded=False):
+    """Explicit adoption reads metadata only; loading is a distinct opt-in phase."""
+    engine = engine_module()
+    if not verify_loaded:
+        subprocess.run(['docker', 'image', 'load', '--platform', 'linux/amd64', '--input', str(archive), '--quiet'], check=True, capture_output=True, env=engine.environment())
+    return engine.mapped_report(report, engine.prove(report['image'], report))
+
+
+def load(archive, identity_path, report, namespace='integration', verify_loaded=False, ops_sha256=None):
     if os.name != 'posix' or os.getuid() != 0:
         raise ValueError('Image loading requires the authorized Linux staging root session')
     if namespace not in ('integration', 'runtime'):
         raise ValueError('Unknown reviewed release namespace')
     root = Path('/srv/morphiume/staging/runtime') if namespace == 'runtime' else Path('/srv/morphiume/staging')
+    if namespace != 'runtime' or not isinstance(ops_sha256, str) or not re.fullmatch('[a-f0-9]{64}', ops_sha256):
+        raise ValueError('Record/load requires explicit reviewed runtime namespace and Ops fingerprint')
+    specification = importlib.util.spec_from_file_location('release_contract', Path(__file__).parent / 'runtime/contract.py')
+    contract = importlib.util.module_from_spec(specification)
+    specification.loader.exec_module(contract)
+    if contract.ops_digest() != ops_sha256:
+        raise ValueError('Executing Ops source differs from explicitly reviewed fingerprint')
+    allowed_ops = (Path('/opt/morphiume/deploy/staging'), contract.bundle_path(report['sourceCommit'], ops_sha256))
+    if Path(__file__).parent.resolve() not in allowed_ops:
+        raise ValueError('Use the clean accepted checkout or independently reviewed immutable Ops bundle')
+    contract.assert_boundaries()
+    if contract.OPS_ROOT != Path('/opt/morphiume/deploy/staging'):
+        contract.verify_ops_bundle(contract.OPS_ROOT, ops_sha256)
     if root.resolve() != root or any(item.is_symlink() for item in (root, *root.parents)):
         raise ValueError('Reviewed release root resolves through an unexpected path')
     directory = root / 'releases' / report['sourceCommit']
@@ -112,6 +147,7 @@ def load(archive, identity_path, report, namespace='integration'):
     if directory.stat().st_uid != 0 or directory.stat().st_mode & 0o077:
         raise ValueError('Server release directory must be root-owned and private')
     for file in (archive, identity_path, archive.with_name('accepted-image.sha256')):
+        contract.private_file(file)
         metadata = file.stat()
         if metadata.st_uid != 0 or metadata.st_mode & 0o077:
             raise ValueError('Server release files must be root-owned and private')
@@ -120,7 +156,7 @@ def load(archive, identity_path, report, namespace='integration'):
         raise ValueError('Server checkout must be clean at the explicitly accepted source')
     free = os.statvfs('/var/lib/docker')
     required = 2 * report['uncompressedLayerBytes'] + 1024 ** 3
-    if free.f_bavail * free.f_frsize < required:
+    if not verify_loaded and (free.f_bavail * free.f_frsize < required or os.statvfs('/').f_bavail * os.statvfs('/').f_frsize < required):
         raise ValueError('Docker storage lacks the reviewed load headroom')
     import fcntl
     os.umask(0o077)
@@ -130,14 +166,20 @@ def load(archive, identity_path, report, namespace='integration'):
         raise ValueError('Release lock ownership or permissions changed')
     with lock_path.open('a') as lock:
         fcntl.flock(lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-        subprocess.run(['docker', 'image', 'load', '--platform', 'linux/amd64', '--input', str(archive), '--quiet'], check=True, capture_output=True)
-        template = '{{json .Id}}|{{json .Os}}|{{json .Architecture}}|{{json .Config.User}}|{{json (index .Config.Labels "org.opencontainers.image.revision")}}'
-        actual = subprocess.check_output(['docker', 'image', 'inspect', report['testedPlatformConfig'], '--format', template], text=True).strip()
-        values = [json.loads(item) for item in actual.split('|')]
-        if values != [report['testedPlatformConfig'], 'linux', 'amd64', '1001:1001', report['sourceCommit']]:
-            raise ValueError('Loaded runtime differs from accepted source/config/platform/user')
-        report = report | {'mode': 'loaded-and-identity-verified', 'applicationStarted': False, 'namespace': namespace}
-        (directory / 'loaded-release.json').write_text(json.dumps(report, indent=2) + '\n')
+        marker = contract.engine_record_path(report['sourceCommit'], ops_sha256)
+        temporary = marker.with_name('loaded-release.json.new')
+        if temporary.exists() or marker.exists():
+            raise ValueError('Existing/partial loaded record requires explicit recovery; never overwrite it')
+        report = verify_or_load_image(archive, report, verify_loaded) | {'mode': 'loaded-and-identity-verified', 'applicationStarted': False,
+                                                     'namespace': namespace, 'opsSha256': ops_sha256, 'loadedRecordVersion': 2}
+        for folder in (directory / 'proofs', marker.parent):
+            contract.exact_path(folder)
+            if not folder.exists(): folder.mkdir(mode=0o700)
+            contract.private_directory(folder)
+        descriptor = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+        with os.fdopen(descriptor, 'w') as stream:
+            stream.write(json.dumps(report, indent=2) + '\n'); stream.flush(); os.fsync(stream.fileno())
+        os.replace(temporary, marker)
         return report
 
 
@@ -149,14 +191,17 @@ if __name__ == '__main__':
     parser.add_argument('--config-id', required=True)
     parser.add_argument('--manifest-digest', required=True)
     parser.add_argument('--archive-sha256', required=True)
-    parser.add_argument('--load', action='store_true', help='Only after explicit accepted-image dispatch; creates Docker image state but starts no app')
-    parser.add_argument('--namespace', choices=('integration', 'runtime'), default='integration', help='Fixed reviewed server release directory; used only with --load')
+    record = parser.add_mutually_exclusive_group()
+    record.add_argument('--load', action='store_true', help='Only after explicit accepted-image dispatch; creates Docker image state but starts no app')
+    record.add_argument('--verify-loaded', action='store_true', help='Explicit adopt/record phase; verify already loaded bytes without load/pull/container/DB calls')
+    parser.add_argument('--ops-sha256', help='Explicit reviewed executing Ops fingerprint; required for record/load')
+    parser.add_argument('--namespace', choices=('integration', 'runtime'), default='integration', help='Record/load requires the explicit runtime namespace; standalone archive verification is unchanged')
     args = parser.parse_args()
     try:
         archive, identity = args.archive.resolve(strict=True), args.identity.resolve(strict=True)
         report = verify(archive, identity, args.source, args.config_id, args.manifest_digest, args.archive_sha256)
-        if args.load:
-            report = load(archive, identity, report, args.namespace)
+        if args.load or args.verify_loaded:
+            report = load(archive, identity, report, args.namespace, args.verify_loaded, args.ops_sha256)
         print(json.dumps(report))
     except (OSError, ValueError, KeyError, tarfile.TarError, subprocess.SubprocessError) as error:
         message = str(error) if isinstance(error, ValueError) else type(error).__name__

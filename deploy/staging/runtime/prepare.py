@@ -73,7 +73,7 @@ def main(args):
         c.write_private(c.CONFIG / 'backup-recipients.txt', recipient)
         profile = c.make_profile(report, 'ssh-localhost', configs)
         c.select_profile(profile)
-        c.write_private(c.CONFIG / 'deploy.env', c.compose_environment(args.config_id, frozen_ops, profile))
+        c.write_private(c.CONFIG / 'deploy.env', c.compose_environment(c.runtime_image(report), frozen_ops, profile))
         for name in ('backups', 'restore', 'metrics'):
             (c.ROOT / name).mkdir(mode=0o700)
         (c.ROOT / 'media').mkdir(mode=0o750)

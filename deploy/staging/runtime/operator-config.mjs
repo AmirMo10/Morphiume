@@ -15,7 +15,9 @@ function canonicalJson(value) {
 
 export function validateOperatorConfigs(app, connections, profile, trusted) {
   const origins = { 'ssh-localhost': 'http://localhost:3100', 'private-ip': 'http://192.168.240.51' };
-  if (!profile || profile.version !== 1 || !Object.hasOwn(origins, profile.profile) || profile.origin !== origins[profile.profile] || canonicalHash(profile) !== trusted.accessProfileSha256) throw Error('Untrusted runtime access profile');
+  const profileKeys = ['version', 'profile', 'origin', 'sourceCommit', 'testedPlatformConfig', 'candidateManifestDigest', 'archiveSha256', 'opsSha256', 'opsRoot', 'configSha256', 'runtimeImageId', 'engineProofSha256'];
+  if (!profile || typeof profile !== 'object' || Object.keys(profile).sort().join(',') !== profileKeys.sort().join(',') || profile.version !== 2 || !Object.hasOwn(origins, profile.profile) || profile.origin !== origins[profile.profile] || canonicalHash(profile) !== trusted.accessProfileSha256 || !/^sha256:[a-f0-9]{64}$/.test(profile.runtimeImageId) || !/^[a-f0-9]{64}$/.test(profile.engineProofSha256)) throw Error('Untrusted runtime access profile');
+  if (!profile.configSha256 || Object.keys(profile.configSha256).sort().join(',') !== 'app.json,migration.json,worker.json' || Object.values(profile.configSha256).some(value => typeof value !== 'string' || !/^[a-f0-9]{64}$/.test(value))) throw Error('Untrusted runtime config binding');
   for (const [key, pattern] of Object.entries({ sourceCommit: /^[a-f0-9]{40}$/, testedPlatformConfig: /^sha256:[a-f0-9]{64}$/, candidateManifestDigest: /^sha256:[a-f0-9]{64}$/, archiveSha256: /^[a-f0-9]{64}$/, opsSha256: /^[a-f0-9]{64}$/ })) {
     if (typeof trusted[key] !== 'string' || !pattern.test(trusted[key]) || profile[key] !== trusted[key]) throw Error('Untrusted runtime release identity');
   }

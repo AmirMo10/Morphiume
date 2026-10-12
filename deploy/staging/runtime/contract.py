@@ -22,11 +22,44 @@ OPS_ROOT = Path(__file__).resolve().parent.parent
 OPS_FILES = ('verify-release.py', 'runtime/contract.py', 'runtime/prepare.py', 'runtime/deploy.py',
              'runtime/backup.py', 'runtime/compose.yaml', 'runtime/db-target.mjs', 'runtime/restore.py',
              'runtime/compose.restore.yaml', 'runtime/restore-init.sh', 'runtime/health.py',
-             'runtime/monitor.py', 'runtime/scheduled.py', 'runtime/upgrade.py', 'runtime/preview.py', 'runtime/operator-config.mjs',
+             'runtime/monitor.py', 'runtime/scheduled.py', 'runtime/upgrade.py', 'runtime/preview.py', 'runtime/operator-config.mjs', 'runtime/engine_image.py',
              'runtime/systemd/morphiume-runtime-backup.service', 'runtime/systemd/morphiume-runtime-backup.timer',
              'runtime/systemd/morphiume-runtime-health.service', 'runtime/systemd/morphiume-runtime-health.timer')
 ORIGINS = {'ssh-localhost': 'http://localhost:3100', 'private-ip': 'http://192.168.240.51'}
 RELEASE_KEYS = ('sourceCommit', 'testedPlatformConfig', 'candidateManifestDigest', 'archiveSha256')
+
+
+def engine_module():
+    specification = importlib.util.spec_from_file_location('runtime_engine_image', Path(__file__).with_name('engine_image.py'))
+    module = importlib.util.module_from_spec(specification)
+    specification.loader.exec_module(module)
+    return module
+
+
+def runtime_image(report):
+    return engine_module().runtime_id(report)
+
+
+def match_mapping(value, report):
+    """Compare every accepted identity and the separately proven engine mapping."""
+    keys = RELEASE_KEYS + ('opsSha256', 'runtimeImageId', 'engineProofSha256')
+    runtime_image(report)
+    if not isinstance(value, dict) or any(value.get(key) != report[key] for key in keys):
+        raise ValueError('Record/profile differs from the explicit release and proven engine mapping')
+
+
+def validate_app_containers(items, report, services=('app', 'worker'), running=True):
+    """Container .Image is the proven engine ID; never compare it to a tag."""
+    if len(items) != len(services) or {item['Config']['Labels'].get('com.docker.compose.service') for item in items} != set(services):
+        raise ValueError('Unexpected runtime application container set')
+    for item in items:
+        if item['Image'] != runtime_image(report) or item['Config']['User'] != '1001:1001' or item['Config']['Labels'].get('org.opencontainers.image.revision') != report['sourceCommit'] or item['State']['Running'] is not running or running and item['State'].get('Health', {}).get('Status') != 'healthy':
+            raise ValueError('Runtime container engine/source/user/running/health identity changed')
+
+
+def engine_record_path(source, ops_hash):
+    bundle_path(source, ops_hash)  # Validate both explicit identifiers.
+    return ROOT / 'releases' / source / 'proofs' / ops_hash / 'loaded-release.json'
 
 
 def canonical_hash(value):
@@ -68,10 +101,11 @@ def profile_path(record):
 
 
 def validate_profile(record):
-    keys = set(RELEASE_KEYS) | {'version', 'profile', 'origin', 'opsSha256', 'opsRoot', 'configSha256'}
-    if not isinstance(record, dict) or set(record) != keys or type(record.get('version')) is not int or record['version'] != 1 or record.get('profile') not in ORIGINS:
+    keys = set(RELEASE_KEYS) | {'version', 'profile', 'origin', 'opsSha256', 'opsRoot', 'configSha256', 'runtimeImageId', 'engineProofSha256'}
+    if not isinstance(record, dict) or set(record) != keys or type(record.get('version')) is not int or record['version'] != 2 or record.get('profile') not in ORIGINS:
         raise ValueError('Unexpected immutable access-profile shape')
     validate_identity(record)
+    runtime_image(record)
     if record['origin'] != ORIGINS[record['profile']] or record['opsRoot'] != bundle_path(record['sourceCommit'], record['opsSha256']).as_posix():
         raise ValueError('Profile origin or immutable Ops path mismatch')
     if not isinstance(record['configSha256'], dict) or set(record['configSha256']) != {'app.json', 'worker.json', 'migration.json'} or any(not isinstance(value, str) or not re.fullmatch('[a-f0-9]{64}', value) for value in record['configSha256'].values()):
@@ -83,8 +117,8 @@ def make_profile(report, name, configs):
     if name not in ORIGINS: raise ValueError('Unknown access profile')
     for file, value in configs.items():
         validate_config(value, OWNER if file == 'migration.json' else APP, file == 'migration.json', profile=name)
-    record = {key: report[key] for key in RELEASE_KEYS + ('opsSha256',)}
-    record |= {'version': 1, 'profile': name, 'origin': ORIGINS[name],
+    record = {key: report[key] for key in RELEASE_KEYS + ('opsSha256', 'runtimeImageId', 'engineProofSha256')}
+    record |= {'version': 2, 'profile': name, 'origin': ORIGINS[name],
                'opsRoot': bundle_path(report['sourceCommit'], report['opsSha256']).as_posix(),
                'configSha256': {file: canonical_hash(value) for file, value in configs.items()}}
     return validate_profile(record)
@@ -149,7 +183,7 @@ def compose_environment(image, bundle, profile=None):
     value = f'MORPHIUME_IMAGE={image}\nMORPHIUME_OPS_ROOT={bundle}\n'
     if profile is not None:
         validate_profile(profile)
-        if image != profile['testedPlatformConfig'] or Path(bundle).as_posix() != profile['opsRoot']:
+        if image != runtime_image(profile) or Path(bundle).as_posix() != profile['opsRoot']:
             raise ValueError('Compose environment differs from the selected release/profile')
         value = f"MORPHIUME_IMAGE={image}\nMORPHIUME_OPS_ROOT={Path(bundle).as_posix()}\nMORPHIUME_APP_BASE_URL={profile['origin']}\n"
     return value
@@ -315,20 +349,55 @@ def verify_release(args):
     directory = exact_path(ROOT / 'releases' / args.source)
     if directory.stat().st_uid != 0 or directory.stat().st_mode & 0o077:
         raise ValueError('Accepted release directory must be private and root-owned')
-    for name in ('accepted-image.tar.gz', 'accepted-image.sha256', 'image-identity.json', 'loaded-release.json'):
+    for name in ('accepted-image.tar.gz', 'accepted-image.sha256', 'image-identity.json'):
         private_file(directory / name)
     specification = importlib.util.spec_from_file_location('morphiume_release', OPS_ROOT / 'verify-release.py')
     verifier = importlib.util.module_from_spec(specification)
     specification.loader.exec_module(verifier)
     report = verifier.verify(directory / 'accepted-image.tar.gz', directory / 'image-identity.json', args.source,
                              args.config_id, args.manifest_digest, args.archive_sha256)
-    loaded = json.loads((directory / 'loaded-release.json').read_text())
-    if any(loaded.get(key) != report[key] for key in ('sourceCommit', 'testedPlatformConfig', 'candidateManifestDigest', 'archiveSha256')) or loaded.get('mode') != 'loaded-and-identity-verified' or loaded.get('namespace') != 'runtime':
+    return recorded_image(report, args.ops_sha256)
+
+
+def recorded_image(report, ops_hash):
+    """Reverify immutable archive result against one explicit Ops-scoped proof."""
+    proof_path = engine_record_path(report['sourceCommit'], ops_hash)
+    private_directory(proof_path.parent); private_directory(proof_path.parent.parent)
+    if proof_path.with_name('loaded-release.json.new').exists():
+        raise ValueError('Partial engine-proof record requires explicit recovery')
+    loaded = json.loads(private_file(proof_path).read_text())
+    keys = set(report) | {'runtimeImageId', 'engineProofSha256', 'engineProof', 'applicationStarted', 'namespace', 'opsSha256', 'loadedRecordVersion'}
+    if not isinstance(loaded, dict) or set(loaded) != keys or any(loaded.get(key) != value for key, value in report.items() if key != 'mode') or loaded.get('mode') != 'loaded-and-identity-verified' or loaded.get('applicationStarted') is not False or loaded.get('namespace') != 'runtime' or type(loaded.get('loadedRecordVersion')) is not int or loaded.get('loadedRecordVersion') != 2 or loaded.get('opsSha256') != ops_hash:
         raise ValueError('Accepted archive has not been loaded and verified in this namespace')
-    image = json.loads(run(['docker', 'image', 'inspect', args.config_id]))[0]
-    if (image['Id'], image['Os'], image['Architecture'], image['Config']['User'], image['Config']['Labels'].get('org.opencontainers.image.revision')) != (args.config_id, 'linux', 'amd64', '1001:1001', args.source):
-        raise ValueError('Loaded image identity differs from the accepted release')
-    return report | {'opsSha256': args.ops_sha256}
+    engine = engine_module()
+    engine.validate_proof(loaded.get('engineProof'), report)
+    proof = engine.prove(engine.runtime_id(loaded), report)
+    if proof != loaded['engineProof'] or loaded.get('runtimeImageId') != proof['runtimeImageId'] or loaded.get('engineProofSha256') != proof['engineProofSha256']:
+        raise ValueError('Live engine identity differs from the protected cryptographic proof')
+    return engine.mapped_report(report, proof) | {'opsSha256': ops_hash}
+
+
+def archived_image(identity):
+    """Read only: an explicit previous/deployed release may differ from HEAD."""
+    validate_identity(identity)
+    directory = exact_path(ROOT / 'releases' / identity['sourceCommit'])
+    private_directory(directory)
+    for name in ('accepted-image.tar.gz', 'accepted-image.sha256', 'image-identity.json'): private_file(directory / name)
+    specification = importlib.util.spec_from_file_location('runtime_archived_release', OPS_ROOT / 'verify-release.py')
+    verifier = importlib.util.module_from_spec(specification); specification.loader.exec_module(verifier)
+    report = verifier.verify(directory / 'accepted-image.tar.gz', directory / 'image-identity.json', identity['sourceCommit'],
+                             identity['testedPlatformConfig'], identity['candidateManifestDigest'], identity['archiveSha256'])
+    return recorded_image(report, identity['opsSha256'])
+
+
+def deployed_image():
+    deployed = json.loads(private_file(CONFIG / 'deployed-release.json').read_text())
+    report = archived_image(deployed)
+    profile = active_profile(required=True)
+    match_mapping(deployed, report); match_mapping(profile, report)
+    if deployed.get('accessProfileSha256') != canonical_hash(profile):
+        raise ValueError('Deployed/active profile differs from cryptographically proven engine mapping')
+    return report
 
 
 def compose(image, env_file=None, ops_root=None):

@@ -21,7 +21,8 @@ import restore
 
 def report(ops='e'):
     return {'sourceCommit': 'a' * 40, 'testedPlatformConfig': 'sha256:' + 'b' * 64,
-            'candidateManifestDigest': 'sha256:' + 'c' * 64, 'archiveSha256': 'd' * 64, 'opsSha256': ops * 64}
+            'candidateManifestDigest': 'sha256:' + 'c' * 64, 'archiveSha256': 'd' * 64, 'opsSha256': ops * 64,
+            'runtimeImageId': 'sha256:' + '9' * 64, 'engineProofSha256': '8' * 64}
 
 
 def configs():
@@ -39,9 +40,9 @@ def inventory():
 
 
 def evidence(old):
-    baseline = {key: old[key] for key in c.RELEASE_KEYS} | {'origin': c.ORIGINS['ssh-localhost'], 'database': c.DATABASE,
+    baseline = {key: old[key] for key in c.RELEASE_KEYS + ('opsSha256', 'runtimeImageId', 'engineProofSha256')} | {'origin': c.ORIGINS['ssh-localhost'], 'database': c.DATABASE,
         'accessProfileSha256': c.canonical_hash(old), 'checks': dict.fromkeys(p.BASELINE_CHECKS, True), 'acceptedUtc': p.utc().isoformat(), 'fixtureManifestSha256': 'f' * 64}
-    restored = {key: old[key] for key in c.RELEASE_KEYS} | {'origin': 'http://localhost:3101', 'workerStarted': False,
+    restored = {key: old[key] for key in c.RELEASE_KEYS + ('opsSha256', 'runtimeImageId', 'engineProofSha256')} | {'origin': 'http://localhost:3101', 'workerStarted': False,
         'checks': dict.fromkeys(p.RESTORE_CHECKS, True), 'acceptedUtc': p.utc().isoformat(), 'fixtureManifestSha256': 'f' * 64,
         'observedRtoSeconds': 30, 'observedRecoveryPointGapSeconds': 1}
     return baseline, restored
@@ -158,7 +159,7 @@ class PreviewSafety(unittest.TestCase):
     def test_native_acceptance_requires_three_engines_no_skips_and_real_deadline(self):
         candidate = c.make_profile(report(), 'private-ip', p.transition_configs(configs()))
         state = {'candidate': candidate, 'startedUtc': (p.utc() - datetime.timedelta(seconds=5)).isoformat(), 'acceptanceDeadlineUtc': (p.utc() + datetime.timedelta(minutes=20)).isoformat()}
-        value = {key: candidate[key] for key in c.RELEASE_KEYS} | {'origin': candidate['origin'], 'accessProfileSha256': c.canonical_hash(candidate),
+        value = {key: candidate[key] for key in c.RELEASE_KEYS + ('opsSha256', 'runtimeImageId', 'engineProofSha256')} | {'origin': candidate['origin'], 'accessProfileSha256': c.canonical_hash(candidate),
             'noUnexpectedBusinessMutation': True, 'acceptedUtc': p.utc().isoformat(),
             'engines': [{'engine': engine, 'checks': dict.fromkeys(p.NATIVE_CHECKS, True), 'unexpected': 0, 'skipped': 0, 'testRetries': 0} for engine in ('chromium', 'firefox', 'webkit')]}
         p.validate_native(value, state)
@@ -206,6 +207,7 @@ class PreviewSafety(unittest.TestCase):
             stack.enter_context(patch.object(c, 'compose', return_value=['mock-compose']))
             stack.enter_context(patch.object(c, 'psql', side_effect=AssertionError('PG forbidden')))
             stack.enter_context(patch.object(c, 'verify_release', side_effect=AssertionError('New checkout forbidden')))
+            stack.enter_context(patch.object(c, 'archived_image', return_value=report()))
             stop = stack.enter_context(patch.object(c, 'run'))
             close = stack.enter_context(patch.object(p, 'replace_site'))
             stack.enter_context(patch.object(p, 'save_state'))
@@ -245,7 +247,7 @@ process.stdout.write(JSON.stringify({operatorValid:1,rejectedOverrides:rejected,
             old = c.make_profile(report(), 'ssh-localhost', configs()); candidate_report = report('f'); holder = {'profile': old}
             deployed = report() | {'database': c.DATABASE, 'project': c.PROJECT, 'accessProfileSha256': c.canonical_hash(old)}
             for name, value in configs().items(): (config / name).write_text(json.dumps(value))
-            (config / 'deploy.env').write_text(c.compose_environment(old['testedPlatformConfig'], old['opsRoot'], old))
+            (config / 'deploy.env').write_text(c.compose_environment(c.runtime_image(old), old['opsRoot'], old))
             (config / 'deployed-release.json').write_text(json.dumps(deployed))
             pointer = {'profilePath': str(c.profile_path(old)), 'profileSha256': c.canonical_hash(old)}
             (config / 'active-profile.json').write_text(json.dumps(pointer))
@@ -276,7 +278,7 @@ process.stdout.write(JSON.stringify({operatorValid:1,rejectedOverrides:rejected,
             def verify_backup(*args):
                 events.append('backup-verified')
                 if fail == 'backup': raise ValueError('Wrong backup identity')
-            for name, value in (('verify_release', lambda *args: candidate_report), ('lock', lambda: nullcontext()), ('active_profile', lambda **kwargs: holder['profile']),
+            for name, value in (('verify_release', lambda *args: candidate_report), ('archived_image', lambda value: dict(value)), ('lock', lambda: nullcontext()), ('active_profile', lambda **kwargs: holder['profile']),
                 ('private_file', lambda path, **kwargs: Path(path)), ('private_directory', lambda path: Path(path)), ('write_private', private_write),
                 ('db_container', lambda: None), ('load_configs', lambda: configs()), ('run', command), ('preserve_ops_bundle', lambda *args: Path(c.bundle_path('a' * 40, 'f' * 64))),
                 ('preserve_profile', lambda value: c.profile_path(value)), ('select_profile', select), ('read_profile', lambda *args: old)):

@@ -1,0 +1,65 @@
+# Accepted config identity and Docker containerd runtime identity
+
+This is frozen local preparation after the coordinator authorized narrow compatibility code. No adoption record, application, database, role, credential, service or timer operation was executed by this code on the server. The original integration PG is occupied by QA's native window. New Ops SHA256 is `591ad92162d1747238db946c9a9a22724edde79627c6995a353c5064b39a77db`, awaiting coordinator review/publication and explicit server dispatch. Historical `1b19bab6a039029cc51c10a13787c5b64b116814b6724175f34bc0ac8d9b8161` remains immutable and was never deployed.
+
+## Actual diagnostic and unchanged acceptance
+
+The accepted application remains source `6130f4ed7ec090344a5a4a1937a65ef04572975b`, tested config `sha256:8a5600eeaafa7de6293aadc2807843f13b269244bb583e4d04e90295adbc1968`, registry manifest `sha256:d5bb24a403247f4d42345bef6c9b7b9788a84962c6f44336167af832e3d5f9be`, archive SHA256 `d6df8cd57720187fddbc47c279d9df306cc41620d304b270716a87ab196b6cb9`. CI38300142070 passed unchanged Grype, native TLS/Sharp, image browser42/42, migrations/seed/auth/media, worker heartbeat/shutdown and config-matching registry provenance/SBOM promotion. These coordinator-supplied acceptance results apply to that image alone, never newer cart/UUID/load application source.
+
+Root's transfer checksum/archive checks passed and Docker load exited0. The old loader then failed to inspect the tested **config** ID and wrote no loaded marker; no app started. Authorized restricted read-only inspection found the loaded613 tag and immutable engine ID `sha256:ad5c0e3d9537e3380051d32528d2f07b9b804b5c9b73f1df7c2a69cc733a24c0`. Its descriptor is a2527-byte single-platform OCI manifest. Bounded `ctr content get` hashed those exact manifest bytes to that engine ID and found its config descriptor binds the accepted8a config. Restricted Docker metadata matched Linux/amd64, UID1001:1001, source/repository labels, fifteen RootFS diff IDs, Node runtime entrypoint and server command. No image config blob, `.Env`, secret, raw private configuration or unfiltered manifest was printed.
+
+The observed backend is `io.containerd.snapshotter.v1`, socket `/run/containerd/containerd.sock`, containers namespace `moby`, plugins namespace `plugins.moby`; shipped `/usr/bin/ctr` client/server are bothv2.4.1. Root subsequently ran the frozen extended verifier against the actual accepted archive, exit0/session43996: unchanged source/archive/config identities, config11298bytes, fifteen RootFS diff IDs and fifteen exact wire layers, all OCIv1.tar. Its safe report is privately retained. This is archive validation plus earlier metadata diagnosis; full new helper manifest↔archive equality, immutable reproof and protected server record remain pending dispatch.
+
+Docker documents the containerd image store as the fresh-install default in Engine29. The Engine inspect API exposes the descriptor/selected platform; Moby's containerd implementation derives the image ID from the target descriptor digest. Thus the OCI manifest ID and config ID are different identities. The registry's attested candidate manifest is a third identity and is never replaced with the locally imported manifest. [Docker containerd store](https://docs.docker.com/engine/storage/containerd/), [Engine API version history](https://docs.docker.com/reference/api/engine/version-history/), [Moby inspect implementation](https://raw.githubusercontent.com/moby/moby/master/daemon/containerd/image_inspect.go).
+
+## Cryptographic proof and failure gates
+
+`verify-release.py` first rehashes the trusted archive/config and every uncompressed layer diff ID. Its safe report now also contains config byte count, exact RootFS vector and ordered wire-layer media type/digest/byte counts. It extracts or executes no member and prints no config contents.
+
+`runtime/engine_image.py` is the single read-only mapping authority. Exact accepted-source tag discovery is allowed once; every stored/run/Compose reference is the resulting immutable SHA256 ID. Restricted Docker inspect validates source/repository/platform/user/entrypoint/CMD and exact RootFS. For a null descriptor on the classic Docker29 store, ID must equal the accepted config ID and no ctr read occurs. A CLI/API without the inspected Descriptor field fails closed, pending compatibility review.
+
+For the observed containerd backend, only the reviewed single-platform OCI manifest is accepted. The helper pins socket, namespaces, driver and ctr client/serverv2.4.1; indexes, alternate stores/sockets/namespaces/versions fail. It reads at most64KiB, hashes the exact OCI manifest bytes to the immutable engine ID, checks descriptor length and exact accepted config digest/size, then requires every layer's order/media type/digest/size to equal the verified archive. Repacking/compression mismatches are deliberately rejected, not treated as equivalent without further review. Both uncompressed RootFS and exact wire-layer proof must pass. Unknown/duplicate JSON keys in inspected metadata schemas and incomplete/rehashed/tampered proofs fail. The diagnostic CLI is version-pinned rather than advertised as a stable Docker API; its content-get implementation opens a read-only content reader. [OCI manifest specification](https://raw.githubusercontent.com/opencontainers/image-spec/main/manifest.md), [containerd content reader](https://raw.githubusercontent.com/containerd/containerd/main/cmd/ctr/commands/content/content.go), [Docker image inspect](https://docs.docker.com/reference/cli/docker/image/inspect/).
+
+The safe proof binds store, runtimeImageId, platformManifestDigest, accepted config/size, RootFS/layers, source/platform/user/launcher and a canonical proof SHA256. Accepted source/config/registry-manifest/archive identities stay unchanged. Every apply consumer revalidates the archive and protected proof, then re-proves the **immutable** engine ID. All runtime container checks compare `.Image` with runtimeImageId and require the accepted source label/UID; actual container creation and its `.Image` equality still need server execution. No mutable tag is a run reference and no image pull/reload/store-switch/restart is a remedy.
+
+## Independent reviewed Ops bundle and explicit adoption
+
+Publish only the reviewed Ops source using a separate clean coordinator checkout while retaining accepted app HEAD613 clean at `/opt/morphiume`. Record the published **Ops source commit** separately from the accepted **application source commit**. Materialize only fixed OPS_FILES and their canonical-LF per-file `ops-manifest.json` into the fresh exact root-owned700 directory:
+
+```text
+/srv/morphiume/staging/runtime/releases/6130f4ed7ec090344a5a4a1937a65ef04572975b/ops-bundles/591ad92162d1747238db946c9a9a22724edde79627c6995a353c5064b39a77db/ops
+```
+
+Public source files are0644, the manifest600, and every release/bundle parent700. No existing bundle/profile/snapshot is overwritten. The final hash is SHA256 of sorted compact filename→SHA256 JSON, where each member is hashed after canonical-LF normalization. Current OPS_FILES includes the new engine helper and unchanged mounted DB guard/restore shell/units; tests/docs are outside the runtime fingerprint. Verified standalone Ops source may use the independently accepted613 image after coordinator review; it does not inherit application CI proof or require a newer unaccepted application checkout.
+
+After coordinator publication/materialization/explicit adoption dispatch, run this **new frozen bundle**, not old613's loader:
+
+```bash
+python3 /srv/morphiume/staging/runtime/releases/6130f4ed7ec090344a5a4a1937a65ef04572975b/ops-bundles/591ad92162d1747238db946c9a9a22724edde79627c6995a353c5064b39a77db/ops/verify-release.py \
+  /srv/morphiume/staging/runtime/releases/6130f4ed7ec090344a5a4a1937a65ef04572975b/accepted-image.tar.gz \
+  /srv/morphiume/staging/runtime/releases/6130f4ed7ec090344a5a4a1937a65ef04572975b/image-identity.json \
+  --source 6130f4ed7ec090344a5a4a1937a65ef04572975b \
+  --config-id sha256:8a5600eeaafa7de6293aadc2807843f13b269244bb583e4d04e90295adbc1968 \
+  --manifest-digest sha256:d5bb24a403247f4d42345bef6c9b7b9788a84962c6f44336167af832e3d5f9be \
+  --archive-sha256 d6df8cd57720187fddbc47c279d9df306cc41620d304b270716a87ab196b6cb9 \
+  --ops-sha256 591ad92162d1747238db946c9a9a22724edde79627c6995a353c5064b39a77db \
+  --namespace runtime --verify-loaded
+```
+
+This phase performs no Docker load/pull/container/service/PG operation. It does write a protected identity record under the common release lock, so actual execution needs explicit server dispatch. It requires reserved-mount/path/private-file guards, clean accepted app HEAD, exact executing Ops hash/immutable path and a fully proven image. Fresh atomic record path is `releases/SOURCE/proofs/OPS_SHA256/loaded-release.json`, loadedRecordVersion2; existing records or `.new` partials are refused. Old generic loaded markers/old1b records are retained and never silently migrated or adopted. Later consumers reject extra/missing fields, wrong namespace/Ops/release/map, partial markers or failed immutable reproof.
+
+## Consumers, first bootstrap and later rollback
+
+Preparation, first deploy, imported backup, isolated restore, upgrade, preview/expiry, health and timer scheduling consume the central mapping. Exact v2 immutable profiles bind runtimeImageId and engineProofSha256 alongside all four accepted identities, Ops path/hash, canonical origin and config hashes. Old v1 profiles fail; none were deployed. The six-flag operator loader trusts the complete explicit profile hash, validates exact v2 fields/config hashes, and exports only canonical origin/new runtime DML15434 settings. Use separately reviewed591ad's **new v2 operator loader** with exact613 app/QA fixtures; old613's operator loader accepts only v1 and cannot load this new profile. Freeze that operator-only tool separately without importing any newer cart/load/UUID app/helper assumptions into613 acceptance.
+
+After successful adoption and a **separate** released QA window/bootstrap dispatch, invoke `OPS_ROOT/runtime/prepare.py` then `OPS_ROOT/runtime/deploy.py` with the same five trusted release/Ops flags plus `--quiescent-window-released --apply`. They select only pristine `morphiume_staging_runtime` and preserve original roles/data/secrets/queue/history/reserved mount. CLI seed runs only for first deployment. Config/Compose use the proven engine ID; config IDs remain acceptance metadata. Start at SSH3100, retain an actual native purchase/media fixture, stop the exact verified writers, then run frozen backup/restore with the same trusted flags. Restore remains3101/no worker. See [exact bootstrap/recovery handoff](ACCEPTED_IMAGE_BOOTSTRAP.md).
+
+Backup/restore/upgrade manifests, scheduling approval and actual restore/preview evidence must include all four release identities, Ops hash, runtimeImageId and engineProofSha256. Origin-only preview cannot change that engine mapping. Rollback remains config/proxy only: six protected snapshots, original credentials preserved, no regeneration/seed/financial/schema/history rollback; preview stays closed. A failed image/schema upgrade retains stopped state and encrypted backup for explicit recovery. New cart/UUID/fixture code cannot be used against613 by implication.
+
+## Executed local checks and limits
+
+Dedicated `engine-image-safety-check.py`:20/20 passed0.732s, with synthetic tar/config/OCI bytes and mocked server commands. Cases cover classic null Descriptor, OCI binding/wire bytes/RootFS, wrong source/platform/user/launcher, indexes/socket/namespace/version/duplicates/bounds, missing/tampered/rehashed/old/partial proof, immutable reproof and mapping across profile/Compose/container/backup/restore/upgrade/preview/timer/health consumers. The adoption-phase mock asserts no Docker load; bounded local Python child tests cover oversized output, timeout and nonzero exit.
+
+Final local preview22/22 passed0.970s; upgrade/imported-backup9/9 passed0.392s; runtime15passed/one Windows symlink skip0.623s; exact extractor7/7 passed0.184s. Root independently re-ran the engine suite20/20 in0.578s and confirmed the frozen hash. Earlier Linux15/15 and four-unit/systemd calendar validation belong to historical source41f6 and are not a new Linux adapter execution. Python/Node/Bash syntax, scoped operator ESLint and three quiet Compose models (SSH3100, private IP, restore3101) passed. No daemon or private env-file resolution occurred in these pure checks. Root's actual extended archive validation is reported above; new Linux proof-record write, full manifest/layer reproof, container creation/limited-role DB bootstrap, native retained fixture, encrypted backup/restore/timing, timers, load and IP activation remain unexecuted here.
+
+The find-docs skill was applied; the Context7 attempt could not run because npx was unavailable in the resumed environment. Official Docker/Moby/containerd/OCI sources above were used as the primary fallback. No scanner exceptions, metadata hiding or gate weakening were introduced.

@@ -1,7 +1,7 @@
 name: morphiume-staging-runtime
 
 x-runtime: &runtime
-  image: ${MORPHIUME_IMAGE:?Set the accepted immutable platform image ID}
+  image: ${MORPHIUME_IMAGE:?Set the cryptographically proven immutable engine image ID}
   platform: linux/amd64
   user: "1001:1001"
   init: true

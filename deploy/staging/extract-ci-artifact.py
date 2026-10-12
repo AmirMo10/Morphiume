@@ -8,7 +8,8 @@ import zipfile
 from pathlib import Path, PurePosixPath
 
 ACCEPTED = {'accepted-image.tar.gz', 'accepted-image.sha256', 'image-identity.json'}
-EVIDENCE = {'.local/image-scan.json', '.local/image-identity.json', '.local/native-audit.json', 'docs/qa/browser-summary.json'}
+EVIDENCE = {'.local/image-scan.json', '.local/image-identity.json', '.local/native-audit.json',
+            '.local/server-failures-image.json', 'docs/qa/browser-summary.json'}
 
 
 def extract(archive, destination, kind, allow_partial=False):

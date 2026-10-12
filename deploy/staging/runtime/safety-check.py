@@ -177,7 +177,9 @@ class Safety(unittest.TestCase):
         self.assertEqual(health.evaluate(facts, 'running')['status'], 'healthy')
 
     def test_timer_requires_actual_restore_checks_and_finite_observations(self):
-        release = {'sourceCommit': 'a' * 40, 'testedPlatformConfig': 'sha256:' + 'b' * 64, 'opsSha256': 'c' * 64}
+        release = {'sourceCommit': 'a' * 40, 'testedPlatformConfig': 'sha256:' + 'b' * 64, 'opsSha256': 'c' * 64,
+                   'candidateManifestDigest': 'sha256:' + 'd' * 64, 'archiveSha256': 'e' * 64,
+                   'runtimeImageId': 'sha256:' + 'f' * 64, 'engineProofSha256': '0' * 64}
         approval = release | {'mode': 'quiesce-runtime-only', 'sharedDatabaseWindowReleased': True}
         evidence = release | {'acceptedUtc': '2026-10-12T00:00:00Z', 'checks': {key: True for key in scheduled.CHECKS},
                               'observedRtoSeconds': 60, 'observedRecoveryPointGapSeconds': 3}

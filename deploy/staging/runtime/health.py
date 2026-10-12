@@ -28,6 +28,7 @@ def evaluate(facts, mode, expect_backups=False, thresholds=None):
     if facts.get('availableMemoryPercent', 100) < thresholds['availableMemoryWarningPercent']: alert('warning', 'host_memory_low', facts['availableMemoryPercent'])
     for service in ('app', 'worker'):
         items = [item for item in facts.get('containers', []) if item['service'] == service]
+        if any(item.get('engineIdentityMatches') is False for item in items): alert('critical', 'runtime_engine_identity_changed', service)
         if mode == 'running':
             if len(items) != 1 or items[0]['status'] != 'running' or items[0]['health'] != 'healthy': alert('critical', 'runtime_service_unhealthy', service)
             if items and items[0]['oomKilled']: alert('critical', 'runtime_oom', service)
@@ -50,10 +51,15 @@ def snapshot(mode, expect_backups=False, thresholds=None):
     c.assert_boundaries()
     facts = {'utc': datetime.datetime.now(datetime.timezone.utc).isoformat(), 'containers': [], 'databaseHealthy': False, 'diskUsedPercent': {}}
     profile = c.active_profile()
+    if mode != 'prepared' and not profile: raise ValueError('An explicit proven active profile is required for runtime monitoring')
     if profile:
         c.load_configs()
         facts['accessProfile'] = profile['profile']
         facts['canonicalOrigin'] = profile['origin']
+        if mode != 'prepared':
+            proven = c.deployed_image()
+            facts['runtimeImageId'] = c.runtime_image(proven)
+            facts['testedPlatformConfig'] = proven['testedPlatformConfig']
     try: c.db_container(); facts['databaseHealthy'] = True
     except (OSError, ValueError, KeyError): pass
     for path in ('/', '/var/lib/docker', str(c.ROOT)):
@@ -70,7 +76,8 @@ def snapshot(mode, expect_backups=False, thresholds=None):
     if ids:
         for item in json.loads(c.run(['docker', 'inspect', *ids])):
             facts['containers'].append({'service': item['Config']['Labels'].get('com.docker.compose.service'), 'status': item['State']['Status'],
-                'health': item['State'].get('Health', {}).get('Status', 'absent'), 'oomKilled': item['State']['OOMKilled'], 'restarts': item['RestartCount']})
+                'health': item['State'].get('Health', {}).get('Status', 'absent'), 'oomKilled': item['State']['OOMKilled'], 'restarts': item['RestartCount'],
+                'engineIdentityMatches': 'runtimeImageId' not in facts or item['Image'] == facts['runtimeImageId'] and item['Config']['User'] == '1001:1001' and item['Config']['Labels'].get('org.opencontainers.image.revision') == profile['sourceCommit']})
     stats = c.run(['docker', 'stats', '--no-stream', '--format', '{{.Name}}|{{.CPUPerc}}|{{.MemUsage}}|{{.PIDs}}'])
     facts['containerResourceSample'] = [line for line in stats.splitlines() if line.startswith((c.PROJECT + '-', c.DB_CONTAINER + '|'))]
     if mode != 'prepared':

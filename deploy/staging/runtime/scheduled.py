@@ -17,13 +17,13 @@ CHECKS = {'nativeLogin', 'ownedOrder', 'paymentReceiptDedup', 'stockReservation'
 def validate_acceptance(approval, evidence, release):
     if not isinstance(approval, dict) or approval.get('mode') != 'quiesce-runtime-only' or approval.get('sharedDatabaseWindowReleased') is not True:
         raise ValueError('Runtime scheduling approval is absent or incompatible')
-    if any(approval.get(key) != release[key] for key in ('sourceCommit', 'testedPlatformConfig', 'opsSha256')):
-        raise ValueError('Runtime scheduling approval differs from reviewed release')
+    c.match_mapping(approval, release)
     if release.get('accessProfileSha256') and approval.get('accessProfileSha256') != release['accessProfileSha256']:
         raise ValueError('Timer approval must explicitly bind the current canonical profile')
     if not isinstance(evidence, dict) or set(evidence.get('checks', {})) != CHECKS or not all(value is True for value in evidence['checks'].values()):
         raise ValueError('Actual native restore business acceptance is incomplete')
-    if not evidence.get('acceptedUtc') or evidence.get('sourceCommit') != release['sourceCommit'] or evidence.get('testedPlatformConfig') != release['testedPlatformConfig']:
+    c.match_mapping(evidence, release)
+    if not evidence.get('acceptedUtc'):
         raise ValueError('Restore acceptance differs from the accepted runtime')
     for key in ('observedRtoSeconds', 'observedRecoveryPointGapSeconds'):
         if type(evidence.get(key)) not in (int, float) or not math.isfinite(evidence[key]) or evidence[key] < 0:
@@ -39,6 +39,7 @@ def main(action, apply=False):
         if state.get('phase') not in ('accepted', 'rolled-back'): raise ValueError('Scheduling is closed during partial preview/native acceptance')
     approval = json.loads(c.private_file(c.CONFIG / 'schedule-approved.json').read_text())
     deployed = json.loads(c.private_file(c.CONFIG / 'deployed-release.json').read_text())
+    proven = c.deployed_image()
     evidence_path = c.exact_path(Path(approval.get('restoreEvidence', '')))
     restore.validate_restore_path(evidence_path.parent)
     if evidence_path.name != 'recovery-accepted.json': raise ValueError('Use exact runtime restore acceptance evidence')
@@ -56,9 +57,8 @@ def main(action, apply=False):
         c.db_container(); c.load_configs()
         ids = c.run(['docker', 'ps', '--all', '--filter', 'label=com.docker.compose.project=' + c.PROJECT, '--format', '{{.ID}}']).splitlines()
         actual = json.loads(c.run(['docker', 'inspect', *ids])) if ids else []
-        if {item['Config']['Labels'].get('com.docker.compose.service') for item in actual} != {'app', 'worker'} or any(item['Image'] != args.config_id or not item['State']['Running'] or item['State'].get('Health', {}).get('Status') != 'healthy' for item in actual):
-            raise ValueError('Scheduled backup starts only from the verified healthy runtime pair')
-        command = c.compose(args.config_id)
+        c.validate_app_containers(actual, proven)
+        command = c.compose(c.runtime_image(proven))
         # Only this namespace's two writers are paused; original DB/container,
         # configs and data are untouched. The shared release lock spans recovery.
         try:

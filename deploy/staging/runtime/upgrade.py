@@ -4,7 +4,6 @@ No seed, source checkout mutation, image pull, role change or automatic rollback
 """
 import argparse
 import datetime
-import importlib.util
 import json
 import os
 import re
@@ -39,20 +38,7 @@ def validate_transition(deployed, previous, candidate, partial=False):
 
 
 def verify_previous(previous):
-    directory = c.exact_path(c.ROOT / 'releases' / previous['sourceCommit'])
-    for name in ('accepted-image.tar.gz', 'accepted-image.sha256', 'image-identity.json', 'loaded-release.json'):
-        c.private_file(directory / name)
-    specification = importlib.util.spec_from_file_location('upgrade_previous_release', c.OPS_ROOT / 'verify-release.py')
-    verifier = importlib.util.module_from_spec(specification)
-    specification.loader.exec_module(verifier)
-    report = verifier.verify(directory / 'accepted-image.tar.gz', directory / 'image-identity.json',
-                             previous['sourceCommit'], previous['testedPlatformConfig'], previous['candidateManifestDigest'], previous['archiveSha256'])
-    loaded = json.loads((directory / 'loaded-release.json').read_text())
-    if loaded.get('namespace') != 'runtime' or loaded.get('mode') != 'loaded-and-identity-verified' or any(loaded.get(key) != previous[key] for key in IDENTITY_KEYS[:4]):
-        raise ValueError('Previous archive load identity changed')
-    image = json.loads(c.run(['docker', 'image', 'inspect', previous['testedPlatformConfig']]))[0]
-    if (image['Id'], image['Os'], image['Architecture'], image['Config']['User'], image['Config']['Labels'].get('org.opencontainers.image.revision')) != (previous['testedPlatformConfig'], 'linux', 'amd64', '1001:1001', previous['sourceCommit']):
-        raise ValueError('Retained previous image identity changed')
+    report = c.archived_image(previous)
     frozen_ops = c.resolve_ops_bundle(previous['sourceCommit'], previous['opsSha256'])
     return report | {'opsSha256': previous['opsSha256']}, frozen_ops
 
@@ -63,15 +49,11 @@ def runtime_containers():
 
 
 def validate_writers(items, identity):
-    if len(items) != 2 or {item['Config']['Labels'].get('com.docker.compose.service') for item in items} != {'app', 'worker'}:
-        raise ValueError('Expected exactly the fresh runtime app/worker pair')
-    if any(item['Image'] != identity['testedPlatformConfig'] or item['Config']['User'] != '1001:1001' or
-           item['Config']['Labels'].get('org.opencontainers.image.revision') != identity['sourceCommit'] or
-           not item['State']['Running'] or item['State'].get('Health', {}).get('Status') != 'healthy' for item in items):
-        raise ValueError('Runtime writer image, source, user or health changed')
+    c.validate_app_containers(items, identity)
 
 
 def validate_backup_manifest(manifest, previous):
+    c.match_mapping(manifest, previous)
     if not isinstance(manifest, dict) or manifest.get('database') != c.DATABASE or any(manifest.get(key) != previous[key] for key in IDENTITY_KEYS):
         raise ValueError('Pre-migration backup does not identify the explicit previous runtime')
     if not isinstance(manifest.get('ciphertextSha256'), dict) or set(manifest['ciphertextSha256']) != {'database.dump.age', 'media.tar.gz.age'} or any(not isinstance(value, str) or not re.fullmatch('[a-f0-9]{64}', value) for value in manifest['ciphertextSha256'].values()):
@@ -141,31 +123,33 @@ def main(args):
         validate_transition(deployed, previous, candidate, partial)
         previous_report, previous_ops = verify_previous(previous)
         c.db_container(); c.load_configs()
-        validate_writers(runtime_containers(), previous)
+        if any(deployed.get(key) != previous_report[key] for key in ('runtimeImageId', 'engineProofSha256')):
+            raise ValueError('Deployed runtime engine mapping differs from previous protected proof')
+        validate_writers(runtime_containers(), previous_report)
         current_profile = c.active_profile()
-        if current_profile and (current_profile['opsSha256'] != previous['opsSha256'] or any(current_profile[key] != previous[key] for key in c.RELEASE_KEYS)):
+        if current_profile and (current_profile['opsSha256'] != previous['opsSha256'] or any(current_profile[key] != previous_report[key] for key in c.RELEASE_KEYS + ('runtimeImageId', 'engineProofSha256'))):
             raise ValueError('Upgrade target active profile differs from previous immutable release')
-        expected_env = c.compose_environment(previous['testedPlatformConfig'], previous_ops, current_profile)
+        expected_env = c.compose_environment(c.runtime_image(previous_report), previous_ops, current_profile)
         if c.private_file(c.CONFIG / 'deploy.env').read_text() != expected_env:
             raise ValueError('Current runtime Compose env differs from the retained previous release')
         next_ops = c.preserve_ops_bundle(candidate['sourceCommit'])
         next_profile = c.make_profile(candidate, current_profile['profile'], c.load_configs()) if current_profile else None
         if next_profile: c.preserve_profile(next_profile)
-        old_command = c.compose(previous['testedPlatformConfig'], ops_root=previous_ops)
-        next_command = c.compose(candidate['testedPlatformConfig'], env_file=c.CONFIG / 'deploy.candidate.env', ops_root=next_ops)
+        old_command = c.compose(c.runtime_image(previous_report), ops_root=previous_ops)
+        next_command = c.compose(c.runtime_image(candidate), env_file=c.CONFIG / 'deploy.candidate.env', ops_root=next_ops)
         before = migrations_snapshot()
         state = {'phase': 'prepared', 'startedUtc': datetime.datetime.now(datetime.timezone.utc).isoformat(),
                  'previous': previous, 'candidate': candidate, 'migrationBefore': before, 'seedInvoked': False,
                  'backendMigrationReviewed': True, 'automaticRollback': False}
         c.write_private(c.CONFIG / 'upgrading.json', json.dumps(state, indent=2) + '\n')
-        c.write_private(c.CONFIG / 'deploy.candidate.env', c.compose_environment(candidate['testedPlatformConfig'], next_ops, next_profile))
+        c.write_private(c.CONFIG / 'deploy.candidate.env', c.compose_environment(c.runtime_image(candidate), next_ops, next_profile))
         try:
             c.run(old_command + ['config', '--quiet'])
             c.run(next_command + ['config', '--quiet'])
             c.run(old_command + ['stop', '--timeout', '30', 'app', 'worker'], timeout=75)
             state['phase'] = 'writers-stopped'; state_update(state)
             result = backup.create_backup(previous_report)
-            manifest = verified_backup(result['directory'], previous)
+            manifest = verified_backup(result['directory'], previous_report)
             state |= {'phase': 'backup-verified', 'backupDirectory': result['directory'], 'backupCompleteUtc': manifest['backupCompleteUtc']}
             state_update(state)
             # Commands always use the accepted candidate's guarded CLI bundle;

@@ -75,6 +75,19 @@ def restore_config(app, password, profile='ssh-localhost'):
     return value
 
 
+def validate_backup_identity(manifest, release):
+    c.match_mapping(manifest, release)
+    if manifest.get('database') != c.DATABASE:
+        raise ValueError('Backup identity differs from accepted runtime release')
+
+
+def validate_restored_containers(actual, release):
+    services = {item['Config']['Labels'].get('com.docker.compose.service'): item for item in actual}
+    if len(actual) != 2 or set(services) != {'app', 'db'} or services['db']['Config']['Image'] != c.PG_IMAGE or any(item['State'].get('Health', {}).get('Status') != 'healthy' or item['State']['Running'] is not True for item in actual):
+        raise ValueError('Unexpected restored application/database identity or health')
+    c.validate_app_containers([services['app']], release, services=('app',))
+
+
 def decrypt_database(ciphertext, identity, compose):
     first = subprocess.Popen(['age', '--decrypt', '--identity', str(identity), str(ciphertext)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     command = compose + ['exec', '-T', 'db', 'sh', '-c', 'PGPASSWORD="$(cat /run/secrets/db_owner_password)"; export PGPASSWORD; exec pg_restore -h 127.0.0.1 -U morphiume_restore_owner -d morphiume_staging_restore --no-owner --no-acl --exit-on-error --single-transaction']
@@ -104,8 +117,7 @@ def main(args):
         if backup.stat().st_uid != 0 or backup.stat().st_mode & 0o077:
             raise ValueError('Runtime backup directory must be private and root-owned')
         manifest = json.loads(c.private_file(backup / 'backup-manifest.json').read_text())
-        if manifest.get('database') != c.DATABASE or any(manifest.get(key) != release[key] for key in ('sourceCommit', 'testedPlatformConfig', 'archiveSha256', 'candidateManifestDigest')):
-            raise ValueError('Backup identity differs from accepted runtime release')
+        validate_backup_identity(manifest, release)
         for name in ('database.dump.age', 'media.tar.gz.age'):
             with c.private_file(backup / name).open('rb') as file:
                 if hashlib.file_digest(file, 'sha256').hexdigest() != manifest.get('ciphertextSha256', {}).get(name):
@@ -137,7 +149,7 @@ def main(args):
         for name, value in passwords.items(): c.write_private(root / name, value, uid=999, gid=999)
         app = restore_config(configs['app.json'], passwords['db_app_password'], profile=c.profile_name())
         c.write_private(root / 'app.json', json.dumps(app) + '\n', uid=1001, gid=1001)
-        c.write_private(root / 'restore.env', f'MORPHIUME_RESTORE_PROJECT={project}\nMORPHIUME_RESTORE_ROOT={root}\nMORPHIUME_IMAGE={args.config_id}\nMORPHIUME_OPS_ROOT={c.OPS_ROOT}\n')
+        c.write_private(root / 'restore.env', f'MORPHIUME_RESTORE_PROJECT={project}\nMORPHIUME_RESTORE_ROOT={root}\nMORPHIUME_IMAGE={c.runtime_image(release)}\nMORPHIUME_OPS_ROOT={c.OPS_ROOT}\n')
         c.write_private(root / 'recovery-start.json', json.dumps({'recoveryStartUtc': start, 'backup': str(backup), 'sourceCommit': args.source}) + '\n')
         compose = ['docker', 'compose', '--project-name', project, '--env-file', str(root / 'restore.env'), '-f', str(c.OPS_ROOT / 'runtime/compose.restore.yaml')]
         c.run(compose + ['config', '--quiet'])
@@ -161,11 +173,9 @@ def main(args):
             if response.status != 200: raise ValueError('Restore readiness failed')
         ids = c.run(['docker', 'ps', '--filter', 'label=com.docker.compose.project=' + project, '--format', '{{.ID}}']).splitlines()
         actual = json.loads(c.run(['docker', 'inspect', *ids])) if ids else []
-        services = {item['Config']['Labels'].get('com.docker.compose.service'): item for item in actual}
-        if set(services) != {'app', 'db'} or services['app']['Image'] != args.config_id or services['app']['Config']['User'] != '1001:1001' or any(item['State'].get('Health', {}).get('Status') != 'healthy' for item in actual):
-            raise ValueError('Actual restored app/database image, user or health differs from the reviewed contract')
+        validate_restored_containers(actual, release)
         report = {'mode': 'restored-ready-business-acceptance-pending', 'project': project, 'root': str(root), 'browserOrigin': 'http://localhost:3101',
-                  'sourceCommit': args.source, 'testedPlatformConfig': args.config_id, 'recoveryStartUtc': start,
+                  'sourceCommit': args.source, 'testedPlatformConfig': args.config_id, 'runtimeImageId': c.runtime_image(release), 'engineProofSha256': release['engineProofSha256'], 'recoveryStartUtc': start,
                   'applicationReadyUtc': datetime.datetime.now(datetime.timezone.utc).isoformat(), 'backupStartUtc': manifest['backupStartUtc'],
                   'backupCompleteUtc': manifest['backupCompleteUtc'], 'mediaSummary': media, 'workerStarted': False}
         c.write_private(root / 'recovery-ready.json', json.dumps(report, indent=2) + '\n')

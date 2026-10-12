@@ -58,7 +58,7 @@ def same_release(value, report):
 
 def validate_baselines(baseline, restored, report, old):
     for item in (baseline, restored):
-        same_release(item, report)
+        same_release(item, report); c.match_mapping(item, old)
         accepted = timestamp(item.get('acceptedUtc'))
         if accepted > utc(): raise ValueError('Future acceptance cannot establish an executed baseline')
     if baseline.get('origin') != c.ORIGINS['ssh-localhost'] or baseline.get('database') != c.DATABASE or baseline.get('accessProfileSha256') != c.canonical_hash(old):
@@ -95,8 +95,8 @@ def validate_inventory(value):
 
 
 def validate_dispatch(dispatch, report, old, inventory_hash):
-    same_release(dispatch, report)
-    keys = set(c.RELEASE_KEYS) | {'opsSha256', 'action', 'oldProfileSha256', 'inventorySha256', 'sharedDatabaseWindowReleased', 'expiresUtc'}
+    c.match_mapping(dispatch, report)
+    keys = set(c.RELEASE_KEYS) | {'opsSha256', 'runtimeImageId', 'engineProofSha256', 'action', 'oldProfileSha256', 'inventorySha256', 'sharedDatabaseWindowReleased', 'expiresUtc'}
     if set(dispatch) != keys or dispatch.get('action') != 'activate-private-ip' or dispatch.get('sharedDatabaseWindowReleased') is not True or dispatch.get('opsSha256') != report['opsSha256'] or dispatch.get('oldProfileSha256') != c.canonical_hash(old) or dispatch.get('inventorySha256') != inventory_hash:
         raise ValueError('Explicit root accepted-identity/profile/network dispatch is required')
     remaining = (timestamp(dispatch['expiresUtc']) - utc()).total_seconds()
@@ -124,6 +124,8 @@ def validate_transition(old, report, previous_ops, previous_profile, partial):
     if partial: raise ValueError('Partial preview/upgrade state requires explicit rollback or recovery')
     if old['profile'] != 'ssh-localhost' or any(old[key] != report[key] for key in c.RELEASE_KEYS) or old['opsSha256'] != previous_ops or c.canonical_hash(old) != previous_profile:
         raise ValueError('Only the explicit retained SSH3100 release/profile can transition')
+    if any(old[key] != report[key] for key in ('runtimeImageId', 'engineProofSha256')):
+        raise ValueError('An origin-only transition cannot change the proven engine mapping')
 
 
 def transition_configs(configs):
@@ -278,7 +280,8 @@ def activate(args):
         partial = any((c.CONFIG / name).exists() for name in (STATE_NAME, STATE_NAME + '.new', 'upgrading.json', 'upgrading.json.new', 'deploy.candidate.env', 'active-profile.json.new'))
         validate_transition(old, report, args.previous_ops_sha256, args.previous_profile_sha256, partial)
         deployed = json.loads(c.private_file(c.CONFIG / 'deployed-release.json').read_text())
-        same_release(deployed, old)
+        previous_report = c.archived_image(old)
+        c.match_mapping(old, previous_report); c.match_mapping(deployed, previous_report)
         if deployed.get('opsSha256') != old['opsSha256'] or deployed.get('accessProfileSha256') != c.canonical_hash(old): raise ValueError('Current deployed record/profile mismatch')
         configs = c.load_configs()
         baseline = evidence_file(args.baseline, args.baseline_sha256, 'baseline')
@@ -287,8 +290,8 @@ def activate(args):
         dispatch = evidence_file(c.CONFIG / 'preview-dispatch.json', args.dispatch_sha256, 'dispatch')
         validate_baselines(baseline, restored, report, old); validate_dispatch(dispatch, report, old, args.inventory_sha256)
         observe_inventory(inventory)
-        c.db_container(); upgrade.validate_writers(upgrade.runtime_containers(), old)
-        if c.private_file(c.CONFIG / 'deploy.env').read_text() != c.compose_environment(old['testedPlatformConfig'], Path(old['opsRoot']), old):
+        c.db_container(); upgrade.validate_writers(upgrade.runtime_containers(), previous_report)
+        if c.private_file(c.CONFIG / 'deploy.env').read_text() != c.compose_environment(c.runtime_image(previous_report), Path(old['opsRoot']), old):
             raise ValueError('Current Compose env/profile mismatch')
         next_configs = transition_configs(configs)
         next_ops = c.preserve_ops_bundle(report['sourceCommit'])
@@ -305,14 +308,14 @@ def activate(args):
                  'snapshotSha256': snapshot_hashes, 'startedUtc': utc().isoformat(), 'inventorySha256': args.inventory_sha256,
                  'dispatchSha256': args.dispatch_sha256, 'dataRollback': False, 'nativeAcceptance': 'pending'}
         c.write_private(c.CONFIG / STATE_NAME, json.dumps(state, indent=2) + '\n')
-        old_command = c.compose(old['testedPlatformConfig'], ops_root=old['opsRoot'])
-        command = c.compose(report['testedPlatformConfig'], ops_root=next_ops)
+        old_command = c.compose(c.runtime_image(previous_report), ops_root=old['opsRoot'])
+        command = c.compose(c.runtime_image(report), ops_root=next_ops)
         try:
             # No candidate may serve before the protected canonical selection.
             c.run(old_command + ['stop', '--timeout', '30', 'app', 'worker'], timeout=75)
             replace_site(maintenance_site()); state['phase'] = 'closed-writers-stopped'; save_state(state)
-            result = backup.create_backup({key: old[key] for key in c.RELEASE_KEYS + ('opsSha256',)})
-            upgrade.verified_backup(result['directory'], old)
+            result = backup.create_backup(previous_report)
+            upgrade.verified_backup(result['directory'], previous_report)
             state['backupDirectory'] = result['directory']; state['phase'] = 'backup-verified'; save_state(state)
             filename = credentials(transaction)
             state['passwordFile'] = filename
@@ -322,9 +325,9 @@ def activate(args):
             c.select_profile(candidate); state['phase'] = 'canonical-profile-selected'; save_state(state)
             for name, value in next_configs.items():
                 atomic_private(c.CONFIG / name, json.dumps(value) + '\n', uid=1001, gid=1001)
-            atomic_private(c.CONFIG / 'deploy.env', c.compose_environment(report['testedPlatformConfig'], next_ops, candidate))
+            atomic_private(c.CONFIG / 'deploy.env', c.compose_environment(c.runtime_image(report), next_ops, candidate))
             c.load_configs()
-            promoted = dict(deployed, opsSha256=report['opsSha256'], accessProfileSha256=c.canonical_hash(candidate), nativePreviewAcceptance='pending')
+            promoted = dict(deployed, opsSha256=report['opsSha256'], runtimeImageId=c.runtime_image(report), engineProofSha256=report['engineProofSha256'], accessProfileSha256=c.canonical_hash(candidate), nativePreviewAcceptance='pending')
             atomic_private(c.CONFIG / 'deployed-release.json', json.dumps(promoted, indent=2) + '\n')
             c.run(command + ['config', '--quiet'])
             c.run(command + ['up', '-d', '--force-recreate', '--no-build', '--pull', 'never', '--wait', '--wait-timeout', '120', 'app', 'worker'], timeout=150)
@@ -361,14 +364,14 @@ def read_state(report):
     state = json.loads(c.private_file(c.CONFIG / STATE_NAME).read_text())
     c.validate_profile(state['candidate']); c.validate_profile(state['previous'])
     same_release(state['candidate'], report)
-    if state['candidate']['opsSha256'] != report['opsSha256']: raise ValueError('Executing Ops differs from transition candidate')
+    c.match_mapping(state['candidate'], report)
     transaction_path(state['transaction'])
     if state.get('dataRollback') is not False: raise ValueError('Only config/proxy recovery is permitted')
     return state
 
 
 def validate_native(value, state):
-    same_release(value, state['candidate'])
+    c.match_mapping(value, state['candidate'])
     if value.get('origin') != c.ORIGINS['private-ip'] or value.get('accessProfileSha256') != c.canonical_hash(state['candidate']) or value.get('noUnexpectedBusinessMutation') is not True:
         raise ValueError('Actual native evidence must match this canonical preview/profile')
     accepted = timestamp(value.get('acceptedUtc'))
@@ -386,7 +389,7 @@ def accept(args):
     report = c.verify_release(args)
     with c.lock():
         state = read_state(report)
-        command = c.compose(report['testedPlatformConfig'], ops_root=state['candidate']['opsRoot'])
+        command = c.compose(c.runtime_image(report), ops_root=state['candidate']['opsRoot'])
         if state['phase'] != 'native-acceptance-pending': raise ValueError('Only pending actual preview can be accepted')
         try:
             value = evidence_file(args.acceptance, args.acceptance_sha256, 'acceptance'); validate_native(value, state)
@@ -396,7 +399,7 @@ def accept(args):
             state |= {'phase': 'accepted', 'acceptedUtc': value['acceptedUtc'], 'nativeAcceptance': 'accepted', 'acceptanceSha256': args.acceptance_sha256}
             save_state(state)
             deployed = json.loads(c.private_file(c.CONFIG / 'deployed-release.json').read_text())
-            same_release(deployed, report)
+            c.match_mapping(deployed, report)
             atomic_private(c.CONFIG / 'deployed-release.json', json.dumps(deployed | {'nativePreviewAcceptance': 'accepted'}, indent=2) + '\n')
             c.write_private(transaction_path(state['transaction']) / 'transition-accepted.json', json.dumps(state, indent=2) + '\n')
             return {'mode': 'private-preview-accepted', 'origin': c.ORIGINS['private-ip'], 'dataRollback': False}
@@ -425,9 +428,11 @@ def rollback(args):
         if json.loads(saved['active-profile.json']) != {'profilePath': str(c.profile_path(state['previous'])), 'profileSha256': c.canonical_hash(state['previous'])}:
             raise ValueError('Rollback pointer differs from explicit previous profile')
         c.read_profile(c.profile_path(state['previous']), args.previous_profile_sha256)
+        previous_report = c.archived_image(state['previous'])
+        c.match_mapping(state['previous'], previous_report)
         # Snapshot site is retained for manual review; rollback uses CLOSED
         # site rather than inadvertently reviving an unprotected old route.
-        command = c.compose(report['testedPlatformConfig'], ops_root=state['candidate']['opsRoot'])
+        command = c.compose(c.runtime_image(report), ops_root=state['candidate']['opsRoot'])
         try:
             replace_site(maintenance_site())
             c.run(command + ['stop', '--timeout', '30', 'app', 'worker'], timeout=75)
@@ -437,10 +442,10 @@ def rollback(args):
                                gid=1001 if name in ('app.json', 'worker.json', 'migration.json') else 0)
             c.load_configs()
             old = state['previous']
-            old_command = c.compose(old['testedPlatformConfig'], ops_root=old['opsRoot'])
+            old_command = c.compose(c.runtime_image(previous_report), ops_root=old['opsRoot'])
             c.run(old_command + ['config', '--quiet'])
             c.run(old_command + ['up', '-d', '--force-recreate', '--no-build', '--pull', 'never', '--wait', '--wait-timeout', '120', 'app', 'worker'], timeout=150)
-            readiness(old)
+            readiness(previous_report)
             state |= {'phase': 'rolled-back', 'completedUtc': utc().isoformat(), 'nativeRollbackAcceptance': 'pending'}; save_state(state)
             c.write_private(transaction / 'rollback-result.json', json.dumps(state, indent=2) + '\n')
             return {'mode': 'ssh-profile-restored-native-acceptance-pending', 'origin': c.ORIGINS['ssh-localhost'], 'previewClosed': True, 'dataRollback': False}
@@ -458,6 +463,7 @@ def expire(args):
     report = {'sourceCommit': args.source, 'testedPlatformConfig': args.config_id, 'candidateManifestDigest': args.manifest_digest,
               'archiveSha256': args.archive_sha256, 'opsSha256': args.ops_sha256}
     c.validate_identity(report)
+    report = c.archived_image(report)
     with c.lock():
         state = read_state(report)
         if state['phase'] in ('accepted', 'rolled-back'):
@@ -465,7 +471,7 @@ def expire(args):
         if state['phase'] != 'native-acceptance-pending':
             raise ValueError('Unexpected preview lease state; review protected state')
         if c.active_profile(required=True) != state['candidate']: raise ValueError('Lease cannot stop another active profile')
-        command = c.compose(report['testedPlatformConfig'], ops_root=state['candidate']['opsRoot'])
+        command = c.compose(c.runtime_image(report), ops_root=state['candidate']['opsRoot'])
         close_failed(state, command)
         return {'mode': 'expired-preview-withdrawn', 'recoveryFailures': state['recoveryFailures'], 'dataRollback': False}
 
