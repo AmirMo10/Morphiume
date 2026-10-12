@@ -47,16 +47,24 @@ export async function loginAdmin(page: Page, credentials: { email: string; passw
 
 export async function loginCustomer(context: BrowserContext, baseURL: string) {
   const phone = `+989${String(randomInt(0, 1_000_000_000)).padStart(9, "0")}`;
-  expect((await context.request.post("/api/auth/phone-number/send-otp", { headers: { Origin: baseURL }, data: { phoneNumber: phone } })).status()).toBe(200);
-  const inbox = await context.request.get(`/api/test/otp?phone=${encodeURIComponent(phone)}`, { headers: { "x-morphiume-test-secret": process.env.MOCK_CONTROL_SECRET! } });
-  expect(inbox.status()).toBe(200);
-  const code = (await inbox.json()).data.code as string;
-  expect((await context.request.post("/api/auth/phone-number/verify", { headers: { Origin: baseURL }, data: { phoneNumber: phone, code } })).status()).toBe(200);
+  await nativeAuthAction(context.request, "customer-otp-send", () => context.request.post("/api/auth/phone-number/send-otp", { headers: { Origin: baseURL }, data: { phoneNumber: phone } }));
+  await nativeAuthAction(context.request, "customer-otp-verify", async () => {
+    const code = await controlledCustomerOtp(context, phone);
+    return context.request.post("/api/auth/phone-number/verify", { headers: { Origin: baseURL }, data: { phoneNumber: phone, code } });
+  });
   const session = await context.request.get("/api/auth/get-session");
   expect(session.status()).toBe(200);
   const value = await session.json();
   expect(value.user.phoneNumberVerified).toBe(true);
   return { phone, userId: value.user.id as string };
+}
+
+export async function controlledCustomerOtp(context: BrowserContext, phone: string): Promise<string> {
+  const inbox = await context.request.get(`/api/test/otp?phone=${encodeURIComponent(phone)}`, { headers: { "x-morphiume-test-secret": process.env.MOCK_CONTROL_SECRET! } });
+  expect(inbox.status()).toBe(200);
+  const code = (await inbox.json()).data.code as string;
+  expect(typeof code === "string" && /^\d{6}$/u.test(code), "A current controlled OTP must exist; no implicit resend is allowed").toBe(true);
+  return code;
 }
 
 export async function disableUsers(pool: pg.Pool, ids: string[]) {

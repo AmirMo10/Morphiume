@@ -5,7 +5,8 @@ import AxeBuilder from "@axe-core/playwright";
 import { hashPassword } from "better-auth/crypto";
 import pg from "pg";
 import sharp from "sharp";
-import { loginAdmin } from "./acceptance-fixtures";
+import { controlledCustomerOtp, loginAdmin } from "./acceptance-fixtures";
+import { nativeAuthAction } from "./native-auth-actions";
 
 test("T01/T12/T17/T19/T20/T21/T23/T25: real admin product → guest purchase → mock verification → stock → owned tracking", async ({ browser, page, baseURL }, info) => {
   const target = new URL(process.env.DATABASE_URL!);
@@ -95,17 +96,23 @@ test("T01/T12/T17/T19/T20/T21/T23/T25: real admin product → guest purchase →
     await buyer.getByRole("button", { name: "ادامه و انتخاب روش ارسال", exact: true }).click();
     await buyer.getByLabel("شمارهٔ همراه خریدار", { exact: true }).fill(customerPhone);
     await buyer.route("**/api/auth/phone-number/send-otp", route => route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ code: "SERVICE_UNAVAILABLE", message: "QA controlled unavailable SMS response" }) }), { times: 1 });
-    await buyer.getByRole("button", { name: "دریافت کد تأیید", exact: true }).click();
+    await nativeAuthAction(buyer, "customer-otp-send", () => buyer.getByRole("button", { name: "دریافت کد تأیید", exact: true }).click(), 503);
     await expect(buyer.locator(".phone-form [role=alert]")).toBeVisible();
     await expect(buyer.getByLabel("شمارهٔ همراه خریدار", { exact: true })).toHaveValue(customerPhone);
     expect(await buyer.evaluate(() => JSON.parse(sessionStorage.getItem("morphiume-checkout-address")!).recipient)).toBe("گیرندهٔ آزمایشی QA");
-    await buyer.getByRole("button", { name: "دریافت کد تأیید", exact: true }).click();
+    await nativeAuthAction(buyer, "customer-otp-send", () => buyer.getByRole("button", { name: "دریافت کد تأیید", exact: true }).click());
     await expect(buyer.getByLabel("کد تأیید را وارد کنید.", { exact: true })).toBeVisible();
-    const inbox = await customer.request.get(`/api/test/otp?phone=${encodeURIComponent(customerPhone)}`, { headers: { "x-morphiume-test-secret": process.env.MOCK_CONTROL_SECRET! } });
-    expect(inbox.ok()).toBe(true);
-    const otp = (await inbox.json()).data.code as string;
-    await buyer.getByLabel("کد تأیید را وارد کنید.", { exact: true }).fill(otp);
-    await buyer.getByRole("button", { name: "تأیید شماره", exact: true }).click();
+    await nativeAuthAction(buyer, "customer-otp-wrong-code", async () => {
+      const otp = await controlledCustomerOtp(customer, customerPhone);
+      await buyer.getByLabel("کد تأیید را وارد کنید.", { exact: true }).fill(otp === "000000" ? "111111" : "000000");
+      await buyer.getByRole("button", { name: "تأیید شماره", exact: true }).click();
+    }, 400);
+    await expect(buyer.locator(".phone-form [role=alert]")).toBeVisible();
+    expect(await buyer.evaluate(() => JSON.parse(sessionStorage.getItem("morphiume-checkout-address")!).recipient)).toBe("گیرندهٔ آزمایشی QA");
+    await nativeAuthAction(buyer, "customer-otp-verify", async () => {
+      await buyer.getByLabel("کد تأیید را وارد کنید.", { exact: true }).fill(await controlledCustomerOtp(customer, customerPhone));
+      await buyer.getByRole("button", { name: "تأیید شماره", exact: true }).click();
+    });
     await expect(buyer.getByText("شمارهٔ خریدار تأیید شده است.", { exact: true })).toBeVisible();
     await buyer.getByRole("checkbox", { name: /مبلغ و.*شرایط خرید/ }).check();
     await buyer.getByRole("button", { name: /^پرداخت / }).click();
@@ -138,10 +145,8 @@ test("T01/T12/T17/T19/T20/T21/T23/T25: real admin product → guest purchase →
     const foreign = await browser.newContext({ baseURL });
     const denied = await foreign.request.get(`/api/orders/${orderId}`);
     expect([401, 404]).toContain(denied.status());
-    expect((await foreign.request.post("/api/auth/phone-number/send-otp", { headers: { Origin: baseURL! }, data: { phoneNumber: otherPhone } })).status()).toBe(200);
-    const otherInbox = await foreign.request.get(`/api/test/otp?phone=${encodeURIComponent(otherPhone)}`, { headers: { "x-morphiume-test-secret": process.env.MOCK_CONTROL_SECRET! } });
-    const otherCode = (await otherInbox.json()).data.code as string;
-    expect((await foreign.request.post("/api/auth/phone-number/verify", { headers: { Origin: baseURL! }, data: { phoneNumber: otherPhone, code: otherCode } })).status()).toBe(200);
+    await nativeAuthAction(foreign.request, "customer-otp-send", () => foreign.request.post("/api/auth/phone-number/send-otp", { headers: { Origin: baseURL! }, data: { phoneNumber: otherPhone } }));
+    await nativeAuthAction(foreign.request, "customer-otp-verify", async () => foreign.request.post("/api/auth/phone-number/verify", { headers: { Origin: baseURL! }, data: { phoneNumber: otherPhone, code: await controlledCustomerOtp(foreign, otherPhone) } }));
     expect((await foreign.request.get(`/api/orders/${orderId}`)).status()).toBe(404);
     await foreign.close();
     await buyer.setViewportSize({ width: 320, height: 640 });

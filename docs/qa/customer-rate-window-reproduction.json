@@ -1,0 +1,144 @@
+{
+  "generatedAt": "2026-10-12T15:56:14.151Z",
+  "browserVersion": "154.0.8037.93",
+  "betterAuthVersion": "1.7.7",
+  "scope": "Controlled Windows native phone mechanism; fourth original CI failure lacks captured status",
+  "firstUiSend": {
+    "stage": "customer-otp-send",
+    "category": "customer-phone-send-otp",
+    "status": 429,
+    "retryAfterSeconds": 60,
+    "otpInputCount": 0,
+    "phonePreserved": true
+  },
+  "preparation": [
+    {
+      "stage": "customer-otp-send",
+      "category": "customer-phone-send-otp",
+      "attempt": 1,
+      "status": 200,
+      "retryAfterSeconds": null,
+      "retryAfterHeader": "absent"
+    },
+    {
+      "stage": "customer-otp-send",
+      "category": "customer-phone-send-otp",
+      "attempt": 1,
+      "status": 200,
+      "retryAfterSeconds": null,
+      "retryAfterHeader": "absent"
+    },
+    {
+      "stage": "customer-otp-send",
+      "category": "customer-phone-send-otp",
+      "attempt": 1,
+      "status": 200,
+      "retryAfterSeconds": null,
+      "retryAfterHeader": "absent"
+    },
+    {
+      "stage": "customer-otp-send",
+      "category": "customer-phone-send-otp",
+      "attempt": 1,
+      "status": 200,
+      "retryAfterSeconds": null,
+      "retryAfterHeader": "absent"
+    },
+    {
+      "stage": "customer-otp-send",
+      "category": "customer-phone-send-otp",
+      "attempt": 1,
+      "status": 200,
+      "retryAfterSeconds": null,
+      "retryAfterHeader": "absent"
+    },
+    {
+      "stage": "customer-otp-send",
+      "category": "customer-phone-send-otp",
+      "attempt": 1,
+      "status": 200,
+      "retryAfterSeconds": null,
+      "retryAfterHeader": "absent"
+    },
+    {
+      "stage": "customer-otp-send",
+      "category": "customer-phone-send-otp",
+      "attempt": 1,
+      "status": 200,
+      "retryAfterSeconds": null,
+      "retryAfterHeader": "absent"
+    },
+    {
+      "stage": "customer-otp-send",
+      "category": "customer-phone-send-otp",
+      "attempt": 1,
+      "status": 200,
+      "retryAfterSeconds": null,
+      "retryAfterHeader": "absent"
+    },
+    {
+      "stage": "customer-otp-send",
+      "category": "customer-phone-send-otp",
+      "attempt": 1,
+      "status": 200,
+      "retryAfterSeconds": null,
+      "retryAfterHeader": "absent"
+    },
+    {
+      "stage": "customer-otp-send",
+      "category": "customer-phone-send-otp",
+      "attempt": 1,
+      "status": 200,
+      "retryAfterSeconds": null,
+      "retryAfterHeader": "absent"
+    }
+  ],
+  "correctedUi": [
+    {
+      "stage": "customer-otp-send",
+      "category": "customer-phone-send-otp",
+      "attempt": 1,
+      "status": 429,
+      "retryAfterSeconds": 60,
+      "retryAfterHeader": "x-retry-after"
+    },
+    {
+      "stage": "customer-otp-send",
+      "category": "customer-phone-send-otp",
+      "attempt": 2,
+      "status": 200,
+      "retryAfterSeconds": null,
+      "retryAfterHeader": "absent"
+    },
+    {
+      "stage": "customer-otp-wrong-code",
+      "category": "customer-phone-verify",
+      "attempt": 1,
+      "status": 400,
+      "retryAfterSeconds": null,
+      "retryAfterHeader": "absent"
+    },
+    {
+      "stage": "customer-otp-verify",
+      "category": "customer-phone-verify",
+      "attempt": 1,
+      "status": 200,
+      "retryAfterSeconds": null,
+      "retryAfterHeader": "absent"
+    }
+  ],
+  "customerVerified": true,
+  "phonePluginRule": {
+    "max": 10,
+    "windowSeconds": 60,
+    "key": "per-path/IP"
+  },
+  "noImplicitResendDuringVerification": true,
+  "cleanup": {
+    "syntheticCustomerUsersDisabled": 1,
+    "remainingFixtureSessions": 0,
+    "isolatedPhoneFixtures": 11,
+    "limiterRecordsPreserved": true,
+    "noQueueOrCheckoutFixtures": true
+  }
+}

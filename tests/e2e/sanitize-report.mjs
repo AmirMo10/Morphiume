@@ -10,8 +10,8 @@ catch (error) {
 }
 const tests = [];
 function safeAuthStatuses(annotations = []) {
-  const allowedStages = ["password-sign-in", "mfa-enable", "totp-enrollment", "totp-renewal"];
-  const allowedCategories = ["admin-sign-in-email", "admin-two-factor-enable", "admin-two-factor-verify-totp"];
+  const allowedStages = ["password-sign-in", "mfa-enable", "totp-enrollment", "totp-renewal", "customer-otp-send", "customer-otp-verify", "customer-otp-wrong-code"];
+  const allowedCategories = ["admin-sign-in-email", "admin-two-factor-enable", "admin-two-factor-verify-totp", "customer-phone-send-otp", "customer-phone-verify"];
   const statuses = [];
   for (const annotation of annotations) {
     if (annotation.type !== "native-auth-status") continue;
