@@ -129,7 +129,9 @@ describe.skipIf(!enabled)("isolated PostgreSQL anonymous analytics (not activate
   });
   it("reuses only expired dedup keys even if physical deletion has not happened", async () => {
     const subject = store(), event = search(); await subject.captureBrowserEvent(event);
-    await pool.query("UPDATE analytics_seen SET expires_at=clock_timestamp()-interval '1 microsecond' WHERE event_id=$1", [event.eventId]);
+    // The native pg Date clock has millisecond precision; keep this fixture unambiguously expired.
+    const expired = await pool.query("UPDATE analytics_seen SET expires_at=clock_timestamp()-interval '1 second' WHERE event_id=$1", [event.eventId]);
+    expect(expired.rowCount).toBe(1); // The existing dedup row remains physically present before reuse.
     await subject.captureBrowserEvent({ ...event, resultBucket: "1_10" });
     expect((await report()).observed).toMatchObject({ search: "2", zeroResultSearch: "1" });
     expect((await pool.query("SELECT event_id FROM analytics_seen")).rows).toHaveLength(1);
