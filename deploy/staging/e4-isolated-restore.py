@@ -291,7 +291,7 @@ def preflight(args, c, r, release, tool_parent):
     need(not c.run(['ss', '-H', '-ltn', 'sport = :3002']))
     need(not c.run(['docker', 'network', 'ls', '--filter', 'label=com.docker.compose.project=' + args.restore_project, '--format', '{{.ID}}']))
     units = ['morphiume-runtime-backup.timer', 'morphiume-runtime-health.timer', 'morphiume-runtime-backup.service', 'morphiume-runtime-health.service']
-    need(c.run(['systemctl', 'show', '--property=ActiveState', '--value', *units]).splitlines() == ['inactive'] * 4)
+    need(c.run(['systemctl', 'show', '--property=ActiveState', '--value', *units]).split() == ['inactive'] * 4)
     profile = c.active_profile(required=True)
     need(c.canonical_hash(profile) == args.profile_sha256 and profile['profile'] == 'ssh-localhost')
     c.match_mapping(profile, release)

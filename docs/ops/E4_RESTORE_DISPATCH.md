@@ -1,5 +1,7 @@
 # E4 isolated restore dispatch — prepared companion, not executed
 
+Root's first wrapper precheck on2026-10-13 at08:55UTC rejected blank separator lines in actual multi-unit `systemctl show --value` output, before stopping runtime writers or creating any restore namespace. All four units were inactive (three not installed and the health service loaded). The parser now splits whitespace while still requiring exactly four inactive states; positive and active-unit counterexamples include those real separator lines. The failed precheck is retained; this is not an executed database restore.
+
 Root accepted the deployed E4 Chromium retained T25:1/1 in17.219785s, eight auth responses plus one UI503,247 log lines/zero wrapper500; ten existing financial tables/12 rows unchanged. QA released the window at2026-10-13T08:26:23.123Z. These are supplied execution facts, not this agent's requests. E4 source/image/Ops/profile remain those in [the cutover report](E4_RUNTIME_CUTOVER_EXECUTION.md).
 
 **Direct frozen Ops68 `runtime/restore.py --apply` is blocked:** its all-container `morphiume.restore.scope=runtime` test includes the stopped old613 pair. Preserve that guard and all21 files. The separate [e4-isolated-restore.py](../../deploy/staging/e4-isolated-restore.py) verifies exactly that legacy pair, then orchestrates one fresh restore using byte-verified Ops68 helpers; it never invokes/patches `restore.main()` or replays tool923. Root must independently review, publish and materialize the companion before any apply.

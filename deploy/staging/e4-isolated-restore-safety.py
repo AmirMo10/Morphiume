@@ -311,7 +311,7 @@ class Safety(unittest.TestCase):
                 def run(self, command, **_):
                     calls.append(command)
                     if command[0] == 'ss': return 'occupied' if failure == 'port' else ''
-                    if command[0] == 'systemctl': return 'active\ninactive\ninactive\ninactive' if failure == 'timer' else '\n'.join(['inactive'] * 4)
+                    if command[0] == 'systemctl': return 'active\n\ninactive\n\ninactive\n\ninactive\n' if failure == 'timer' else '\n\n'.join(['inactive'] * 4) + '\n'
                     if command[:3] == ['docker', 'network', 'ls']: return 'existing' if failure == 'network' else ''
                     if command[:2] == ['docker', 'ps']: return 'a\nb' if '--all' in command else ('writer' if failure == 'writers' else '')
                     if command[:2] == ['docker', 'inspect']: return '[{},{}]'
