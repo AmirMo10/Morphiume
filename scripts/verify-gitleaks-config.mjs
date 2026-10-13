@@ -19,12 +19,24 @@ const cases=[
   {name:"same-public-value-other-path",file:"unrelated-config.txt",value:profile,expected:1},
   {name:"one-character-mutation",file:"tests/ops/restore-business-contract.mjs",value:"4"+profile.slice(1),expected:1},
 ];
+const publicMigrationIdentities=[
+  {name:"migration-filename",file:"src/server/runtime-schema.ts",value:"0005_bulk_operations.sql"},
+  {name:"migration-0002-checksum",file:"deploy/staging/upgrade-original-observation.mjs",value:"e36cd53d36bb82c7af27438a350f089391475213860d7e9aee0ecf052726d524"},
+  {name:"migration-0004-checksum",file:"deploy/staging/upgrade-original-observation.mjs",value:"af97c98d7a3775bad6219cfd3b381b638585acaf9f2c7e74ae1cf1bd0a0ea162"},
+];
+for(const identity of publicMigrationIdentities){
+  cases.push(
+    {...identity,marker:"api_key",expected:0},
+    {...identity,name:identity.name+"-other-value",marker:"api_key",value:randomBytes(32).toString("hex"),expected:1},
+    {...identity,name:identity.name+"-other-path",file:"unrelated-config.txt",marker:"api_key",expected:1},
+  );
+}
 for(const [index,item] of cases.entries()){
   const input=resolve(directory,"case"+index);mkdirSync(input);
   const path=resolve(input,item.file);if(!path.startsWith(input+sep))throw new Error("Canary boundary");
   mkdirSync(dirname(path),{recursive:true});
   // These are generated noncredential canaries, never real service credentials.
-  writeFileSync(path,`accessProfileSha256: '${item.value}'\n`,{flag:"wx"});
+  writeFileSync(path,`${item.marker ?? "accessProfileSha256"}: '${item.value}'\n`,{flag:"wx"});
   for(const args of [["init","--quiet",input],["-C",input,"add","--",item.file],["-C",input,"-c","user.name=Morphiume canary","-c","user.email=canary@fixture.invalid","commit","--quiet","-m","Noncredential detector canary"]]){
     const prepared=spawnSync("git",args,{encoding:"utf8",windowsHide:true,timeout:10000});
     if(prepared.error||prepared.status!==0)throw new Error("Isolated detector repository setup failed");
@@ -35,4 +47,4 @@ for(const [index,item] of cases.entries()){
   const findings=JSON.parse(readFileSync(report,"utf8"));
   if(findings.length!==item.expected||findings.some(x=>x.RuleID!=="generic-api-key"||x.Secret!=="REDACTED"))throw new Error("Detector result mismatch: "+item.name);
 }
-console.log(JSON.stringify({mode:"exact-public-profile-exception-verified",cases:cases.length,passed:cases.length,realCredentialsUsed:false,otherValuesAndPathsDetected:true,defaultGenericRuleRetained:true}));
+console.log(JSON.stringify({mode:"exact-public-identity-exceptions-verified",cases:cases.length,passed:cases.length,realCredentialsUsed:false,otherValuesAndPathsDetected:true,defaultGenericRuleRetained:true}));

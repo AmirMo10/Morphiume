@@ -52,10 +52,30 @@ describe.skipIf(!enabled)("PostgreSQL cart ownership and durable consumption",()
     expect(await fixture.commerce.createCheckout(fixture.customer,"different-cookie-proof",c.input,c.key)).toEqual(first);expect(await state()).toEqual(before);expect(await fixture.commerce.getCart(added.id,"",fixture.customer)).toEqual(recouponed);
     await expect(fixture.commerce.createCheckout(fixture.customer,"",{...c.input,address:{...c.input.address,recipient:"TEST changed payload"}},c.key)).rejects.toMatchObject({code:"CONFLICT"});expect(await state()).toEqual(before);
   });
-  it("same-key concurrent requests consume exactly once and preserve one attempt/reservation/outbox set",async()=>{
-    const c=await fixture.cart(),results=await Promise.all([fixture.commerce.createCheckout(fixture.customer,c.guestToken,c.input,c.key),fixture.commerce.createCheckout(fixture.customer,c.guestToken,c.input,c.key)]);expect(results[0]!.orderId).toBe(results[1]!.orderId);expect(results[0]!.paymentAttemptId).toBe(results[1]!.paymentAttemptId);
-    expect((await fixture.commerce.getCart(c.input.cartId,"",fixture.customer)).version).toBe(c.input.cartVersion+1);
-    expect((await pool.query("SELECT count(*)::int AS count FROM payment_attempt WHERE order_id=$1",[results[0]!.orderId])).rows[0].count).toBe(1);expect((await pool.query("SELECT count(*)::int AS count FROM inventory_reservation WHERE order_id=$1",[results[0]!.orderId])).rows[0].count).toBe(1);expect((await pool.query("SELECT count(*)::int AS count FROM outbox_job WHERE dedupe_key=$1",[`order-created:${results[0]!.orderId}`])).rows[0].count).toBe(1);
+  it("same-key concurrent requests consume exactly once and preserve one order/event/attempt/reservation/outbox set",async()=>{
+    const c=await fixture.cart(),results=await Promise.all([fixture.commerce.createCheckout(fixture.customer,c.guestToken,c.input,c.key),fixture.commerce.createCheckout(fixture.customer,c.guestToken,c.input,c.key)]);
+    const {orderId,orderNumber,paymentAttemptId,total}=results[0]!;
+    // External initialization may still be in flight for one response; durable
+    // identity and money are stable even while payment status/redirect change.
+    expect(results[1]).toMatchObject({orderId,orderNumber,paymentAttemptId,total});
+    expect(await fixture.commerce.getCart(c.input.cartId,"",fixture.customer)).toMatchObject({version:c.input.cartVersion+1,items:[],couponCode:null});
+    expect((await pool.query("SELECT id FROM orders WHERE user_id=$1",[fixture.customer.userId])).rows).toEqual([{id:orderId}]);
+    expect((await pool.query("SELECT order_id,attempt_id FROM checkout_idempotency WHERE user_id=$1 AND operation='checkout' AND key=$2",[fixture.customer.userId,c.key])).rows).toEqual([{order_id:orderId,attempt_id:paymentAttemptId}]);
+    expect((await pool.query("SELECT id FROM payment_attempt WHERE order_id=$1",[orderId])).rows).toEqual([{id:paymentAttemptId}]);
+    expect((await pool.query("SELECT variant_id,quantity,status FROM inventory_reservation WHERE order_id=$1",[orderId])).rows).toEqual([{variant_id:fixture.variantId,quantity:1,status:"active"}]);
+    expect((await pool.query("SELECT operation_key,on_hand_delta,reserved_delta,reason FROM inventory_ledger WHERE order_id=$1",[orderId])).rows).toEqual([{operation_key:`reserve:${orderId}:${fixture.variantId}`,on_hand_delta:0,reserved_delta:1,reason:"checkout_reserve"}]);
+    const events=(await pool.query<{id:string;event_key:string;type:string;actor_id:string}>("SELECT id,event_key,type,actor_id FROM order_event WHERE order_id=$1",[orderId])).rows;
+    expect(events).toEqual([{id:expect.any(String),event_key:`created:${orderId}`,type:"order.created",actor_id:fixture.customer.userId}]);
+    const eventId=events[0]!.id;
+    // Only this checkout's jobs are inspected; historic legacy jobs stay untouched.
+    // Exact payloads and canonical keys reject duplicate or legacy aliases.
+    // Reconciliation is durable before provider I/O, even when creation succeeds.
+    const jobs=(await pool.query("SELECT type,dedupe_key,payload FROM outbox_job WHERE payload->>'orderId'=$1 OR payload->>'attemptId'=$2 OR payload->>'eventId'=$3 OR dedupe_key=ANY($4::text[]) ORDER BY type",[orderId,paymentAttemptId,eventId,[`notification:event:${eventId}`,`initialize:${paymentAttemptId}`,`reconcile:${paymentAttemptId}`,`order-created:${orderId}`]])).rows;
+    expect(jobs).toEqual([
+      {type:"notification.event",dedupe_key:`notification:event:${eventId}`,payload:{eventId,orderId}},
+      {type:"payment.initialize",dedupe_key:`initialize:${paymentAttemptId}`,payload:{attemptId:paymentAttemptId}},
+      {type:"payment.reconcile",dedupe_key:`reconcile:${paymentAttemptId}`,payload:{attemptId:paymentAttemptId}},
+    ]);
   });
   it("two simultaneous cart waiters never hide a user/FK deadlock behind transaction retries",async()=>{
     const c=await fixture.cart(),observer=deadlockObserver(),blocker=await pool.connect();await blocker.query("BEGIN");await blocker.query("SELECT id FROM cart WHERE id=$1 FOR UPDATE",[c.input.cartId]);
