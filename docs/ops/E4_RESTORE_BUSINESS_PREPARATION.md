@@ -1,5 +1,7 @@
 # E4 isolated restore business verification
 
+Actual prerequisite update,2026-10-13 at09:05UTC: the fresh isolated E4 app/DB reached readiness and all eight physical media files (736bytes) matched. The first business invocation stopped before evidence reservation or native HTTP because Windows PowerShell inherited an incompatible PowerShell7 module path; the real ACLs were already correctly limited. Running its ACL check with a minimal Windows transport environment returned `verified`. Both ACL child processes now use that environment; ACL requirements remain unchanged. This failure does not establish native acceptance.
+
 This separate acceptance tool is scoped to the accepted E4 image, Ops68 and SSH staging profile67f77. The old613 acceptance tool and its fixture remain unchanged. Default invocation prints a blocked plan and performs no network or database action.
 
 The root coordinator verified the retained E4 Chromium purchase and cleanup, then accepted its private fixture on 2026-10-13 at08:38:22Z. Its raw SHA256 is `cea16d8896babf6303e1f29c287dcd4a433f5a6668cda489594e4bf64e27395d`. The fresh E4 encrypted backup is `20261013T084014Z-8e5fa45e`; backup manifest SHA256 is `d3163b5964e4711be35dbdfce9a9f6fe8c786fd2ecd5be48452cae310ebd24d1`. These facts do not establish restore acceptance.
