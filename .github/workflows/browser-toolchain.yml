@@ -1,0 +1,54 @@
+name: Export pinned Linux browser toolchain
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/browser-toolchain.yml
+      - scripts/prepare-browser-toolchain-artifact.mjs
+      - tests/ops/browser-toolchain-artifact.test.mjs
+permissions:
+  contents: read
+jobs:
+  toolchain:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24.21.0
+      - run: npm install --global pnpm@11.25.0
+      - run: pnpm install --frozen-lockfile
+      - name: Check export boundaries without services or credentials
+        run: node --test tests/ops/browser-toolchain-artifact.test.mjs
+      - name: Download official pinned browsers into a fresh isolated cache
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/morphiume-browser-toolchain-cache
+        run: |
+          test ! -e "$PLAYWRIGHT_BROWSERS_PATH"
+          mkdir -m 700 "$PLAYWRIGHT_BROWSERS_PATH"
+          pnpm exec playwright install --with-deps chromium firefox webkit
+      - name: Export only the bounded browser cache and hash manifest
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/morphiume-browser-toolchain-cache
+        run: >-
+          node scripts/prepare-browser-toolchain-artifact.mjs
+          --cache-dir "$PLAYWRIGHT_BROWSERS_PATH"
+          --output-dir "${{ runner.temp }}/morphiume-browser-toolchain-export"
+          --source-commit "${{ github.sha }}"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        id: upload
+        with:
+          name: pinned-linux-browser-toolchain-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/morphiume-browser-toolchain-export/browser-toolchain-ubuntu24.04-x64-playwright1.64.0.tar.gz
+            ${{ runner.temp }}/morphiume-browser-toolchain-export/browser-toolchain.manifest.json
+            ${{ runner.temp }}/morphiume-browser-toolchain-export/browser-toolchain.sha256
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
+      - name: Record artifact digest without private data
+        run: echo 'Published artifact SHA256 ${{ steps.upload.outputs.artifact-digest }}'

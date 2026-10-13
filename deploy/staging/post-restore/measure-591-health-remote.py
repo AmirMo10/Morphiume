@@ -221,12 +221,80 @@ def parse_properties(raw, allowed=PROPERTIES):
     return values
 
 
+def gc_final_defaults(properties):
+    expected = {'ConditionResult': 'no', 'AssertResult': 'no', 'ExecMainCode': '0', 'ExecMainStatus': '0',
+                'ExecMainStartTimestampMonotonic': '0', 'ExecMainExitTimestampMonotonic': '0',
+                'CPUUsageNSec': '[not set]', 'MemoryPeak': '[not set]'}
+    return all(properties.get(key) == value for key, value in expected.items()) and properties.get('InvocationID') in ('', '0' * 32)
+
+
+def trusted_health_entry(raw, invocation):
+    require(isinstance(raw, str) and len(raw.encode()) <= 4 * 1024 ** 2)
+    require(isinstance(invocation, str) and re.fullmatch('[a-f0-9]{32}', invocation) and invocation != '0' * 32)
+    entries = []
+    for line in raw.splitlines():
+        entry = unique_json(line); require(isinstance(entry, dict))
+        message = entry.get('MESSAGE')
+        if not isinstance(message, str) or not message.startswith('{'): continue
+        try: body = unique_json(message)
+        except (ValueError, json.JSONDecodeError): continue
+        if isinstance(body, dict) and body.get('scope') == 'morphiume-staging-runtime': entries.append(entry)
+    require(len(entries) == 1); entry = entries[0]
+    require(entry.get('_SYSTEMD_INVOCATION_ID') == invocation and entry.get('_SYSTEMD_UNIT') == UNIT and entry.get('_UID') == '0' and entry.get('_TRANSPORT') == 'stdout')
+    require(isinstance(entry.get('_PID'), str) and re.fullmatch('[1-9][0-9]*', entry['_PID']) and int(entry['_PID']) > 1)
+    require(isinstance(entry.get('_EXE'), str) and re.fullmatch(r'/usr/bin/python3(?:\.[0-9]{1,2})?', entry['_EXE']))
+    require(shlex.split(entry.get('_CMDLINE', '')) == ['/usr/bin/python3', str(OPS_ROOT / 'runtime/scheduled.py'), 'health', '--apply'])
+    require(isinstance(entry.get('_BOOT_ID'), str) and re.fullmatch('[a-f0-9]{32}', entry['_BOOT_ID']))
+    require(isinstance(entry.get('__MONOTONIC_TIMESTAMP'), str) and re.fullmatch('[1-9][0-9]*', entry['__MONOTONIC_TIMESTAMP']))
+    return entry
+
+
+def gc_journal_timing(raw, health_raw, invocation):
+    """Prove a complete unit lifecycle, without inventing ExecMain timestamps."""
+    require(isinstance(raw, str) and len(raw.encode()) <= 4 * 1024 ** 2)
+    health = trusted_health_entry(health_raw, invocation); records = {}
+    allowed = {'7d4958e842da4a758f6c1cdc7b36dcc5': 'starting', '7ad2d189f7e94e70a38c781354912448': 'success',
+               '39f53479d3a045ac8e11786248231fbf': 'done', 'ae8f7b866b0347b9af31fe1c80b127c0': 'resources'}
+    for line in raw.splitlines():
+        entry = unique_json(line); require(isinstance(entry, dict))
+        require(entry.get('_PID') == '1' and entry.get('_UID') == '0' and entry.get('_TRANSPORT') == 'journal' and entry.get('UNIT') == UNIT)
+        require(entry.get('_BOOT_ID') == health['_BOOT_ID'] and entry.get('INVOCATION_ID') == invocation)
+        kind = allowed.get(entry.get('MESSAGE_ID')); require(kind is not None and kind not in records)
+        require(isinstance(entry.get('__MONOTONIC_TIMESTAMP'), str) and re.fullmatch('[1-9][0-9]*', entry['__MONOTONIC_TIMESTAMP']))
+        records[kind] = entry
+    require({'starting', 'success', 'done'} <= set(records))
+    starting, success, done = (records[key] for key in ('starting', 'success', 'done'))
+    require(starting.get('JOB_TYPE') == done.get('JOB_TYPE') == 'start' and done.get('JOB_RESULT') == 'done')
+    require(isinstance(starting.get('JOB_ID'), str) and re.fullmatch('[1-9][0-9]*', starting['JOB_ID']) and starting['JOB_ID'] == done.get('JOB_ID'))
+    begin, finished, completed, emitted = (int(entry['__MONOTONIC_TIMESTAMP']) for entry in (starting, success, done, health))
+    require(0 < begin < emitted <= finished <= completed and 0 < completed - begin <= 50_000_000)
+    if 'resources' in records: require(int(records['resources']['__MONOTONIC_TIMESTAMP']) >= completed)
+    return {'timingSource': 'unit-lifecycle-journal', 'unitCycleSeconds': (completed - begin) / 1_000_000,
+            'executionSeconds': None, 'startingMonotonicUsec': begin, 'completedMonotonicUsec': completed,
+            'managerJournalSha256': sha(raw.encode()), 'execMainTimingProved': False}
+
+
+def reconcile_gc_measurement(measurement, identity, manager_raw):
+    """Pure check of retained data; never start a service or promote its record."""
+    require(isinstance(measurement, dict) and measurement.get('accepted') is False)
+    final = measurement.get('properties'); require(isinstance(final, dict)); validate_effective(final)
+    require(gc_final_defaults(final) and final.get('Result') == 'success' and final.get('ActiveState') == 'inactive')
+    require(measurement.get('clientExit') == 0 and measurement.get('observerDeadlineExceeded') is False and measurement.get('observerFailed') is False)
+    invocation = measurement.get('observedInvocationId'); require(invocation == measurement.get('invocationId'))
+    health = journal_health(measurement.get('journal')); require(health == measurement.get('health')); validate_health(health, identity)
+    timing = gc_journal_timing(manager_raw, measurement['journal'], invocation)
+    samples = measurement.get('samples'); require(isinstance(samples, list) and samples and max(sample['memoryPeakBytes'] for sample in samples) > 0 and max(sample['cpuMicroseconds'] for sample in samples) > 0 and not any(sample['oom'] or sample['oomKill'] for sample in samples))
+    return timing | {'measurementReconciled': True, 'alertsCount': 0, 'appReadiness': 200}
+
+
 class Runner:
     def __init__(self): self.commands = []; self.starts = 0
 
     def run(self, args, timeout=15):
         allowed_show = args[:2] == ['systemctl', 'show'] and len(args) == 4 and args[2] in (UNIT, 'morphiume-runtime-backup.service', 'morphiume-runtime-health.timer', 'morphiume-runtime-backup.timer', 'docker.service', 'containerd.service') and args[3].startswith('--property=')
-        allowed = allowed_show or args == ['systemctl', 'daemon-reload'] or args == ['systemd-analyze', 'verify', '/etc/systemd/system/' + UNIT] or (args[:3] == ['journalctl', '--no-pager', '--output=json'] and len(args) == 4 and re.fullmatch('_SYSTEMD_INVOCATION_ID=[a-f0-9]{32}', args[3]))
+        health_journal = args[:3] == ['journalctl', '--no-pager', '--output=json'] and len(args) == 4 and re.fullmatch('_SYSTEMD_INVOCATION_ID=[a-f0-9]{32}', args[3])
+        manager_journal = args[:3] == ['journalctl', '--no-pager', '--output=json'] and len(args) == 7 and args[3] == '_PID=1' and re.fullmatch('_BOOT_ID=[a-f0-9]{32}', args[4]) and args[5] == 'UNIT=' + UNIT and re.fullmatch('INVOCATION_ID=[a-f0-9]{32}', args[6])
+        allowed = allowed_show or args == ['systemctl', 'daemon-reload'] or args == ['systemd-analyze', 'verify', '/etc/systemd/system/' + UNIT] or health_journal or manager_journal
         require(allowed); self.commands.append(args)
         result = subprocess.run(args, capture_output=True, text=True, timeout=timeout, check=False, env={'PATH': '/usr/sbin:/usr/bin:/sbin:/bin', 'LANG': 'C.UTF-8'})
         require(len(result.stdout.encode()) <= 4 * 1024 ** 2 and len(result.stderr.encode()) <= 65536 and result.returncode == 0)
@@ -280,11 +348,19 @@ def measure_once(runner, identity):
         require(final.get('InvocationID') in ('', '0' * 32, invocation))
         raw = runner.run(['journalctl', '--no-pager', '--output=json', '_SYSTEMD_INVOCATION_ID=' + invocation]); result.update({'journal': raw, 'invocationId': invocation})
         health = journal_health(raw); result['health'] = health
-        require(result['clientExit'] == 0 and result['observerDeadlineExceeded'] is False and result['observerFailed'] is False and final.get('ConditionResult') == 'yes' and final.get('AssertResult') == 'yes' and final.get('Result') == 'success' and final.get('ExecMainCode') == '1' and final.get('ExecMainStatus') == '0' and final.get('ActiveState') == 'inactive')
-        start = int(final.get('ExecMainStartTimestampMonotonic')); end = int(final.get('ExecMainExitTimestampMonotonic')); require(0 < start < end and (end - start) <= 50_000_000)
+        require(result['clientExit'] == 0 and result['observerDeadlineExceeded'] is False and result['observerFailed'] is False and final.get('Result') == 'success' and final.get('ActiveState') == 'inactive')
+        if gc_final_defaults(final):
+            entry = trusted_health_entry(raw, invocation)
+            manager = runner.run(['journalctl', '--no-pager', '--output=json', '_PID=1', '_BOOT_ID=' + entry['_BOOT_ID'], 'UNIT=' + UNIT, 'INVOCATION_ID=' + invocation])
+            result['managerJournal'] = manager
+            timing = reconcile_gc_measurement(result, identity, manager); result['timingEvidence'] = timing
+        else:
+            require(final.get('ConditionResult') == 'yes' and final.get('AssertResult') == 'yes' and final.get('ExecMainCode') == '1' and final.get('ExecMainStatus') == '0')
+            start = int(final.get('ExecMainStartTimestampMonotonic')); end = int(final.get('ExecMainExitTimestampMonotonic')); require(0 < start < end and (end - start) <= 50_000_000)
+            timing = {'executionSeconds': (end - start) / 1_000_000, 'unitCycleSeconds': None, 'timingSource': 'exec-main-monotonic'}
         require(result['samples'] and max(sample['memoryPeakBytes'] for sample in result['samples']) > 0 and max(sample['cpuMicroseconds'] for sample in result['samples']) > 0 and not any(sample['oom'] or sample['oomKill'] for sample in result['samples']))
         validate_health(health, identity)
-        result.update({'accepted': True, 'health': health, 'executionSeconds': (end - start) / 1_000_000})
+        result.update({'accepted': True, 'health': health, **{key: timing[key] for key in ('executionSeconds', 'unitCycleSeconds', 'timingSource')}})
     except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError): result['failureClass'] = 'complete-unit-or-health-evidence-rejected'
     return result
 
@@ -401,11 +477,11 @@ def run_locked(request):
         record = {'schemaVersion': 1, 'mode': 'scheduled-health-measured', 'accepted': True, 'identity': identity, 'requestSha256': canonical(request), 'before': before, 'measurement': result, 'commands': runner.commands, 'notificationDelivery': 'local-only-not-configured', 'timersStarted': False, 'backupExecuted': False, 'writerStopExecuted': False, 'sqlMutationExecuted': False, 'originalTableEqualityMeasured': False}
     except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError):
         journal('failed-no-retry')
-        record = {'schemaVersion': 1, 'mode': 'scheduled-health-failed', 'accepted': False, 'identity': identity, 'requestSha256': canonical(request), 'measurement': result, 'commands': runner.commands, 'privateContextWithheld': True, 'automaticRetry': False}
+        record = {'schemaVersion': 1, 'mode': 'scheduled-health-failed', 'accepted': False, 'identity': identity, 'requestSha256': canonical(request), 'before': before, 'measurement': result, 'commands': runner.commands, 'privateContextWithheld': True, 'automaticRetry': False, 'originalTableEqualityMeasured': False}
     content = (json.dumps(record, sort_keys=True) + '\n').encode(); write_exclusive(destination / 'private-evidence.json', content)
     measurement = record.get('measurement') or {}; final = measurement.get('properties') or {}; samples = measurement.get('samples') or []
     health = measurement.get('health') or {}
-    summary = {'schemaVersion': 1, 'mode': record['mode'], 'accepted': record['accepted'], 'identity': identity, 'privateEvidenceSha256': sha(content), 'measurementId': request['measurementId'], 'systemctlStartCount': runner.starts, 'unitResult': final.get('Result', 'unavailable'), 'wallSeconds': measurement.get('wallSeconds'), 'executionSeconds': measurement.get('executionSeconds'), 'sampleCount': len(samples), 'sampledMemoryPeakBytes': max((x['memoryPeakBytes'] for x in samples), default=None), 'sampledCpuMicroseconds': max((x['cpuMicroseconds'] for x in samples), default=None), 'alertsCount': len(health['alerts']) if isinstance(health.get('alerts'), list) else None, 'appReadiness': health.get('appReadiness'), 'timersStarted': False, 'backupExecuted': False, 'writerStopExecuted': False, 'sqlMutationExecuted': False, 'originalTableEqualityMeasured': False}
+    summary = {'schemaVersion': 1, 'mode': record['mode'], 'accepted': record['accepted'], 'identity': identity, 'privateEvidenceSha256': sha(content), 'measurementId': request['measurementId'], 'systemctlStartCount': runner.starts, 'unitResult': final.get('Result', 'unavailable'), 'wallSeconds': measurement.get('wallSeconds'), 'executionSeconds': measurement.get('executionSeconds'), 'unitCycleSeconds': measurement.get('unitCycleSeconds'), 'timingSource': measurement.get('timingSource'), 'sampleCount': len(samples), 'sampledMemoryPeakBytes': max((x['memoryPeakBytes'] for x in samples), default=None), 'sampledCpuMicroseconds': max((x['cpuMicroseconds'] for x in samples), default=None), 'alertsCount': len(health['alerts']) if isinstance(health.get('alerts'), list) else None, 'appReadiness': health.get('appReadiness'), 'timersStarted': False, 'backupExecuted': False, 'writerStopExecuted': False, 'sqlMutationExecuted': False, 'originalTableEqualityMeasured': False}
     return summary
 
 

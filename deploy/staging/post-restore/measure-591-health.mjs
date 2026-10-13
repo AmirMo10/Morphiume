@@ -40,14 +40,18 @@ export function validateRequest(request) {
   return request;
 }
 export function validateSummary(value, request) {
-  keys(value, ["schemaVersion", "mode", "accepted", "identity", "privateEvidenceSha256", "measurementId", "systemctlStartCount", "unitResult", "wallSeconds", "executionSeconds", "sampleCount", "sampledMemoryPeakBytes", "sampledCpuMicroseconds", "alertsCount", "appReadiness", "timersStarted", "backupExecuted", "writerStopExecuted", "sqlMutationExecuted", "originalTableEqualityMeasured"]);
+  keys(value, ["schemaVersion", "mode", "accepted", "identity", "privateEvidenceSha256", "measurementId", "systemctlStartCount", "unitResult", "wallSeconds", "executionSeconds", "unitCycleSeconds", "timingSource", "sampleCount", "sampledMemoryPeakBytes", "sampledCpuMicroseconds", "alertsCount", "appReadiness", "timersStarted", "backupExecuted", "writerStopExecuted", "sqlMutationExecuted", "originalTableEqualityMeasured"]);
   requireTrue(value.schemaVersion === 1 && ["scheduled-health-measured", "scheduled-health-failed"].includes(value.mode) && value.measurementId === request.measurementId && Number.isInteger(value.systemctlStartCount) && value.systemctlStartCount >= 0 && value.systemctlStartCount <= 1 && HEX.test(value.privateEvidenceSha256));
   keys(value.identity, IDENTITY_KEYS); for (const key of IDENTITY_KEYS) requireTrue(value.identity[key] === request.identity[key]);
   for (const key of ["timersStarted", "backupExecuted", "writerStopExecuted", "sqlMutationExecuted", "originalTableEqualityMeasured"]) requireTrue(value[key] === false);
-  for (const key of ["wallSeconds", "executionSeconds", "sampleCount", "sampledMemoryPeakBytes", "sampledCpuMicroseconds", "alertsCount"]) requireTrue(value[key] === null || typeof value[key] === "number" && Number.isFinite(value[key]) && value[key] >= 0);
+  for (const key of ["wallSeconds", "executionSeconds", "unitCycleSeconds", "sampleCount", "sampledMemoryPeakBytes", "sampledCpuMicroseconds", "alertsCount"]) requireTrue(value[key] === null || typeof value[key] === "number" && Number.isFinite(value[key]) && value[key] >= 0);
+  requireTrue(value.timingSource === null || ["exec-main-monotonic", "unit-lifecycle-journal"].includes(value.timingSource));
   requireTrue(typeof value.accepted === "boolean" && typeof value.unitResult === "string" && ["success", "timeout", "exit-code", "signal", "oom-kill", "resources", "protocol", "start-limit-hit", "unavailable"].includes(value.unitResult));
   requireTrue(value.appReadiness === null || Number.isInteger(value.appReadiness) && value.appReadiness >= 100 && value.appReadiness <= 599 || value.appReadiness === "unavailable");
-  if (value.accepted) requireTrue(value.mode === "scheduled-health-measured" && value.systemctlStartCount === 1 && value.unitResult === "success" && value.alertsCount === 0 && value.appReadiness === 200 && value.executionSeconds > 0 && value.executionSeconds <= 50);
+  if (value.accepted) {
+    requireTrue(value.mode === "scheduled-health-measured" && value.systemctlStartCount === 1 && value.unitResult === "success" && value.alertsCount === 0 && value.appReadiness === 200);
+    requireTrue(value.timingSource === "exec-main-monotonic" && value.unitCycleSeconds === null && value.executionSeconds > 0 && value.executionSeconds <= 50 || value.timingSource === "unit-lifecycle-journal" && value.executionSeconds === null && value.unitCycleSeconds > 0 && value.unitCycleSeconds <= 50);
+  }
   return value;
 }
 

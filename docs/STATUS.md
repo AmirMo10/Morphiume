@@ -1,5 +1,13 @@
 # وضعیت اجرا
 
+## وضعیت جاری، ۰۴:۳۳ UTC، ۱۳ اکتبر ۲۰۲۶
+
+اصلاح آزمون سبد و scanner با `db928f4b5a84f65ac24be5257f43ca5b90c8bddd` روی main منتشر شد؛ [CI38344901833](https://github.com/AmirMo10/Morphiume/actions/runs/38344901833) verify را واقعاً با837/837دامنه و78/78مرورگر Linux،26درهرموتور، صفرskip/flaky/retry و5375خط/صفرwrapper500/no cap گذراند. شواهد دوJSON واقعاً دانلود وSHA ZIP باGitHub تطبیق داده شد؛ شرط حذف کوکی درLinux موفق بود و نقصWebKitWindows به قبولی تبدیل نمی‌شود. [گزارش CI](CI_ANALYTICS_NOTIFICATIONS_EXECUTION.md) scope وhashها را ثبت می‌کند. Imagejob115129510651 هنوز مستقل در حال اجراست؛ تصویر جدید پذیرفته یا مستقر نشده است.
+
+UbuntuWSL با Node24.21/pnpm11.25 و snapshot جدأ همین commit آماده شد. Root، SSHstrict/loopback و runtime فاقد owner را آماده و read-only13checksum/53table را در63.826ms ثابت کرد. build واقعی Linux پس از چهار توقف پیش از Next، در37.678430s موفق شد؛ [شرح اجرای runtime](qa/LINUX_RUNTIME_EXECUTION.md). دانلود رسمی مرورگر محلی پنج403 گرفت؛ مرورگر/echo/native محلی صفر اجرا دارند. QA مالک آماده‌سازی cache محدود و hash-bound در CI است؛ دانلود و ورود artifact هنوز اجرا نشده‌اند.
+
+اصلاح GC سلامت و نگه‌داشتن before در failure خصوصی،35/35Node با suiteهای توکار جدا18/16/13 وsyntax/lint قبول دارد. reconciliation همان اجرای7d230958 چرخه34.207116s و postidentity مستقل واقعی را ثابت کرد؛ executionSeconds=null و اصل پذیرشfailed محفوظ است، چون before همان اجرا قابل بازیابی نبود. source تازه هنوز برای اقدام بعدی منتشر/materialize نشده؛ هیچ retry/start/reset/timer/backup/SQLmutation در تشخیص انجام نشد. server app613/Ops591/schema11 و IP503 حفظ‌اند.
+
 ## وضعیت جاری، ۰۳:۵۸ UTC، ۱۳ اکتبر ۲۰۲۶
 
 اصلاح بعدی، صرفاً آزمون هم‌زمانی سبد،۲۶/۲۶ مورد PG واقعی را در111.22s گذراند؛ دقیقاً یک سفارش/event/رزرو/ledger و سه job canonical با payload/key دقیق بررسی می‌شوند. شکست اولیه و شکست assertion افزودهٔ DTO کامل محفوظ‌اند؛ وضعیت گذرای پرداخت با شناسه/مبلغ immutable اشتباه گرفته نمی‌شود. cleanup schema متعلق و برابری fingerprint صف/رزرو dedicated موفق، پنجره آزاد، lint/typecheck/diff موفق‌اند. کنترل‌های16گانهٔ استثنای scanner نیز واقعاً موفق‌اند و با این اصلاح برای CI بعدی منتشر می‌شوند؛ قبولی جامع جدید هنوز اعلام نمی‌شود.

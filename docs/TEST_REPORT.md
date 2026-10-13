@@ -1,5 +1,7 @@
 # آزمون‌های واقعاً اجراشده
 
+به‌روزرسانی۰۴:۳۸ UTC: verify واقعی commitdb928f4/run38344901833 موفق:837/837دامنه،55فایل،91.77s؛78/78مرورگر Linux،26هرموتور و1084253.761ms، صفرskip/flaky/retry. شواهد کامل سرور5375خط/صفرwrapper500/no cap؛ ZIP artifact10922bytes واقعاً دانلود/hash-verify و فقط دوJSON مجاز privately استخراج شد. [گزارش CI B/C](CI_ANALYTICS_NOTIFICATIONS_EXECUTION.md) هویت‌ها را ثبت می‌کند. Image job جدید هنوزجاری وپذیرشسرورجدیدunrun است. Build مستقل Linux sourceهمینcommit در37.678430s پس از چهار توقف پیش ازNext موفق؛ guarddeps حفظ، migration/native/browser محلی اجرا نشد. GCاصلاح‌شده35Node باsuiteهای توکار جدا18/16/13 قبول؛ reconciliation اصلoverallfailed را تغییر نداده است.
+
 ## اجرای تازهٔ main و سلامت، ۰۳:۵۸ UTC، ۱۳ اکتبر ۲۰۲۶
 
 پس از تشخیص CI، baseline متعلق یک شکست/۲۵ مورد انتخاب‌نشده در7.80s داشت؛ اولین assertion افزودهٔ DTO کامل۲۵/۲۶ در109.92s شد و به‌سبب حالت گذرای مجاز unknown/pending اصلاح شد. suite نهایی۲۶/۲۶ در111.22s، child112.010s، exit0؛ دقیقاً یک سفارش/event/رزرو/ledger و سه job صحیح را ثابت کرد. schema متعلق cleanup شد و fingerprintهای public outbox/reservation dedicated ثابت بودند؛ اصل/runtime/تاریخچهٔ دیگر دست‌نخورده، پنجره آزاد است. globalTSC/scopedlint/diff و16/16کنترل واقعی scanner قبول‌اند. [گزارش CI B/C](CI_ANALYTICS_NOTIFICATIONS_EXECUTION.md) این scopeها را جدا از جامع جدیدِ هنوز اجرا نشده ثبت می‌کند.

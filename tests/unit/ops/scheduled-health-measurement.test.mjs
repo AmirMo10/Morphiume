@@ -10,7 +10,7 @@ function request() {
   return { schemaVersion: 1, action: "measure-old591-scheduled-health", measurementId: uuid, rootDispatch: true, sharedDatabaseWindowReleased: true, approvalAction: "create-if-absent", identity: { sourceCommit: SOURCE, testedPlatformConfig: "sha256:" + sha, candidateManifestDigest: "sha256:" + sha, archiveSha256: sha, opsSha256: OPS, runtimeImageId: "sha256:" + sha, engineProofSha256: sha, accessProfileSha256: sha }, publication: { toolSourceCommit: commit, configurationSourceCommit: commit, localToolSha256: sha, remoteToolSha256: sha, dropinSha256: { ...DROPINS } }, evidence: Object.fromEntries(["acceptanceSha256", "remoteResultRawSha256", "resultSemanticSha256", "fixtureSha256", "readyRecordSha256", "journalSha256", "restoreConfigSha256", "backupManifestSha256"].map(key => [key, sha]).concat([["localResultRawSha256", "139f916c48f32308894025d002d91f287ff175d3e33549560c29344141aa3498"], ["recoveryToolSourceCommit", commit]])) };
 }
 function summary(r = request()) {
-  return { schemaVersion: 1, mode: "scheduled-health-measured", accepted: true, identity: r.identity, privateEvidenceSha256: sha, measurementId: r.measurementId, systemctlStartCount: 1, unitResult: "success", wallSeconds: 38, executionSeconds: 37, sampleCount: 100, sampledMemoryPeakBytes: 60_000_000, sampledCpuMicroseconds: 32_000_000, alertsCount: 0, appReadiness: 200, timersStarted: false, backupExecuted: false, writerStopExecuted: false, sqlMutationExecuted: false, originalTableEqualityMeasured: false };
+  return { schemaVersion: 1, mode: "scheduled-health-measured", accepted: true, identity: r.identity, privateEvidenceSha256: sha, measurementId: r.measurementId, systemctlStartCount: 1, unitResult: "success", wallSeconds: 38, executionSeconds: 37, unitCycleSeconds: null, timingSource: "exec-main-monotonic", sampleCount: 100, sampledMemoryPeakBytes: 60_000_000, sampledCpuMicroseconds: 32_000_000, alertsCount: 0, appReadiness: 200, timersStarted: false, backupExecuted: false, writerStopExecuted: false, sqlMutationExecuted: false, originalTableEqualityMeasured: false };
 }
 test("default plan executes no remote and makes no measurement/approval claims", () => {
   const child = spawnSync(process.execPath, [resolve("deploy/staging/post-restore/measure-591-health.mjs")], { encoding: "utf8", timeout: 5000 });
@@ -236,4 +236,126 @@ raise SystemExit(0 if result.wasSuccessful() else 1)
 `;
   const child = spawnSync("python", ["-B", "-c", script, resolve("deploy/staging/post-restore/measure-591-health-remote.py")], { encoding: "utf8", timeout: 15000, windowsHide: true });
   assert.equal(child.status, 0, child.stderr); const result = JSON.parse(child.stdout.trim()); assert.equal(result.pythonParserCases, 16); assert.equal(result.failures, 0); assert.equal(result.errors, 0); assert.equal(result.realCommands, 0); assert.equal(result.oldOpsImports, 0);
+});
+
+test("GC-only completion uses authenticated lifecycle timing and never invents execution time or repeats a start", () => {
+  const cycle = { ...summary(), executionSeconds: null, unitCycleSeconds: 37, timingSource: "unit-lifecycle-journal" };
+  validateSummary(cycle, request());
+  for (const mutate of [s => s.unitCycleSeconds = 0, s => s.unitCycleSeconds = 51, s => s.unitCycleSeconds = NaN, s => s.executionSeconds = 37, s => s.timingSource = "wall-clock", s => s.unitCycleSeconds = null, s => s.timingSource = "exec-main-monotonic"]) {
+    const value = { ...cycle }; mutate(value); assert.throws(() => validateSummary(value, request()));
+  }
+  const script = String.raw`
+import importlib.util,json,sys,unittest,copy
+from pathlib import PurePosixPath
+from unittest.mock import patch
+spec=importlib.util.spec_from_file_location('gc_test',sys.argv[1]);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+for name in ('ROOT','CONFIG','OPS_ROOT','CACHE','RESTORE','BACKUP'):setattr(m,name,PurePosixPath(getattr(m,name).as_posix()))
+m.TARGETS={name:PurePosixPath(path.as_posix()) for name,path in m.TARGETS.items()}
+INV='a'*32;BOOT='b'*32;IDENTITY={'runtimeImageId':'sha256:'+'a'*64,'testedPlatformConfig':'sha256:'+'a'*64}
+def props():
+ return {'LoadState':'loaded','FragmentPath':'/etc/systemd/system/'+m.UNIT,'Type':'oneshot','User':'root','UMask':'0077','WorkingDirectory':str(m.CONFIG),'NoNewPrivileges':'yes','PrivateTmp':'yes','ProtectHome':'yes','ProtectSystem':'strict','MemoryMax':'268435456','CPUAccounting':'yes','MemoryAccounting':'yes','Restart':'no','RemainAfterExit':'no','StandardOutput':'journal','StandardError':'journal','UnitFileState':'static','CPUQuotaPerSecUSec':'1s','TimeoutStartUSec':'50s','TimeoutStopUSec':'5s','DropInPaths':' '.join(map(str,m.TARGETS.values())),'EnvironmentFiles':str(m.CONFIG/'deploy.env')+' (ignore_errors=no)','Environment':'PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX='+str(m.CACHE),'UnsetEnvironment':'PYTHONPATH PYTHONHOME PYTHONSTARTUP PYTHONCASEOK','ExecStart':'{ argv[]=/usr/bin/python3 '+str(m.OPS_ROOT/'runtime/scheduled.py')+' health --apply ; ignore_errors=no ; }','ExecStartPre':'{ argv[]=/usr/bin/test ! -e '+str(m.CACHE)+' ; } { argv[]=/usr/bin/test ! -L '+str(m.CACHE)+' ; }','ActiveState':'inactive','InvocationID':'','ConditionResult':'no','AssertResult':'no','Result':'success','ExecMainCode':'0','ExecMainStatus':'0','ExecMainStartTimestampMonotonic':'0','ExecMainExitTimestampMonotonic':'0','CPUUsageNSec':'[not set]','MemoryPeak':'[not set]'}
+def health():
+ return {'scope':'morphiume-staging-runtime','expectedServiceMode':'running','expectLogicalBackups':True,'status':'healthy','alerts':[],'appReadiness':200,'runtimeImageId':IDENTITY['runtimeImageId'],'testedPlatformConfig':IDENTITY['testedPlatformConfig'],'accessProfile':'ssh-localhost','canonicalOrigin':'http://localhost:3100','databaseHealthy':True,'database':{'database':'morphiume_staging_runtime'},'containers':[{'service':s,'status':'running','health':'healthy','oomKilled':False,'engineIdentityMatches':True,'restarts':0} for s in ('app','worker')]}
+def healthy_entry():
+ return {'MESSAGE':json.dumps(health()),'_SYSTEMD_INVOCATION_ID':INV,'_SYSTEMD_UNIT':m.UNIT,'_UID':'0','_PID':'1234','_TRANSPORT':'stdout','_EXE':'/usr/bin/python3.12','_CMDLINE':'/usr/bin/python3 '+str(m.OPS_ROOT/'runtime/scheduled.py')+' health --apply','_BOOT_ID':BOOT,'__MONOTONIC_TIMESTAMP':'36000000'}
+def entries():
+ base={'_PID':'1','_UID':'0','_TRANSPORT':'journal','UNIT':m.UNIT,'_BOOT_ID':BOOT,'INVOCATION_ID':INV}
+ return [base|{'MESSAGE_ID':'7d4958e842da4a758f6c1cdc7b36dcc5','__MONOTONIC_TIMESTAMP':'1000000','JOB_TYPE':'start','JOB_ID':'42'},base|{'MESSAGE_ID':'7ad2d189f7e94e70a38c781354912448','__MONOTONIC_TIMESTAMP':'37000000'},base|{'MESSAGE_ID':'39f53479d3a045ac8e11786248231fbf','__MONOTONIC_TIMESTAMP':'38000000','JOB_TYPE':'start','JOB_ID':'42','JOB_RESULT':'done'},base|{'MESSAGE_ID':'ae8f7b866b0347b9af31fe1c80b127c0','__MONOTONIC_TIMESTAMP':'39000000'}]
+def lines(value):return ''.join(json.dumps(entry)+'\n' for entry in value)
+def retained():
+ return {'accepted':False,'properties':props(),'clientExit':0,'observerDeadlineExceeded':False,'observerFailed':False,'observedInvocationId':INV,'invocationId':INV,'journal':lines([healthy_entry()]),'health':health(),'samples':[{'memoryPeakBytes':60000000,'cpuMicroseconds':32000000,'oom':0,'oomKill':0}],'wallSeconds':38}
+class FakeRunner:
+ def __init__(self,changes=None):self.started=False;self.calls=[];self.changes=changes or {}
+ def properties(self):return props()|(self.changes if self.started else {})
+ def start_once(self):
+  assert not self.started;self.started=True;self.calls.append(['systemctl','start',m.UNIT]);return retained()
+ def run(self,args):self.calls.append(args);return lines(entries()) if len(args)==7 else lines([healthy_entry()])
+class GC(unittest.TestCase):
+ def test_same_gc_shape_complete_one_start_and_cycle_only(self):
+  r=FakeRunner();result=m.measure_once(r,IDENTITY);self.assertTrue(result['accepted']);self.assertIsNone(result['executionSeconds']);self.assertEqual(result['unitCycleSeconds'],37);self.assertEqual(result['timingSource'],'unit-lifecycle-journal');self.assertEqual(sum(args[:2]==['systemctl','start'] for args in r.calls),1)
+ def test_pure_retained_reconciliation_never_mutates_or_commands(self):
+  value=retained();before=copy.deepcopy(value)
+  with patch.object(m.subprocess,'run') as run,patch.object(m.subprocess,'Popen') as start:
+   result=m.reconcile_gc_measurement(value,IDENTITY,lines(entries()));self.assertTrue(result['measurementReconciled']);self.assertIsNone(result['executionSeconds']);self.assertEqual(value,before);run.assert_not_called();start.assert_not_called()
+ def test_boot_and_invocation_mismatch(self):
+  for key in ('_BOOT_ID','INVOCATION_ID'):
+   value=entries();value[1][key]='c'*32
+   with self.subTest(key=key),self.assertRaises(ValueError):m.gc_journal_timing(lines(value),lines([healthy_entry()]),INV)
+ def test_manager_metadata_cannot_be_forged(self):
+  for key,value in (('_PID','1234'),('_UID','1001'),('_TRANSPORT','stdout'),('UNIT','other.service')):
+   rows=entries();rows[0][key]=value
+   with self.subTest(key=key),self.assertRaises(ValueError):m.gc_journal_timing(lines(rows),lines([healthy_entry()]),INV)
+ def test_each_missing_lifecycle_event_fails(self):
+  for index in range(3):
+   rows=entries();rows.pop(index)
+   with self.subTest(index=index),self.assertRaises(ValueError):m.gc_journal_timing(lines(rows),lines([healthy_entry()]),INV)
+ def test_duplicates_unknown_messages_and_primitive_rows_fail(self):
+  for rows in (entries()+[entries()[0]],entries()+[entries()[0]|{'MESSAGE_ID':'unknown'}],[None]):
+   with self.assertRaises(ValueError):m.gc_journal_timing(lines(rows),lines([healthy_entry()]),INV)
+ def test_start_job_must_complete_same_id_successfully(self):
+  for key,value in (('JOB_RESULT','failed'),('JOB_TYPE','stop'),('JOB_ID','43')):
+   rows=entries();rows[2][key]=value
+   with self.subTest(key=key),self.assertRaises(ValueError):m.gc_journal_timing(lines(rows),lines([healthy_entry()]),INV)
+ def test_actual_order_and_deadline_not_wall_or_fake_execution(self):
+  for index,value in ((0,'0'),(1,'1000000'),(2,'51000001'),(2,'NaN'),(3,'1')):
+   rows=entries();rows[index]['__MONOTONIC_TIMESTAMP']=value
+   with self.subTest(index=index,value=value),self.assertRaises(ValueError):m.gc_journal_timing(lines(rows),lines([healthy_entry()]),INV)
+ def test_health_requires_trusted_python_main_unit_context(self):
+  with self.assertRaises(ValueError):m.gc_journal_timing(lines(entries()),None,INV)
+  for key,value in (('_UID','1001'),('_PID','1'),('_EXE','/usr/bin/node'),('_CMDLINE','/usr/bin/python3 untrusted.py'),('_TRANSPORT','journal'),('_SYSTEMD_UNIT','other.service'),('_SYSTEMD_INVOCATION_ID','c'*32),('_BOOT_ID','bad'),('__MONOTONIC_TIMESTAMP','0')):
+   row=healthy_entry();row[key]=value
+   with self.subTest(key=key),self.assertRaises(ValueError):m.gc_journal_timing(lines(entries()),lines([row]),INV)
+ def test_partial_real_failure_must_not_take_gc_fallback(self):
+  r=FakeRunner({'ExecMainCode':'1','ExecMainStartTimestampMonotonic':'1000000','ExecMainExitTimestampMonotonic':'38000000'});result=m.measure_once(r,IDENTITY);self.assertFalse(result['accepted']);self.assertFalse(any(len(args)==7 for args in r.calls))
+ def test_observer_samples_oom_health_and_identity_stay_required(self):
+  for value in (retained()|{'clientExit':1},retained()|{'observerFailed':True},retained()|{'samples':[]},retained()|{'samples':[{'memoryPeakBytes':1,'cpuMicroseconds':1,'oom':0,'oomKill':1}]},retained()|{'observedInvocationId':'c'*32}):
+   with self.assertRaises(ValueError):m.reconcile_gc_measurement(value,IDENTITY,lines(entries()))
+  for body in (health()|{'alerts':[{}]},health()|{'appReadiness':503},health()|{'runtimeImageId':'sha256:'+'c'*64}):
+   value=retained();row=healthy_entry();row['MESSAGE']=json.dumps(body);value.update({'journal':lines([row]),'health':body})
+   with self.assertRaises(ValueError):m.reconcile_gc_measurement(value,IDENTITY,lines(entries()))
+ def test_journal_command_allowlist_is_exact_and_readonly(self):
+  args=['journalctl','--no-pager','--output=json','_PID=1','_BOOT_ID='+BOOT,'UNIT='+m.UNIT,'INVOCATION_ID='+INV]
+  with patch.object(m.subprocess,'run',return_value=type('Result',(),{'stdout':'','stderr':'','returncode':0})()) as run:
+   m.Runner().run(args);self.assertEqual(run.call_count,1)
+   for index,value in ((3,'_PID=1234'),(4,'_BOOT_ID=bad'),(5,'UNIT=other.service'),(6,'INVOCATION_ID=bad')):
+    changed=args.copy();changed[index]=value
+    with self.assertRaises(ValueError):m.Runner().run(changed)
+   self.assertEqual(run.call_count,1)
+ def test_real_failure_path_retains_observed_before_without_acceptance(self):
+  class MockPath(PurePosixPath):
+   def exists(self):return False
+   def is_symlink(self):return False
+  class FailureRunner:
+   def __init__(self):self.commands=[];self.starts=0
+   def properties(self,unit=m.UNIT):return {'ActiveState':'active'} if unit in ('docker.service','containerd.service') else {'LoadState':'not-found','ActiveState':'inactive','UnitFileState':'not-found'}
+   def run(self,args):self.commands.append(args);return ''
+  fixed='d'*64
+  identity={key:fixed for key in m.IDENTITY_KEYS};identity.update({'sourceCommit':m.SOURCE,'opsSha256':m.OPS,'runtimeImageId':'sha256:'+fixed})
+  publication={'remoteToolSha256':fixed}
+  evidence={key:fixed for key in m.HASH_KEYS};evidence['recoveryToolSourceCommit']='e'*40
+  request={'identity':identity,'publication':publication,'evidence':evidence,'measurementId':'12345678-abcd-4abc-8abc-123456789abc'}
+  observed={'original':{'id':'observed-before-original'},'runtime':[{'id':'observed-before-runtime'}],'restoreStoppedCount':2}
+  contract=type('Contract',(),{})();contract.deployed_image=lambda:identity;contract.active_profile=lambda required:{'profile':'ssh-localhost','origin':'http://localhost:3100'};contract.canonical_hash=lambda value:fixed;contract.load_configs=lambda:None
+  def read(path,*args,**kwargs):
+   if path.name=='operator-tool.json':return json.dumps(publication|{'applicationSourceCommit':m.SOURCE,'opsSha256':m.OPS}).encode()
+   if path.name=='tool-identity.json':return json.dumps({'sourceCommit':evidence['recoveryToolSourceCommit'],'toolSha256':fixed,'applicationSourceCommit':m.SOURCE,'opsSha256':m.OPS}).encode()
+   if path.name=='deploy.env':return ('MORPHIUME_IMAGE='+identity['runtimeImageId']+'\nMORPHIUME_OPS_ROOT='+str(m.OPS_ROOT)+'\nMORPHIUME_APP_BASE_URL=http://localhost:3100\n').encode()
+   return b'{}'
+  constants={name:MockPath(getattr(m,name).as_posix()) for name in ('ROOT','CONFIG','OPS_ROOT','CACHE','RESTORE','BACKUP')}
+  for phase in ('measured-failure','postproof-failure'):
+   written=[]
+   def measure(runner,*args):runner.starts+=1;return {'accepted':phase=='postproof-failure'}
+   with self.subTest(phase=phase),patch.multiple(m,**constants,Path=MockPath,BASE_SHA=fixed,RECOVERY_TOOL=fixed,DROPINS={name:fixed for name in m.DROPINS}),patch.object(m.sys,'platform','linux'),patch.object(m.os,'getuid',return_value=0,create=True),patch.object(m,'validate_request'),patch.object(m,'protected_path'),patch.object(m,'read_protected',side_effect=read),patch.object(m,'sha',return_value=fixed),patch.object(m,'bootstrap_old',return_value=contract),patch.object(m,'validate_marker'),patch.object(m,'Runner',FailureRunner),patch.object(m,'runtime_state',return_value=observed) as captured,patch.object(m.os,'mkdir') as mkdir,patch.object(m,'write_exclusive',side_effect=lambda path,body,*args,**kwargs:written.append((path,json.loads(body)))),patch.object(m,'install_public'),patch.object(m,'validate_effective'),patch.object(m,'measure_once',side_effect=measure),patch.object(m,'verify_bundle',side_effect=ValueError('mock postproof rejection')),patch.object(m.subprocess,'run') as command,patch.object(m.subprocess,'Popen') as start:
+    summary=m.run_locked(request)
+    private=[body for path,body in written if path.name=='private-evidence.json'];self.assertEqual(len(private),1)
+    self.assertEqual(private[0]['before'],observed);self.assertFalse(private[0]['accepted']);self.assertFalse(private[0]['originalTableEqualityMeasured']);self.assertFalse(private[0]['automaticRetry'])
+    self.assertFalse(summary['accepted']);self.assertFalse(summary['originalTableEqualityMeasured']);self.assertNotIn('before',summary);self.assertEqual(summary['systemctlStartCount'],1)
+    self.assertEqual(private[0]['measurement']['accepted'],phase=='postproof-failure');self.assertEqual(private[0]['mode'],'scheduled-health-failed')
+    captured.assert_called_once();mkdir.assert_called_once();command.assert_not_called();start.assert_not_called()
+suite=unittest.defaultTestLoader.loadTestsFromTestCase(GC);result=unittest.TextTestRunner(verbosity=0).run(suite)
+print(json.dumps({'pythonGcCases':result.testsRun,'failures':len(result.failures),'errors':len(result.errors),'realCommands':0,'oldOpsImports':0}))
+raise SystemExit(0 if result.wasSuccessful() else 1)
+`;
+  const child = spawnSync("python", ["-B", "-c", script, resolve("deploy/staging/post-restore/measure-591-health-remote.py")], { encoding: "utf8", timeout: 15000, windowsHide: true });
+  assert.equal(child.status, 0, child.stderr); const result = JSON.parse(child.stdout.trim()); assert.equal(result.pythonGcCases, 13); assert.equal(result.failures, 0); assert.equal(result.errors, 0); assert.equal(result.realCommands, 0); assert.equal(result.oldOpsImports, 0);
 });
