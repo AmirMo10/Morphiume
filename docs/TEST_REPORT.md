@@ -1,5 +1,13 @@
 # آزمون‌های واقعاً اجراشده
 
+## یکپارچه‌سازی اصلاح اعلان و حساب CI، ۰۵:۳۸ UTC
+
+- QA factory correction:43.082s، ششjobواقعی/replay0، مالی/read/صف/رزرو محفوظ، cleanup و audit53/13؛ nativeAuthenticationProved=false.14counterexampleخالص Root1153.2733ms موفق؛ nativeاصلاح هنوز unrun.
+- حسابCI و actualconfigCLI:43/43Windows628.113ms و43/43Linuxwall0.468405136s، صفرskip؛ هیچ SQL/PG اجرا نشد. Bashsyntax/scopedlint/globaltypecheck موفق؛ PG واقعی CI باقی است.
+- exporterfinal:135/135Linuxwall1.133142243s، شامل14exporter+77runtime+44original. importerfinal38/38Python0.396s؛ فایل/tar کوچک مصنوعی، officialartifact/import/browser اجرا نشده.
+- verify99bf واقعی837دامنه/55file و78مرورگرLinux قبول؛ image هنوز مستقل در اجرا. HTTPprivateIP05:37:48Z ROOT503/healthz200، بدونcookie/body.
+
+
 ## بررسی محدود cache و preservation، ۰۵:۲۱ UTC، ۱۳ اکتبر ۲۰۲۶
 
 - Linux Node24.21: یک اجرای خالص133/133، صفرfail/skip، wall0.824026111s؛12exporter،77runtime-preservation و44original-observer. snapshot خصوصی LF و dependenciesLinux؛ بدونPG/browser/import. Windows اولیه89case داشت:84pass/5Unixskip؛ به133Linux اضافه نشود.

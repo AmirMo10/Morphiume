@@ -13,12 +13,16 @@ const versions = Object.freeze({ node: "24.21.0", pnpm: "11.25.0", playwright: "
 const knownEngines = new Set(["chromium", "chromium-headless-shell", "firefox", "webkit", "ffmpeg"]);
 const requiredEngines = ["chromium", "firefox", "webkit"];
 const forbiddenSegments = /^(?:Default|Profile(?:\s+.*)?|User Data|user_data|user-data|Cookies(?:-journal)?|History(?:-journal)?|Login Data|Web Data|Preferences|Local State|Session Storage|Local Storage|IndexedDB|GPUCache|Crash Reports|Cache|Network|SingletonCookie|SingletonLock|SingletonSocket|GITHUB_TOKEN|tokens?\.json|auth\.json|storage-state\.json|\.env(?:\..*)?|\.local|\.git|\.ssh|node_modules|id_rsa|id_ed25519|credentials(?:\.json)?|.*\.(?:pem|p12))$/iu;
-// Exact GTK branding assets at Playwright's pinned Mozilla revision, not a
+// Exact branding and default application preferences at the pinned revision.
+// These are distribution assets, not a
 // browser profile. See docs/qa/FIREFOX_VENDOR_CACHE_REVIEW.md for provenance.
 const firefoxIcons = "firefox-1555/firefox/browser/chrome/icons/default";
-function vendorIconType(path, roots, descriptor) {
+const firefoxPreferences = "firefox-1555/firefox/browser/defaults/preferences";
+function vendorDistributionType(path, roots, descriptor) {
   if (!roots.includes("firefox-1555") || descriptor?.engine !== "firefox" || descriptor.directory !== "firefox-1555" || descriptor.revision !== "1555" || descriptor.browserVersion !== "157.0") return null;
   if (path === firefoxIcons) return "directory";
+  if (path === firefoxPreferences) return "directory";
+  if (/^firefox-1555\/firefox\/browser\/defaults\/preferences\/(?:debugger|firefox|firefox-branding)\.js$/u.test(path)) return "file";
   return /^firefox-1555\/firefox\/browser\/chrome\/icons\/default\/default(?:16|32|48|64|128)\.png$/u.test(path) ? "file" : null;
 }
 const digest = /^[a-f0-9]{64}$/u;
@@ -87,8 +91,8 @@ export function browserRoots(metadata) {
 export function validateEntryPath(path, allowedRoots, limits = TOOLCHAIN_LIMITS, firefoxDescriptor = null) {
   requireSafe(typeof path === "string" && Buffer.byteLength(path) <= limits.pathBytes && !/[\\\x00-\x1f\x7f]/u.test(path), "entry-path-format");
   const parts = path.split("/");
-  const vendorIcon = vendorIconType(path, allowedRoots, firefoxDescriptor);
-  requireSafe(parts.length <= limits.depth && parts.every((part, index) => part && part !== "." && part !== ".." && (!forbiddenSegments.test(part) || vendorIcon && index === 5 && part === "default")), "entry-path-private-or-traversal");
+  const vendorAsset = vendorDistributionType(path, allowedRoots, firefoxDescriptor);
+  requireSafe(parts.length <= limits.depth && parts.every((part, index) => part && part !== "." && part !== ".." && (!forbiddenSegments.test(part) || vendorAsset && (index === 5 && part === "default" || index === 4 && part === "preferences"))), "entry-path-private-or-traversal");
   requireSafe(allowedRoots.includes(parts[0]) && parts.every(part => !part.startsWith(".")), "entry-path-root");
   return path;
 }
@@ -100,7 +104,7 @@ export function validateEntries(entries, roots, limits = TOOLCHAIN_LIMITS) {
     requireSafe(entry && typeof entry === "object" && !Array.isArray(entry));
     validateEntryPath(entry.path, names, limits, firefoxDescriptor); requireSafe(!seen.has(entry.path)); seen.set(entry.path, entry);
     requireSafe(["file", "directory", "symlink"].includes(entry.type), "entry-type");
-    const vendorType = vendorIconType(entry.path, names, firefoxDescriptor);
+    const vendorType = vendorDistributionType(entry.path, names, firefoxDescriptor);
     if (vendorType) requireSafe(entry.type === vendorType, "entry-type");
     requireSafe(Number.isInteger(entry.mode) && entry.mode >= 0 && entry.mode <= 0o777);
     if (entry.type !== "symlink") requireSafe((entry.mode & 0o022) === 0 && (entry.mode & 0o400) !== 0, "entry-mode");
@@ -111,7 +115,7 @@ export function validateEntries(entries, roots, limits = TOOLCHAIN_LIMITS) {
     if (entry.type === "symlink") {
       requireSafe(typeof entry.target === "string" && entry.target && Buffer.byteLength(entry.target) <= limits.pathBytes && !/[\\\x00-\x1f\x7f]/u.test(entry.target) && !posix.isAbsolute(entry.target), "entry-link-format");
       const destination = posix.normalize(posix.join(posix.dirname(entry.path), entry.target));
-      requireSafe(!vendorIconType(destination, names, firefoxDescriptor), "entry-link-format");
+      requireSafe(!vendorDistributionType(destination, names, firefoxDescriptor), "entry-link-format");
       validateEntryPath(destination, names, limits, firefoxDescriptor); requireSafe(destination.split("/")[0] === entry.path.split("/")[0], "entry-link-cross-root");
     }
   }
@@ -151,7 +155,7 @@ export async function inspectBrowserCache(cacheDir, metadata, limits = TOOLCHAIN
     validateEntryPath(path, allowed, limits, firefoxDescriptor); requireSafe(entries.length < limits.members, "entry-member-cap");
     const full = resolve(absolute, path); requireSafe(relative(absolute, full) !== ".." && !relative(absolute, full).startsWith(`..${sep}`));
     const info = await lstat(full); context.mode = info.mode; context.type = info.isDirectory() ? "directory" : info.isSymbolicLink() ? "symlink" : info.isFile() ? "file" : "unsupported"; requireSafe((info.mode & 0o7000) === 0, "entry-special-mode");
-    const vendorType = vendorIconType(path, allowed, firefoxDescriptor);
+    const vendorType = vendorDistributionType(path, allowed, firefoxDescriptor);
     if (vendorType) requireSafe(context.type === vendorType, "entry-type");
     const mode = info.mode & 0o777;
     if (!info.isSymbolicLink()) requireSafe((mode & 0o022) === 0 && (mode & 0o400) !== 0, "entry-mode");

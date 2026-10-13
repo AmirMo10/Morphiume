@@ -1,4 +1,5 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
+import { spawn } from "node:child_process";
 import { expect, test, type APIResponse, type Page, type Response } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import type pg from "pg";
@@ -51,13 +52,92 @@ export async function sourceNotificationEvent(pool: pg.Pool, orderId: string, ki
   const events = await pool.query<{ id: string }>("SELECT id FROM order_event WHERE order_id=$1 AND type=$2 ORDER BY created_at,id", [orderId, kind]);
   expect(events.rows).toHaveLength(1); const eventId = events.rows[0]!.id;
   const jobs = await pool.query<{ payload: { eventId: string; orderId: string }; status: string }>("SELECT payload,status FROM outbox_job WHERE type='notification.event' AND dedupe_key=$1", [`notification:event:${eventId}`]);
-  expect(jobs.rows).toHaveLength(1); expect(jobs.rows[0]!.payload).toEqual({ eventId, orderId }); expect(jobs.rows[0]!.status).toBe("pending");
+  expect(jobs.rows).toHaveLength(1); expect(jobs.rows[0]!.payload).toEqual({ eventId, orderId });
+  expect(["pending", "running", "completed"]).toContain(jobs.rows[0]!.status);
   return eventId;
 }
-export async function seedOperatorFeedRow(pool: pg.Pool, userId: string, orderId: string, eventId: string, kind: NotificationKind, permission: NotificationRequiredPermission, marker: string) {
-  const id = randomUUID(), eventKey = `qa-notification-operator:${marker}:${userId}:${kind}`;
-  await pool.query("INSERT INTO notification_message(id,user_id,event_key,title,body,audience,kind,order_id,source_event_id,required_permission) VALUES($1,$2,$3,$8,'متن عمومی مصنوعی QA؛ اطلاعات خصوصی سفارش در اعلان کپی نمی‌شود.','operator',$4,$5,$6,$7)", [id, userId, eventKey, kind, orderId, eventId, permission, operatorFixtureTitle(kind, marker)]);
-  return id;
+/** Server-only maintained dispatcher/selected job handler; runtime DML only, no broad worker. */
+export async function settleOwnedNotificationOrder(orderId: string, customerUserId: string, operatorUserIds: string[]) {
+  // Child does not receive auth, bootstrap, provider-control or owner credentials.
+  const environment: NodeJS.ProcessEnv = { NOTIFICATION_E2E_DELIVERY_GO: "true", NODE_ENV: process.env.NODE_ENV };
+  for (const key of ["DATABASE_URL", "DEPLOYMENT_ENV", "PAYMENT_PROVIDER", "SMS_PROVIDER", "NODE_ENV", "PATH", "Path", "SystemRoot", "SYSTEMROOT", "TEMP", "TMP", "HOME", "USERPROFILE"]) if (process.env[key] !== undefined) environment[key] = process.env[key];
+  const result = await new Promise<{ code: number | null; stdout: string }>((resolve, reject) => {
+    const child = spawn(process.execPath, ["--conditions=react-server", "--import", "tsx", "tests/e2e/notification-owned-delivery.ts"], { env: environment, cwd: process.cwd(), stdio: ["pipe", "pipe", "pipe"], shell: false });
+    let stdout = "", bytes = 0, exceeded = false;
+    const deadline = setTimeout(() => { exceeded = true; child.kill(); }, 20_000);
+    child.stdout.on("data", (chunk: Buffer) => { bytes += chunk.length; if (bytes > 4096) { exceeded = true; child.kill(); } else stdout += chunk.toString("utf8"); });
+    // Failure text is never forwarded; it has no reference/credential/body content.
+    child.stderr.on("data", (chunk: Buffer) => { bytes += chunk.length; if (bytes > 4096) { exceeded = true; child.kill(); } });
+    child.on("error", () => { clearTimeout(deadline); reject(new Error("Owned notification child did not start")); });
+    child.on("close", code => { clearTimeout(deadline); if (exceeded) reject(new Error("Owned notification child exceeded its bound")); else resolve({ code, stdout }); });
+    child.stdin.end(JSON.stringify({ orderId, customerUserId, operatorUserIds }));
+  });
+  expect(result.code, "Own canonical notification jobs must complete without a privileged fallback").toBe(0);
+  const value = JSON.parse(result.stdout) as { scope: string; completedJobs: number; processedJobs: number; financialStateUnchanged: boolean };
+  expect(Object.keys(value).sort()).toEqual(["completedJobs", "financialStateUnchanged", "processedJobs", "scope"]);
+  expect(value.scope).toBe("owned-canonical-notification-delivery"); expect(value.financialStateUnchanged).toBe(true);
+  expect(Number.isSafeInteger(value.completedJobs) && value.completedJobs >= 2 && value.completedJobs <= 24).toBe(true);
+  expect(Number.isSafeInteger(value.processedJobs) && value.processedJobs >= 0 && value.processedJobs <= value.completedJobs).toBe(true);
+}
+const operatorBody = "یک تغییر آزمایشی برای بررسی ثبت شد. جزئیات را در سفارش و صف‌های مجاز بررسی کنید.";
+const operatorTitles: Partial<Record<NotificationKind, string>> = {
+  "request.cancel": "درخواست لغو آزمایشی ثبت شد.", "request.return": "درخواست مرجوعی آزمایشی ثبت شد.",
+  "request.approved": "بررسی درخواست آزمایشی به‌روز شد.", "request.rejected": "بررسی درخواست آزمایشی به‌روز شد.",
+  "request.received": "دریافت کالای مرجوعی آزمایشی ثبت شد.", "request.closed": "درخواست آزمایشی بسته شد.",
+  "refund.pending": "درخواست بازپرداخت آزمایشی ثبت شد.", "refund.completed": "بازپرداخت آزمایشی ثبت شد.",
+  "refund.failed": "نتیجهٔ بررسی بازپرداخت آزمایشی به‌روز شد.",
+  "payment.inventory_exception": "نتیجهٔ پرداخت آزمایشی نیازمند بررسی است.", "payment.extra_receipt": "نتیجهٔ پرداخت آزمایشی نیازمند بررسی است.",
+};
+/** Every returned row is independently checked; legitimate other-event rows are retained, never hidden. */
+export async function assertCanonicalOperatorPage(pool: pg.Pool, userId: string, permissions: NotificationRequiredPermission[], page: NotificationPageDto, unreadOnly = false) {
+  expect(page.page).toBe(1); expect(page.pageSize).toBeGreaterThanOrEqual(page.totalItems);
+  expect(page.items).toHaveLength(page.totalItems);
+  const ids = page.items.map(item => item.id); expect(new Set(ids).size).toBe(ids.length);
+  // Independent current-permission count/read model; no unknown or omitted row
+  // can disappear behind a response-ID-only query. The controlled cohort is bounded.
+  const rows = (await pool.query("SELECT n.*,e.type AS event_kind,e.order_id AS event_order FROM notification_message n LEFT JOIN order_event e ON e.id=n.source_event_id WHERE n.user_id=$1 AND n.audience='operator' AND n.required_permission=ANY($2::text[]) ORDER BY n.created_at DESC,n.id DESC LIMIT 101", [userId, permissions])).rows;
+  expect(rows.length).toBeLessThanOrEqual(100);
+  expect(page.unreadCount).toBe(String(rows.filter(row => row.read_at === null).length));
+  const visible = unreadOnly ? rows.filter(row => row.read_at === null) : rows;
+  expect(page.totalItems).toBe(visible.length); expect(ids).toEqual(visible.map(row => row.id));
+  const sourceIds: string[] = [];
+  for (const row of rows) {
+    expect(row.user_id).toBe(userId); expect(row.audience).toBe("operator"); expect(permissions).toContain(row.required_permission);
+    expect(typeof row.source_event_id === "string" && uuid.test(row.source_event_id)).toBe(true);
+    expect(row.event_order).toBe(row.order_id); expect(row.event_kind).toBe(row.kind);
+    expect(row.required_permission).toBe(row.kind.startsWith("request.") ? "orders.fulfill" : "refunds.write");
+    expect(row.event_key).toBe(`notification:v2:${createHash("sha256").update(JSON.stringify([row.source_event_id, "operator", userId])).digest("hex")}`);
+    expect(operatorTitles[row.kind as NotificationKind]).toBeDefined(); expect(row.title).toBe(operatorTitles[row.kind as NotificationKind]); expect(row.body).toBe(operatorBody);
+    const item = page.items.find(candidate => candidate.id === row.id);
+    if (item) {
+      expect(item.kind).toBe(row.kind); expect(item.orderId).toBe(row.order_id); expect(row.title).toBe(item.title); expect(row.body).toBe(item.body);
+      expect(row.created_at.toISOString()).toBe(item.createdAt); expect(row.read_at?.toISOString() ?? null).toBe(item.readAt);
+    } else { expect(unreadOnly).toBe(true); expect(row.read_at).not.toBeNull(); }
+    sourceIds.push(row.source_event_id);
+  }
+  expect(new Set(sourceIds).size).toBe(sourceIds.length);
+  return page;
+}
+export async function canonicalOperatorRow(pool: pg.Pool, userId: string, orderId: string, eventId: string, kind: NotificationKind, permission: NotificationRequiredPermission) {
+  const rows = (await pool.query("SELECT * FROM notification_message WHERE source_event_id=$1 AND user_id=$2 AND audience='operator'", [eventId, userId])).rows;
+  expect(rows).toHaveLength(1); const row = rows[0]!;
+  expect(row.kind).toBe(kind); expect(row.order_id).toBe(orderId); expect(row.required_permission).toBe(permission);
+  expect(row.title).toBe(operatorFixtureTitle(kind)); expect(row.body).toBe(operatorBody);
+  expect(row.event_key).toBe(`notification:v2:${createHash("sha256").update(JSON.stringify([eventId, "operator", userId])).digest("hex")}`);
+  return row.id as string;
+}
+/** Audited permission-reduction fixture after genuine MFA and canonical delivery, not native role editing. */
+export async function reduceOwnedOperatorMembership(pool: pg.Pool, userId: string, role: "fulfillment" | "finance") {
+  const q = await pool.connect();
+  try {
+    await q.query("BEGIN");
+    const current = (await q.query("SELECT role FROM role_membership WHERE user_id=$1 FOR UPDATE", [userId])).rows;
+    expect(current).toEqual([{ role: "owner" }]);
+    await q.query("DELETE FROM role_membership WHERE user_id=$1 AND role='owner'", [userId]);
+    await q.query("INSERT INTO role_membership(user_id,role) VALUES($1,$2)", [userId, role]);
+    await q.query("INSERT INTO audit_event(id,actor_id,action,entity_type,entity_id,reason) VALUES($1,$2,'qa.fixture.notification_permission_reduced','user',$2,$3)", [randomUUID(), userId, `Controlled QA membership fixture owner to ${role}; native login retained, not an admin role API claim`]);
+    await q.query("COMMIT");
+  } catch (error) { await q.query("ROLLBACK"); throw error; } finally { q.release(); }
 }
 /** Genuine owner API transitions on a synthetic paid order, never SQL delivery. */
 export async function deliverOwnedNotificationOrder(page: Page, baseURL: string, orderId: string, marker: string) {
@@ -72,7 +152,7 @@ export async function deliverOwnedNotificationOrder(page: Page, baseURL: string,
     expect(order.shipment?.status).toBe(status);
   }
 }
-export function operatorFixtureTitle(kind: NotificationKind, marker: string) { return `اعلان مصنوعی QA ${kind} ${marker.slice(0, 8)}`; }
+export function operatorFixtureTitle(kind: NotificationKind) { const title = operatorTitles[kind]; expect(title).toBeDefined(); return title!; }
 export function notificationPanel(page: Page, audience: NotificationAudience) { return page.getByRole("region", { name: audience === "customer" ? "فهرست اعلان‌های حساب" : "فهرست اعلان‌های مدیریت", exact: true }); }
 export function waitNotificationPage(page: Page, audience: NotificationAudience, current = 1, size = 20, unread = false) {
   const path = audience === "customer" ? "/api/notifications/page" : "/api/admin/notifications/page";

@@ -1,0 +1,21 @@
+{
+  "scope": "isolated-notification-fixture-coexistence",
+  "manualDispatcherConflicts": 2,
+  "legitimateOwnerRows": 4,
+  "sameEventDuplicates": 0,
+  "priorEventCanonicalRows": 2,
+  "canonicalReplayPreservedRows": 2,
+  "observedJobStatuses": [
+    "completed",
+    "pending",
+    "running"
+  ],
+  "pendingOnlyGuardRejects": 4,
+  "correctedOwnedJobs": 6,
+  "correctedReplayProcessed": 0,
+  "financialStateUnchanged": true,
+  "publicQueueReservationsUnchanged": true,
+  "nativeAuthenticationProved": false,
+  "elapsedMs": 43082,
+  "ownedSchemaCleanupVerified": true
+}

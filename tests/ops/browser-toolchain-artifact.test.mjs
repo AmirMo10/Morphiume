@@ -69,6 +69,34 @@ test("real pinned Firefox branding files export without admitting profile data o
   });
 });
 
+test("pinned default application preferences admit only the packaged directory and three named source files", () => {
+  const known = roots.map(root => root.directory), descriptor = roots.find(root => root.engine === "firefox"), base = "firefox-1555/firefox/browser/defaults/preferences";
+  const validate = path => validateEntryPath(path, known, TOOLCHAIN_LIMITS, descriptor);
+  assert.equal(validate(base), base);
+  for (const name of ["debugger.js", "firefox.js", "firefox-branding.js"]) assert.equal(validate(`${base}/${name}`), `${base}/${name}`);
+  for (const path of [base.replace("preferences", "Preferences"), `${base}/prefs.js`, `${base}/user.js`, `${base}/Cookies`, `${base}/credentials.json`, `${base}/firefox.js/child`, "firefox-1555/Preferences", "firefox-1555/Default/Preferences", base.replace("1555", "1556")]) rejected(() => validate(path));
+  rejected(() => validateEntryPath(base, known));
+  const parents = ["firefox-1555/firefox", "firefox-1555/firefox/browser", "firefox-1555/firefox/browser/defaults", base].map(directory);
+  const valid = [...entries(), ...parents, file(`${base}/firefox.js`)];
+  assert.equal(validateEntries(valid, roots).fileCount, 4);
+  for (const path of [base, `${base}/firefox.js`]) rejected(() => validateEntries(valid.map(entry => entry.path === path ? { ...entry, type: "symlink", bytes: 0, target: "LICENSE" } : entry), roots));
+  rejected(() => validateEntries([...valid, { path: "firefox-1555/pref-alias", type: "symlink", mode: 0o777, bytes: 0, target: "firefox/browser/defaults/preferences/firefox.js" }], roots));
+});
+
+test("real vendor preferences retain normal mode/hash checks and reject user preference names", { skip: process.platform !== "linux" ? "Unix filesystem contract runs on Linux." : false }, async () => {
+  await fixture(async ({ cache, root }) => {
+    const base = join(cache, "firefox-1555/firefox/browser/defaults/preferences"); await mkdir(base, { recursive: true, mode: 0o755 });
+    for (const name of ["debugger.js", "firefox.js", "firefox-branding.js"]) await writeFile(join(base, name), "official-default-preference-fixture", { mode: 0o644 });
+    const manifest = await exportBrowserToolchain({ cacheDir: cache, outputDir: join(root, "preferences-export"), metadata, sourceCommit: "a".repeat(40), lockfileSha256: "b".repeat(64), exporterSha256: "c".repeat(64) });
+    assert.equal(manifest.entries.filter(entry => entry.path.includes("/defaults/preferences/")).length, 3);
+    await chmod(join(base, "firefox.js"), 0o666); await assert.rejects(inspectBrowserCache(cache, metadata), /contract rejected/u);
+  });
+  await fixture(async ({ cache }) => {
+    const base = join(cache, "firefox-1555/firefox/browser/defaults/preferences"); await mkdir(base, { recursive: true, mode: 0o755 });
+    await writeFile(join(base, "prefs.js"), "private-user-preference-canary", { mode: 0o644 }); await assert.rejects(inspectBrowserCache(cache, metadata), /contract rejected/u);
+  });
+});
+
 test("member identity, parent directories, types and permission modes are fail closed", () => {
   assert.deepEqual(validateEntries(entries(), roots), { memberCount: 6, totalBytes: 72, fileCount: 3, symlinkCount: 0 });
   rejected(() => validateEntries([...entries(), file("chromium-1248/LICENSE")], roots));

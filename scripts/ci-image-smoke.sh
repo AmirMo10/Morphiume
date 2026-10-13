@@ -4,18 +4,20 @@ set -euo pipefail
 image="ghcr.io/${GITHUB_REPOSITORY,,}:${GITHUB_SHA}"
 common=(--network host --read-only --cap-drop ALL --security-opt no-new-privileges:true
   --env-file .local/image-env
-  --mount "type=bind,src=$PWD/.local/image-runtime.json,dst=/runtime/config.json,readonly"
   --mount "type=bind,src=$PWD/.local/image-media,dst=/app/media"
   --tmpfs /tmp:rw,noexec,nosuid,size=64m,uid=1001,gid=1001,mode=0700
   --tmpfs /app/.next/cache:rw,noexec,nosuid,size=64m,uid=1001,gid=1001,mode=0700)
+runtime=("${common[@]}" --mount "type=bind,src=$PWD/.local/image-runtime.json,dst=/runtime/config.json,readonly")
+migration=("${common[@]}" --mount "type=bind,src=$PWD/.local/image-migration.json,dst=/runtime/config.json,readonly")
 cleanup() {
   docker logs morphiume-ci-app > .local/image-app.log 2>&1 || true
   docker rm --force morphiume-ci-app morphiume-ci-worker >/dev/null 2>&1 || true
 }
 trap cleanup EXIT
-docker run --rm "${common[@]}" "$image" node --conditions=react-server /app/runtime/migrate.mjs
-docker run --rm "${common[@]}" --env-file .local/image-seed-env "$image" node --conditions=react-server /app/runtime/seed.mjs
-docker run --rm "${common[@]}" "$image" node --input-type=module -e '
+docker run --rm "${migration[@]}" "$image" node --conditions=react-server /app/runtime/migrate.mjs
+node scripts/ci-runtime-role.mjs --phase grants
+docker run --rm "${runtime[@]}" --env-file .local/image-seed-env "$image" node --conditions=react-server /app/runtime/seed.mjs
+docker run --rm "${runtime[@]}" "$image" node --input-type=module -e '
   import {existsSync} from "node:fs";
   if(process.getuid()!==1001 || process.getgid()!==1001) throw new Error("Runtime is not UID/GID 1001");
   for (const path of ["/usr/local/bin/npm","/usr/local/bin/npx","/usr/local/bin/yarn","/usr/local/bin/pnpm","/app/node_modules/tsx","/app/node_modules/esbuild"]) {
@@ -23,8 +25,8 @@ docker run --rm "${common[@]}" "$image" node --input-type=module -e '
   }
   console.log("Runtime has no package manager, TypeScript loader or build tool.");
 '
-docker run --detach --name morphiume-ci-app "${common[@]}" "$image" node /app/server.js >/dev/null
-docker run --detach --name morphiume-ci-worker "${common[@]}" --env WORKER_HEARTBEAT_PATH=/tmp/worker-heartbeat "$image" node --conditions=react-server /app/runtime/worker.mjs >/dev/null
+docker run --detach --name morphiume-ci-app "${runtime[@]}" "$image" node /app/server.js >/dev/null
+docker run --detach --name morphiume-ci-worker "${runtime[@]}" --env WORKER_HEARTBEAT_PATH=/tmp/worker-heartbeat "$image" node --conditions=react-server /app/runtime/worker.mjs >/dev/null
 ready=false
 for attempt in $(seq 1 45); do
   if curl --fail --silent http://localhost:3000/api/health/ready >/dev/null; then ready=true; break; fi

@@ -1,5 +1,13 @@
 # وضعیت اجرا
 
+## وضعیت جاری، ۰۵:۳۸ UTC، ۱۳ اکتبر ۲۰۲۶
+
+اصلاح canonical اعلان در factory جدا شش job واقعی متعلق را تکمیل کرد، replayصفر، حفظ read/مالی و fingerprint صف/رزرو، cleanup و audit53/13 موفق و پنجره آزاد؛ native/browser برای این اصلاح هنوز اجرا نشده.14counterexampleخالص و globaltypecheck/scopedlint موفق‌اند. حساب CI به DML جدا از bootstrapmigration تقسیم و دو mount مستقل آماده شد؛43/43خالص Windows/Linux موفق، هنوز PG واقعی این جریان اجرا نشده است.
+
+cache3e61 پس از دانلودهای رسمی به lexicalguard بعدی Firefox رسید؛ هویت entry628 اثبات نشده. rule دقیقِ دارایی preference رسمی و سهJS آماده است، نه اجازهٔ کلی پروفایل. regression135/135Linux و importer38/38Python موفق؛ officialartifact/import/browser هنوز ندارد. verify99bf واقعاً837/837دامنه و78/78Linuxمرورگر قبول؛ image مستقل در حال اجراست. این نتایج به اصلاح تازه نسبت داده نمی‌شوند.
+
+بررسی HTTP فقط‌خواندنی در05:37:48Z: IPprivate صفحهٔ اصلی503 وhealthz200. app613/Ops591/schema11 محفوظ؛ هیچ backup/migration/cutover/preview تازه انجام نشده. پذیرش تصویر جدید، nativeجدید، backup/restore، previewمحافظت‌شده و200VU/RPS باقی‌اند.
+
 ## وضعیت جاری، ۰۵:۲۱ UTC، ۱۳ اکتبر ۲۰۲۶
 
 QA در schema جدا علت تعارض اعلان را واقعاً ثابت کرد: کلید دستی متفاوت برای همانevent تعارض503 ایجاد می‌کند؛ دو رویداد قبلی نیز می‌توانند به مدیر تازه‌واجدشرایط برسند و همراه دو پیام فعلی، چهار ردیف معتبر بسازند. replaycanonical شناسه/read را حفظ کرد؛ وضعیت واقعی job، pending/running/completed است. پروف31.613s موفق، fingerprint مالی/صف/رزرو ثابت، cleanup و audit53table/13history قبول و پنجره آزاد شد. nativeAuthenticationProved=false؛ اصلاح helper/assertion مرورگر هنوز آماده‌سازی است.
