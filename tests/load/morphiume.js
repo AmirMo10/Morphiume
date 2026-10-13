@@ -28,7 +28,7 @@ export function setup() {
 function responseOk(response, read = false) {
   const expected = response.status === 409;
   if (expected) business.add(1);
-  unexpected.add(response.status >= 400 && !expected);
+  unexpected.add(!(response.status >= 200 && response.status < 300 || expected));
   check(response, { "HTTP success or classified business conflict": r => r.status >= 200 && r.status < 300 || r.status === 409 });
   if (read) reads.add(response.timings.duration);
   return response.status >= 200 && response.status < 300;
@@ -38,6 +38,7 @@ export default function () {
   // RPS scenario is independent request arrival; one HTTP request per iteration.
   if (mode === "rps") { get("/api/catalog/page?pageSize=24", "GET catalog page"); return; }
   const started = Date.now();
+  try {
   const user = users[(__VU - 1) % users.length];
   const product = fixture.productIds[Math.floor(Math.random() * fixture.productIds.length)];
   for (const cookie of user.cookies) http.cookieJar().set(base, cookie.name, cookie.value);
@@ -72,7 +73,9 @@ export default function () {
       if (responseOk(completed)) { paid.add(1); get(`/api/orders/${order.orderId}`, "GET owned order"); }
     }
   }
-  // Around one navigation/15 s. Request time is included instead of unbounded fast loops.
-  sleep(Math.max(1, 15 - (Date.now() - started) / 1000));
+  } finally {
+    // Failed journeys keep the same pacing; a failure cannot create a fast retry loop.
+    sleep(Math.max(1, 15 - (Date.now() - started) / 1000));
+  }
 }
 export function handleSummary(data) { return { [__ENV.LOAD_SUMMARY]: JSON.stringify({ mode, generatedAt: new Date().toISOString(), fixtureId: fixture.fixtureId, appCommit: __ENV.LOAD_APP_COMMIT || "unrecorded", metrics: data.metrics, rootGroup: data.root_group, options: data.options }, null, 2) }; }
