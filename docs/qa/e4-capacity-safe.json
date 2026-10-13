@@ -1,0 +1,1536 @@
+{
+  "schemaVersion": 1,
+  "scope": "actual-e4-ssh-capacity",
+  "status": "measured-runs-owned-invariants-and-server-window-passed",
+  "generatedAt": "2026-10-13T11:07:57.582Z",
+  "source": {
+    "applicationCommit": "e4bed691dc938a9c0f79022696d24f063ad97724",
+    "loadToolsCommit": "08176c28f02e9283905c656a241313ebf840b7ab",
+    "validatorSourceCommit": "0e7fb648072633fd3dc2b0d99bc25b44f075e771",
+    "overlayFiles": [
+      "tests/load/prepare-fixture.ts",
+      "tests/load/validate-ledger.ts",
+      "tests/load/morphiume.js"
+    ],
+    "runtimeIdentities": {
+      "archiveSha256": "aed2f8a7b868d32410c55708042dcf945a0491a1f747632df16689e3d072432c",
+      "candidateManifestDigest": "sha256:dea7a91aa15b8ea653f92d68aee16a168a204f8c0da79a2459e5f748df659c47",
+      "engineProofSha256": "3f1b15a278706ac09be6f644b2042728b1a5ae3cacf3dfb5315181c51de03810",
+      "opsSha256": "68bc527a9c34ccefef72bb4427288da47c75c3a584e7cb140ecfc3c3fbdad6a3",
+      "origin": "http://localhost:3100",
+      "runtimeImageId": "sha256:3b78dc30dcaa2a6d9b88f913e8bec4002454a0eef7b81ea83a953c5e8a5c2b6d",
+      "sourceCommit": "e4bed691dc938a9c0f79022696d24f063ad97724",
+      "testedPlatformConfig": "sha256:246b9226db86bf63b37499c2b4a80c2e5e8f62265b3546674de48c480f524665"
+    },
+    "accessProfileSha256": {
+      "algorithm": "sha256",
+      "digest": "67f77b1636d0ae2b9b81df9e46f4a3c93087b01e0d4e6fdaa730b2604e60dd96"
+    }
+  },
+  "target": {
+    "canonicalOrigin": "http://localhost:3100",
+    "transport": "external-Windows-generator-through-strict-SSH-loopback-tunnel",
+    "database": "morphiume_staging_runtime",
+    "role": "morphiume_runtime_app",
+    "dbTunnelPort": 15434,
+    "schemaMigrations": 13,
+    "publicTables": 53,
+    "privateIpCapacityProved": false,
+    "liveProvidersUsed": false
+  },
+  "tools": {
+    "node": "24.19.0",
+    "k6": "2.3.0",
+    "k6BinarySha256": "efec04c36452cfb9c0ef313082c021e5656caf5004f922c2d8b807fdf4a0e02f",
+    "k6ArchiveSha256": "112276d495e5741c968e2bc09ea6196099c1275bd6db9ee0875d173c7148ce43"
+  },
+  "preparation": {
+    "createdAt": "2026-10-13T09:32:40.092Z",
+    "completedAt": "2026-10-13T09:55:19.621Z",
+    "durationSeconds": 1359.529,
+    "products": 200,
+    "nativeAccounts": 200,
+    "handlerCalls": 419,
+    "status200": 400,
+    "status429": 19,
+    "attempts": {
+      "customer-otp-send:1": 200,
+      "customer-otp-verify:1": 200,
+      "customer-otp-send:2": 19
+    },
+    "handlerInProcess": true,
+    "httpSignupCapacityProved": false,
+    "observed429FollowedByOneHeaderBoundedRetry": true,
+    "limiterIpClockReset": false,
+    "partialCjsPreentryFailureRetained": true
+  },
+  "runs": {
+    "smoke": {
+      "state": "summary-collected-awaiting-process-and-invariants",
+      "file": "smoke-1791885420389.json",
+      "bytes": 6004,
+      "sha256": "d34f91ecae820c976b19ae0367433c63bf0f2fbc98a36967b948e5a11b6668c3",
+      "mode": "smoke",
+      "appCommit": "e4bed691dc938a9c0f79022696d24f063ad97724",
+      "generatedAt": "2026-10-13T09:57:55.560Z",
+      "metrics": {
+        "http_reqs": {
+          "type": "counter",
+          "values": {
+            "count": 27,
+            "rate": 0.4903847047121711
+          }
+        },
+        "http_req_duration": {
+          "type": "trend",
+          "values": {
+            "avg": 56.56242222222222,
+            "min": 7.7296,
+            "med": 55.5539,
+            "p(50)": 55.5539,
+            "p(95)": 105.69381999999999,
+            "p(99)": 123.59696999999997,
+            "max": 128.1653
+          }
+        },
+        "http_req_failed": {
+          "type": "rate",
+          "values": {
+            "rate": 0,
+            "passes": 0,
+            "fails": 27
+          }
+        },
+        "iterations": {
+          "type": "counter",
+          "values": {
+            "count": 6,
+            "rate": 0.10897437882492692
+          }
+        },
+        "iteration_duration": {
+          "type": "trend",
+          "values": {
+            "avg": 15000.947683333332,
+            "min": 15000.6401,
+            "med": 15000.86665,
+            "p(50)": 15000.86665,
+            "p(95)": 15001.382925,
+            "p(99)": 15001.499705,
+            "max": 15001.5289
+          }
+        },
+        "vus": {
+          "type": "gauge",
+          "values": {
+            "value": 1,
+            "min": 0,
+            "max": 2
+          }
+        },
+        "vus_max": {
+          "type": "gauge",
+          "values": {
+            "value": 2,
+            "min": 2,
+            "max": 2
+          }
+        },
+        "unexpected_errors": {
+          "type": "rate",
+          "values": {
+            "rate": 0,
+            "passes": 0,
+            "fails": 26
+          },
+          "threshold": "rate<0.005",
+          "thresholdPassed": true
+        },
+        "read_duration": {
+          "type": "trend",
+          "values": {
+            "avg": 43.4324375,
+            "min": 7.7296,
+            "med": 31.84315,
+            "p(50)": 31.84315,
+            "p(95)": 96.38187500000001,
+            "p(99)": 121.80861499999999,
+            "max": 128.1653
+          },
+          "threshold": "p(95)<500",
+          "thresholdPassed": true
+        },
+        "checkout_duration": {
+          "type": "trend",
+          "values": {
+            "avg": 102.4265,
+            "min": 94.2582,
+            "med": 102.4265,
+            "p(50)": 102.4265,
+            "p(95)": 109.77797000000001,
+            "p(99)": 110.43143400000001,
+            "max": 110.5948
+          },
+          "threshold": "p(95)<1000",
+          "thresholdPassed": true
+        },
+        "controlled_paid_orders": {
+          "type": "counter",
+          "values": {
+            "count": 2,
+            "rate": 0.03632479294164231
+          }
+        },
+        "data_received": {
+          "type": "counter",
+          "values": {
+            "count": 106178,
+            "rate": 1928.4469324788483
+          }
+        },
+        "data_sent": {
+          "type": "counter",
+          "values": {
+            "count": 9893,
+            "rate": 179.68058828583366
+          }
+        },
+        "checks": {
+          "type": "rate",
+          "values": {
+            "rate": 1,
+            "passes": 26,
+            "fails": 0
+          }
+        }
+      },
+      "requiredThresholdsPresent": true,
+      "requiredThresholdsPassed": true,
+      "actualProcessExitOrPlateauProvedBySummary": false
+    },
+    "vu": {
+      "state": "summary-collected-awaiting-process-and-invariants",
+      "file": "vu-1791885522811.json",
+      "bytes": 6027,
+      "sha256": "340011e487c49808f1ec1ae4008d2e343587f4f9982a5f2da7833ec25db59816",
+      "mode": "vu",
+      "appCommit": "e4bed691dc938a9c0f79022696d24f063ad97724",
+      "generatedAt": "2026-10-13T10:23:52.856Z",
+      "metrics": {
+        "http_reqs": {
+          "type": "counter",
+          "values": {
+            "count": 55385,
+            "rate": 36.68570259236813
+          }
+        },
+        "http_req_duration": {
+          "type": "trend",
+          "values": {
+            "avg": 24.691596414191682,
+            "min": 0.5101,
+            "med": 14.1026,
+            "p(50)": 14.1026,
+            "p(95)": 76.43901999999996,
+            "p(99)": 93.27068399999993,
+            "max": 579.6131
+          }
+        },
+        "http_req_failed": {
+          "type": "rate",
+          "values": {
+            "rate": 0,
+            "passes": 0,
+            "fails": 55385
+          }
+        },
+        "iterations": {
+          "type": "counter",
+          "values": {
+            "count": 17996,
+            "rate": 11.920121040936298
+          }
+        },
+        "iteration_duration": {
+          "type": "trend",
+          "values": {
+            "avg": 15000.810036785846,
+            "min": 14999.0443,
+            "med": 15000.5866,
+            "p(50)": 15000.5866,
+            "p(95)": 15001.545675,
+            "p(99)": 15005.105375,
+            "max": 15477.8997
+          }
+        },
+        "vus": {
+          "type": "gauge",
+          "values": {
+            "value": 1,
+            "min": 0,
+            "max": 200
+          }
+        },
+        "vus_max": {
+          "type": "gauge",
+          "values": {
+            "value": 200,
+            "min": 200,
+            "max": 200
+          }
+        },
+        "unexpected_errors": {
+          "type": "rate",
+          "values": {
+            "rate": 0,
+            "passes": 0,
+            "fails": 55384
+          },
+          "threshold": "rate<0.005",
+          "thresholdPassed": true
+        },
+        "read_duration": {
+          "type": "trend",
+          "values": {
+            "avg": 24.395205667067163,
+            "min": 0.5101,
+            "med": 11.1708,
+            "p(50)": 11.1708,
+            "p(95)": 77.30998,
+            "p(99)": 93.62988999999999,
+            "max": 579.6131
+          },
+          "threshold": "p(95)<500",
+          "thresholdPassed": true
+        },
+        "checkout_duration": {
+          "type": "trend",
+          "values": {
+            "avg": 32.258726361031506,
+            "min": 14.4918,
+            "med": 25.364,
+            "p(50)": 25.364,
+            "p(95)": 68.01229999999997,
+            "p(99)": 76.11113199999997,
+            "max": 84.9443
+          },
+          "threshold": "p(95)<1000",
+          "thresholdPassed": true
+        },
+        "controlled_paid_orders": {
+          "type": "counter",
+          "values": {
+            "count": 349,
+            "rate": 0.23116927335445475
+          }
+        },
+        "data_received": {
+          "type": "counter",
+          "values": {
+            "count": 377092819,
+            "rate": 249777.28640519464
+          }
+        },
+        "data_sent": {
+          "type": "counter",
+          "values": {
+            "count": 13960736,
+            "rate": 9247.258443018272
+          }
+        },
+        "checks": {
+          "type": "rate",
+          "values": {
+            "rate": 1,
+            "passes": 55384,
+            "fails": 0
+          }
+        }
+      },
+      "requiredThresholdsPresent": true,
+      "requiredThresholdsPassed": true,
+      "actualProcessExitOrPlateauProvedBySummary": false
+    },
+    "rps": {
+      "state": "summary-collected-awaiting-process-and-invariants",
+      "file": "rps-1791887064450.json",
+      "bytes": 5466,
+      "sha256": "85979b5a60662388ac6a460c0dddd7828cd8cd7f6925b27756453b61202c66b7",
+      "mode": "rps",
+      "appCommit": "e4bed691dc938a9c0f79022696d24f063ad97724",
+      "generatedAt": "2026-10-13T10:36:24.810Z",
+      "metrics": {
+        "http_reqs": {
+          "type": "counter",
+          "values": {
+            "count": 39600,
+            "rate": 54.98911466799278
+          }
+        },
+        "http_req_duration": {
+          "type": "trend",
+          "values": {
+            "avg": 24.66929972222249,
+            "min": 4.5867,
+            "med": 19.997700000000002,
+            "p(50)": 19.997700000000002,
+            "p(95)": 50.071084999999975,
+            "p(99)": 96.70748600000015,
+            "max": 272.6636
+          }
+        },
+        "http_req_failed": {
+          "type": "rate",
+          "values": {
+            "rate": 0,
+            "passes": 0,
+            "fails": 39600
+          }
+        },
+        "iterations": {
+          "type": "counter",
+          "values": {
+            "count": 39599,
+            "rate": 54.98772605398601
+          }
+        },
+        "iteration_duration": {
+          "type": "trend",
+          "values": {
+            "avg": 24.899463935958362,
+            "min": 5.1893,
+            "med": 20.1941,
+            "p(50)": 20.1941,
+            "p(95)": 50.47776999999998,
+            "p(99)": 97.47090999999915,
+            "max": 272.6636
+          }
+        },
+        "vus": {
+          "type": "gauge",
+          "values": {
+            "value": 0,
+            "min": 0,
+            "max": 16
+          }
+        },
+        "vus_max": {
+          "type": "gauge",
+          "values": {
+            "value": 100,
+            "min": 100,
+            "max": 100
+          }
+        },
+        "unexpected_errors": {
+          "type": "rate",
+          "values": {
+            "rate": 0,
+            "passes": 0,
+            "fails": 39599
+          },
+          "threshold": "rate<0.005",
+          "thresholdPassed": true
+        },
+        "read_duration": {
+          "type": "trend",
+          "values": {
+            "avg": 24.66681237405011,
+            "min": 4.5867,
+            "med": 19.9975,
+            "p(50)": 19.9975,
+            "p(95)": 50.067919999999994,
+            "p(99)": 96.5805759999996,
+            "max": 272.6636
+          },
+          "threshold": "p(95)<500",
+          "thresholdPassed": true
+        },
+        "data_received": {
+          "type": "counter",
+          "values": {
+            "count": 817878872,
+            "rate": 1135718.0574983987
+          }
+        },
+        "data_sent": {
+          "type": "counter",
+          "values": {
+            "count": 3881963,
+            "rate": 5390.548195553163
+          }
+        },
+        "checks": {
+          "type": "rate",
+          "values": {
+            "rate": 1,
+            "passes": 39599,
+            "fails": 0
+          }
+        }
+      },
+      "requiredThresholdsPresent": true,
+      "requiredThresholdsPassed": true,
+      "actualProcessExitOrPlateauProvedBySummary": false
+    }
+  },
+  "processEvidence": {
+    "vu": {
+      "processStartedUtc": "2026-10-13T09:58:42.8153719Z",
+      "completedSummaryUtc": "2026-10-13T10:23:52.856Z",
+      "exitCode": 0,
+      "bytes": 198717,
+      "sha256": "ebeb8154d8fdf540b86adfd9ca0f83a920414e37511a747ce83c26f51af31708",
+      "progressSamples": 1510,
+      "lastProgress": {
+        "elapsedSeconds": 1509.7,
+        "activeVUs": 0,
+        "maximumVUs": 200,
+        "complete": 17996,
+        "interrupted": 0
+      },
+      "maxInterrupted": 0,
+      "plateau200": {
+        "samples": 1207,
+        "first": {
+          "elapsedSeconds": 180.8,
+          "activeVUs": 200,
+          "maximumVUs": 200,
+          "complete": 1004,
+          "interrupted": 0
+        },
+        "last": {
+          "elapsedSeconds": 1386.8,
+          "activeVUs": 200,
+          "maximumVUs": 200,
+          "complete": 17084,
+          "interrupted": 0
+        },
+        "observedSpanSeconds": 1206,
+        "recordedDips": 0,
+        "maxSampleGapSeconds": 1
+      }
+    },
+    "rps": {
+      "processStartedUtc": "2026-10-13T10:24:24.4563976Z",
+      "completedSummaryUtc": "2026-10-13T10:36:24.810Z",
+      "exitCode": 0,
+      "bytes": 106163,
+      "sha256": "ff563af8156446a49626ea6461a79e05fd3545e42a8327bf2cc27d827d9f5791",
+      "progressSamples": 721,
+      "lastProgress": {
+        "elapsedSeconds": 720.1,
+        "activeVUs": 0,
+        "maximumVUs": 100,
+        "complete": 39599,
+        "interrupted": 0
+      },
+      "maxInterrupted": 0,
+      "plateau200": {
+        "samples": 0,
+        "first": null,
+        "last": null,
+        "observedSpanSeconds": null,
+        "recordedDips": 0,
+        "maxSampleGapSeconds": null
+      }
+    }
+  },
+  "rpsInterpretation": {
+    "configuredSweepTargets": [
+      20,
+      40,
+      80,
+      120,
+      0
+    ],
+    "stageSeconds": [
+      120,
+      180,
+      180,
+      180,
+      60
+    ],
+    "oneCatalogRequestPerIteration": true,
+    "sustained120RpsPlateau": false,
+    "saturationBoundaryFound": false
+  },
+  "monitor": {
+    "serverContainerDatabase": [
+      {
+        "file": "resources-1791885405739.jsonl",
+        "bytes": 112639,
+        "sha256": "d996b8460c63214bb8951490440e977604da069d91f61b779fecacba398b162b",
+        "capturedPrefixOnly": true,
+        "partialLastLine": false,
+        "samples": 143,
+        "firstUtc": "2026-10-13T09:56:45.741Z",
+        "lastUtc": "2026-10-13T10:38:02.950Z",
+        "invalidLines": 0,
+        "dockerErrors": 0,
+        "databaseErrors": 0,
+        "unknownContainers": 0,
+        "sampleIntervalSeconds": {
+          "samples": 142,
+          "min": 17.308,
+          "mean": 17.4451338028169,
+          "p95": 17.667,
+          "max": 17.735
+        },
+        "containers": {
+          "app": {
+            "cpuPercent": {
+              "samples": 143,
+              "min": 0,
+              "mean": 20.798811188811197,
+              "p95": 45.2,
+              "max": 59.23
+            },
+            "memoryUsedBytes": {
+              "samples": 143,
+              "min": 81526784,
+              "mean": 170577357.44055945,
+              "p95": 183081370,
+              "max": 212965786
+            },
+            "memoryLimitBytes": {
+              "samples": 143,
+              "min": 1610612736,
+              "mean": 1610612736,
+              "p95": 1610612736,
+              "max": 1610612736
+            },
+            "memoryPercent": {
+              "samples": 143,
+              "min": 5.06,
+              "mean": 10.590559440559446,
+              "p95": 11.37,
+              "max": 13.22
+            },
+            "pids": {
+              "samples": 143,
+              "min": 19,
+              "mean": 19.111888111888113,
+              "p95": 19,
+              "max": 26
+            },
+            "networkReceivedBytes": {
+              "samples": 143,
+              "min": 277000,
+              "mean": 375705321.67832166,
+              "p95": 1190000000,
+              "max": 1200000000
+            },
+            "networkSentBytes": {
+              "samples": 143,
+              "min": 44500,
+              "mean": 504734980.4195804,
+              "p95": 1590000000,
+              "max": 1600000000
+            },
+            "blockReadBytes": {
+              "samples": 143,
+              "min": 0,
+              "mean": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "blockWrittenBytes": {
+              "samples": 143,
+              "min": 0,
+              "mean": 0,
+              "p95": 0,
+              "max": 0
+            }
+          },
+          "worker": {
+            "cpuPercent": {
+              "samples": 143,
+              "min": 0.01,
+              "mean": 0.3589510489510499,
+              "p95": 2.5,
+              "max": 7.73
+            },
+            "memoryUsedBytes": {
+              "samples": 143,
+              "min": 36909875,
+              "mean": 42091013.88111888,
+              "p95": 43484447,
+              "max": 47437578
+            },
+            "memoryLimitBytes": {
+              "samples": 143,
+              "min": 402653184,
+              "mean": 402653184,
+              "p95": 402653184,
+              "max": 402653184
+            },
+            "memoryPercent": {
+              "samples": 143,
+              "min": 9.17,
+              "mean": 10.45349650349649,
+              "p95": 10.8,
+              "max": 11.78
+            },
+            "pids": {
+              "samples": 143,
+              "min": 19,
+              "mean": 19.09090909090909,
+              "p95": 19,
+              "max": 25
+            },
+            "networkReceivedBytes": {
+              "samples": 143,
+              "min": 135000,
+              "mean": 1649090.9090909092,
+              "p95": 2520000,
+              "max": 2520000
+            },
+            "networkSentBytes": {
+              "samples": 143,
+              "min": 186000,
+              "mean": 1967979.020979021,
+              "p95": 2990000,
+              "max": 3000000
+            },
+            "blockReadBytes": {
+              "samples": 143,
+              "min": 0,
+              "mean": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "blockWrittenBytes": {
+              "samples": 143,
+              "min": 0,
+              "mean": 0,
+              "p95": 0,
+              "max": 0
+            }
+          },
+          "db": {
+            "cpuPercent": {
+              "samples": 143,
+              "min": 0,
+              "mean": 19.72027972027971,
+              "p95": 60.39,
+              "max": 68.33
+            },
+            "memoryUsedBytes": {
+              "samples": 143,
+              "min": 182137651,
+              "mean": 200974622.4055944,
+              "p95": 214958080,
+              "max": 222612685
+            },
+            "memoryLimitBytes": {
+              "samples": 143,
+              "min": 1342177280,
+              "mean": 1342177280,
+              "p95": 1342177280,
+              "max": 1342177280
+            },
+            "memoryPercent": {
+              "samples": 143,
+              "min": 13.57,
+              "mean": 14.973636363636366,
+              "p95": 16.02,
+              "max": 16.59
+            },
+            "pids": {
+              "samples": 143,
+              "min": 12,
+              "mean": 15.216783216783217,
+              "p95": 20,
+              "max": 21
+            },
+            "networkReceivedBytes": {
+              "samples": 143,
+              "min": 257000000,
+              "mean": 390622377.62237763,
+              "p95": 639000000,
+              "max": 642000000
+            },
+            "networkSentBytes": {
+              "samples": 143,
+              "min": 453000000,
+              "mean": 808300699.3006994,
+              "p95": 1600000000,
+              "max": 1610000000
+            },
+            "blockReadBytes": {
+              "samples": 143,
+              "min": 0,
+              "mean": 0,
+              "p95": 0,
+              "max": 0
+            },
+            "blockWrittenBytes": {
+              "samples": 143,
+              "min": 4060000000,
+              "mean": 4138461538.4615383,
+              "p95": 4180000000,
+              "max": 4180000000
+            }
+          }
+        },
+        "database": {
+          "connections": {
+            "samples": 143,
+            "min": 3,
+            "mean": 6.195804195804196,
+            "p95": 11,
+            "max": 12
+          },
+          "active": {
+            "samples": 143,
+            "min": 1,
+            "mean": 1.2937062937062938,
+            "p95": 2,
+            "max": 4
+          },
+          "ungrantedLocks": {
+            "samples": 143,
+            "min": 0,
+            "mean": 0,
+            "p95": 0,
+            "max": 0
+          },
+          "pending": {
+            "samples": 143,
+            "min": 0,
+            "mean": 7.538461538461538,
+            "p95": 28,
+            "max": 56
+          },
+          "running": {
+            "samples": 143,
+            "min": 0,
+            "mean": 0,
+            "p95": 0,
+            "max": 0
+          },
+          "dead": {
+            "samples": 143,
+            "min": 0,
+            "mean": 0,
+            "p95": 0,
+            "max": 0
+          },
+          "oldestQueueSeconds": {
+            "samples": 143,
+            "min": 0,
+            "mean": 4.923076923076923,
+            "p95": 21,
+            "max": 33
+          }
+        },
+        "limitations": [
+          "Docker samples only; no host/generator CPU, RAM, swap or pool wait measurement.",
+          "Database pg_locks filter excludes database-null transaction locks.",
+          "Sampled aggregates do not prove absence of between-sample peaks or complete plateau duration."
+        ]
+      }
+    ],
+    "generator": {
+      "bytes": 73742,
+      "sha256": "ab45c9de9797c73ab6c7875a7240ef1746933bda0fc542043b8340711e155268",
+      "partialLastLine": false,
+      "samples": 163,
+      "invalidLines": 0,
+      "firstUtc": "2026-10-13T09:56:54.486Z",
+      "lastUtc": "2026-10-13T10:38:30.242Z",
+      "sampleIntervalSeconds": {
+        "samples": 162,
+        "min": 15.308,
+        "mean": 15.405901234567908,
+        "p95": 15.359,
+        "max": 20.717
+      },
+      "host": {
+        "cpuPercent": {
+          "samples": 163,
+          "min": 0,
+          "mean": 17.570552147239265,
+          "p95": 50,
+          "max": 100
+        },
+        "totalMemoryBytes": {
+          "samples": 163,
+          "min": 34358743040,
+          "mean": 34358743040,
+          "p95": 34358743040,
+          "max": 34358743040
+        },
+        "freeMemoryBytes": {
+          "samples": 163,
+          "min": 17830776832,
+          "mean": 18144788756.41718,
+          "p95": 18485370880,
+          "max": 18629853184
+        },
+        "logicalCpuCount": {
+          "samples": 163,
+          "min": 4,
+          "mean": 4,
+          "p95": 4,
+          "max": 4
+        }
+      },
+      "processes": {
+        "vu-k6": {
+          "startedUtc": "2026-10-13T09:58:42.815Z",
+          "workingSetBytes": {
+            "samples": 98,
+            "min": 186449920,
+            "mean": 283235516.0816327,
+            "p95": 300367872,
+            "max": 303177728
+          },
+          "peakWorkingSetBytes": {
+            "samples": 98,
+            "min": 186449920,
+            "mean": 283241492.8979592,
+            "p95": 300367872,
+            "max": 303177728
+          },
+          "privateBytes": {
+            "samples": 98,
+            "min": 213155840,
+            "mean": 309435747.2653061,
+            "p95": 325271552,
+            "max": 328015872
+          },
+          "cpuPercentOneLogicalCpuBasis": {
+            "samples": 97,
+            "min": 0.30601253427340386,
+            "mean": 6.5311401256333905,
+            "p95": 9.274509164438067,
+            "max": 10.392214397496087
+          },
+          "cpuPercentTotalHostBasis": {
+            "samples": 97,
+            "min": 0.07650313356835096,
+            "mean": 1.6327850314083476,
+            "p95": 2.3186272911095167,
+            "max": 2.5980535993740217
+          }
+        },
+        "rps-k6": {
+          "startedUtc": "2026-10-13T10:24:24.456Z",
+          "workingSetBytes": {
+            "samples": 46,
+            "min": 114216960,
+            "mean": 154385452.52173913,
+            "p95": 164888576,
+            "max": 165023744
+          },
+          "peakWorkingSetBytes": {
+            "samples": 46,
+            "min": 114216960,
+            "mean": 154386877.2173913,
+            "p95": 164896768,
+            "max": 165023744
+          },
+          "privateBytes": {
+            "samples": 46,
+            "min": 142086144,
+            "mean": 180520781.91304347,
+            "p95": 190418944,
+            "max": 190418944
+          },
+          "cpuPercentOneLogicalCpuBasis": {
+            "samples": 45,
+            "min": 2.653321141662857,
+            "mean": 8.72323221704146,
+            "p95": 17.2263357035684,
+            "max": 18.43147158498436
+          },
+          "cpuPercentTotalHostBasis": {
+            "samples": 45,
+            "min": 0.6633302854157143,
+            "mean": 2.180808054260365,
+            "p95": 4.3065839258921,
+            "max": 4.60786789624609
+          }
+        },
+        "ssh-tunnel": {
+          "startedUtc": null,
+          "workingSetBytes": {
+            "samples": 163,
+            "min": 10641408,
+            "mean": 25708531.43558282,
+            "p95": 31969280,
+            "max": 31993856
+          },
+          "peakWorkingSetBytes": {
+            "samples": 163,
+            "min": 14434304,
+            "mean": 28153240.34355828,
+            "p95": 31993856,
+            "max": 31993856
+          },
+          "privateBytes": {
+            "samples": 163,
+            "min": 2949120,
+            "mean": 18477030.871165644,
+            "p95": 24367104,
+            "max": 24367104
+          },
+          "cpuPercentOneLogicalCpuBasis": {
+            "samples": 162,
+            "min": 0,
+            "mean": 3.307639416668846,
+            "p95": 7.128658019943948,
+            "max": 11.518200795877096
+          },
+          "cpuPercentTotalHostBasis": {
+            "samples": 162,
+            "min": 0,
+            "mean": 0.8269098541672115,
+            "p95": 1.782164504985987,
+            "max": 2.879550198969274
+          }
+        },
+        "other-pinned-k6": {
+          "startedUtc": "2026-10-13T09:57:00.394Z",
+          "workingSetBytes": {
+            "samples": 3,
+            "min": 35127296,
+            "mean": 35442688,
+            "p95": 35643392,
+            "max": 35643392
+          },
+          "peakWorkingSetBytes": {
+            "samples": 3,
+            "min": 35127296,
+            "mean": 35442688,
+            "p95": 35643392,
+            "max": 35643392
+          },
+          "privateBytes": {
+            "samples": 3,
+            "min": 62644224,
+            "mean": 62697472,
+            "p95": 62771200,
+            "max": 62771200
+          },
+          "cpuPercentOneLogicalCpuBasis": {
+            "samples": 2,
+            "min": 0,
+            "mean": 0.10189774357636625,
+            "p95": 0.2037954871527325,
+            "max": 0.2037954871527325
+          },
+          "cpuPercentTotalHostBasis": {
+            "samples": 2,
+            "min": 0,
+            "mean": 0.02547443589409156,
+            "p95": 0.05094887178818312,
+            "max": 0.05094887178818312
+          }
+        }
+      },
+      "limitation": "Sampled process CPU uses counter deltas; values between samples and terminated unsampled processes are not recovered."
+    },
+    "collectorsStoppedAfterCompletedRuns": true,
+    "captureAfterOperatorStop": true,
+    "naturalCollectorDeadlineCompletionClaimed": false,
+    "configuredIntervalSeconds": 15,
+    "hostPeaksAttributableToK6Only": false
+  },
+  "healthWindows": [
+    {
+      "alias": "rps-health-early",
+      "observedUtc": "2026-10-13T10:26:09.791Z",
+      "windowSeconds": 60,
+      "readiness": 200,
+      "containers": [
+        {
+          "service": "worker",
+          "running": true,
+          "health": "healthy",
+          "oomKilled": false,
+          "restarts": 0
+        },
+        {
+          "service": "app",
+          "running": true,
+          "health": "healthy",
+          "oomKilled": false,
+          "restarts": 0
+        }
+      ],
+      "requestStatuses": {
+        "200": 975
+      },
+      "readSamples": 972,
+      "serverReadP95Ms": 13,
+      "serverReadMaxMs": 26,
+      "capped": false
+    },
+    {
+      "alias": "rps-health-high",
+      "observedUtc": "2026-10-13T10:33:35.678Z",
+      "windowSeconds": 60,
+      "readiness": 200,
+      "containers": [
+        {
+          "service": "worker",
+          "running": true,
+          "health": "healthy",
+          "oomKilled": false,
+          "restarts": 0
+        },
+        {
+          "service": "app",
+          "running": true,
+          "health": "healthy",
+          "oomKilled": false,
+          "restarts": 0
+        }
+      ],
+      "requestStatuses": {
+        "200": 5343
+      },
+      "readSamples": 5339,
+      "serverReadP95Ms": 16,
+      "serverReadMaxMs": 69,
+      "capped": false
+    },
+    {
+      "alias": "rps-health-mid",
+      "observedUtc": "2026-10-13T10:31:01.798Z",
+      "windowSeconds": 60,
+      "readiness": 200,
+      "containers": [
+        {
+          "service": "worker",
+          "running": true,
+          "health": "healthy",
+          "oomKilled": false,
+          "restarts": 0
+        },
+        {
+          "service": "app",
+          "running": true,
+          "health": "healthy",
+          "oomKilled": false,
+          "restarts": 0
+        }
+      ],
+      "requestStatuses": {
+        "200": 3288
+      },
+      "readSamples": 3284,
+      "serverReadP95Ms": 14,
+      "serverReadMaxMs": 68,
+      "capped": false
+    },
+    {
+      "alias": "vu-health-first",
+      "observedUtc": "2026-10-13T10:00:58.105Z",
+      "windowSeconds": 60,
+      "readiness": 200,
+      "containers": [
+        {
+          "service": "worker",
+          "running": true,
+          "health": "healthy",
+          "oomKilled": false,
+          "restarts": 0
+        },
+        {
+          "service": "app",
+          "running": true,
+          "health": "healthy",
+          "oomKilled": false,
+          "restarts": 0
+        }
+      ],
+      "requestStatuses": {
+        "200": 1389,
+        "201": 6
+      },
+      "readSamples": 1208,
+      "serverReadP95Ms": 19,
+      "serverReadMaxMs": 31,
+      "capped": false
+    },
+    {
+      "alias": "vu-health-late",
+      "observedUtc": "2026-10-13T10:19:03.972Z",
+      "windowSeconds": 60,
+      "readiness": 200,
+      "containers": [
+        {
+          "service": "worker",
+          "running": true,
+          "health": "healthy",
+          "oomKilled": false,
+          "restarts": 0
+        },
+        {
+          "service": "app",
+          "running": true,
+          "health": "healthy",
+          "oomKilled": false,
+          "restarts": 0
+        }
+      ],
+      "requestStatuses": {
+        "200": 2461,
+        "201": 16
+      },
+      "readSamples": 2163,
+      "serverReadP95Ms": 19,
+      "serverReadMaxMs": 36,
+      "capped": false
+    },
+    {
+      "alias": "vu-health-mid",
+      "observedUtc": "2026-10-13T10:12:32.572Z",
+      "windowSeconds": 60,
+      "readiness": 200,
+      "containers": [
+        {
+          "service": "worker",
+          "running": true,
+          "health": "healthy",
+          "oomKilled": false,
+          "restarts": 0
+        },
+        {
+          "service": "app",
+          "running": true,
+          "health": "healthy",
+          "oomKilled": false,
+          "restarts": 0
+        }
+      ],
+      "requestStatuses": {
+        "200": 2434,
+        "201": 10
+      },
+      "readSamples": 2163,
+      "serverReadP95Ms": 19,
+      "serverReadMaxMs": 31,
+      "capped": false
+    }
+  ],
+  "financial": {
+    "beforeLoad": {
+      "capturedUtc": "2026-10-13T09:56:26.218Z",
+      "status": "passed",
+      "expectCleanup": false,
+      "stock": {
+        "products": 200,
+        "variants": 200,
+        "products_with_variant": 200,
+        "purchase_variants": 1,
+        "published": 200,
+        "archived": 0,
+        "violations": 0,
+        "other_sku_changes": 0,
+        "purchase_on_hand": 100000,
+        "purchase_reserved": 0
+      },
+      "finance": {
+        "orders": 0,
+        "committed_orders": 0,
+        "committed_units": 0,
+        "money_violations": 0,
+        "commit_violations": 0,
+        "stock_commits": 0,
+        "active_reserved": 0,
+        "foreign_orders": 0
+      },
+      "cleanup": {
+        "users": 200,
+        "disabled": 0,
+        "sessions": 200,
+        "users_with_session": 200
+      }
+    },
+    "afterSmoke": {
+      "capturedUtc": "2026-10-13T09:58:29.705Z",
+      "status": "passed",
+      "expectCleanup": false,
+      "stock": {
+        "products": 200,
+        "variants": 200,
+        "products_with_variant": 200,
+        "purchase_variants": 1,
+        "published": 200,
+        "archived": 0,
+        "violations": 0,
+        "other_sku_changes": 0,
+        "purchase_on_hand": 99998,
+        "purchase_reserved": 0
+      },
+      "finance": {
+        "orders": 2,
+        "committed_orders": 2,
+        "committed_units": 2,
+        "money_violations": 0,
+        "commit_violations": 0,
+        "stock_commits": 2,
+        "active_reserved": 0,
+        "foreign_orders": 0
+      },
+      "cleanup": {
+        "users": 200,
+        "disabled": 0,
+        "sessions": 200,
+        "users_with_session": 200
+      }
+    },
+    "afterVu": {
+      "capturedUtc": "2026-10-13T10:24:08.738Z",
+      "status": "passed",
+      "expectCleanup": false,
+      "stock": {
+        "products": 200,
+        "variants": 200,
+        "products_with_variant": 200,
+        "purchase_variants": 1,
+        "published": 200,
+        "archived": 0,
+        "violations": 0,
+        "other_sku_changes": 0,
+        "purchase_on_hand": 99649,
+        "purchase_reserved": 0
+      },
+      "finance": {
+        "orders": 351,
+        "committed_orders": 351,
+        "committed_units": 351,
+        "money_violations": 0,
+        "commit_violations": 0,
+        "stock_commits": 351,
+        "active_reserved": 0,
+        "foreign_orders": 0
+      },
+      "cleanup": {
+        "users": 200,
+        "disabled": 0,
+        "sessions": 200,
+        "users_with_session": 200
+      }
+    },
+    "afterRps": {
+      "capturedUtc": "2026-10-13T10:36:58.592Z",
+      "status": "passed",
+      "expectCleanup": false,
+      "stock": {
+        "products": 200,
+        "variants": 200,
+        "products_with_variant": 200,
+        "purchase_variants": 1,
+        "published": 200,
+        "archived": 0,
+        "violations": 0,
+        "other_sku_changes": 0,
+        "purchase_on_hand": 99649,
+        "purchase_reserved": 0
+      },
+      "finance": {
+        "orders": 351,
+        "committed_orders": 351,
+        "committed_units": 351,
+        "money_violations": 0,
+        "commit_violations": 0,
+        "stock_commits": 351,
+        "active_reserved": 0,
+        "foreign_orders": 0
+      },
+      "cleanup": {
+        "users": 200,
+        "disabled": 0,
+        "sessions": 200,
+        "users_with_session": 200
+      }
+    },
+    "afterCleanup": {
+      "capturedUtc": "2026-10-13T10:37:12.291Z",
+      "status": "passed",
+      "expectCleanup": true,
+      "stock": {
+        "products": 200,
+        "variants": 200,
+        "products_with_variant": 200,
+        "purchase_variants": 1,
+        "published": 0,
+        "archived": 200,
+        "violations": 0,
+        "other_sku_changes": 0,
+        "purchase_on_hand": 99649,
+        "purchase_reserved": 0
+      },
+      "finance": {
+        "orders": 351,
+        "committed_orders": 351,
+        "committed_units": 351,
+        "money_violations": 0,
+        "commit_violations": 0,
+        "stock_commits": 351,
+        "active_reserved": 0,
+        "foreign_orders": 0
+      },
+      "cleanup": {
+        "users": 200,
+        "disabled": 200,
+        "sessions": 0,
+        "users_with_session": 0
+      }
+    },
+    "preexistingRows": {
+      "tables": 14,
+      "afterCapturedRows": 4646,
+      "priorRowsCompared": 34,
+      "preserved": true,
+      "readOnly": true
+    },
+    "globalAllPublicRowsEqualityClaimed": false,
+    "financialHistoryDeleted": false,
+    "unrelatedQueueOrLimiterReset": false
+  },
+  "finalServerEvidence": {
+    "state": "bounded-full-app-wrapper-interval-collected",
+    "observedUtc": "2026-10-13T11:02:44.457Z",
+    "requestedSinceUtc": "2026-10-13T09:56:45Z",
+    "requestedUntilUtc": "2026-10-13T10:38:34Z",
+    "windowSeconds": 2509,
+    "rawBytes": 17141019,
+    "lineCount": 96236,
+    "stdoutSha256": "b10c91865c1995702018982f5bfd9c0fe2d6a4341ded2b4788faaf1a50927bc2",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "firstWrapperUtc": "2026-10-13T09:57:00.087Z",
+    "lastWrapperUtc": "2026-10-13T10:38:20.364Z",
+    "requestStatuses": {
+      "200": 94831,
+      "201": 351
+    },
+    "errorStatusCount": 0,
+    "wrapper500Count": 0,
+    "errorCodes": {},
+    "readSamples": 88244,
+    "serverReadP95Ms": 18,
+    "serverReadMaxMs": 69,
+    "capsReached": false,
+    "readiness": 200,
+    "containers": [
+      {
+        "service": "worker",
+        "running": true,
+        "health": "healthy",
+        "oomKilled": false,
+        "restarts": 0
+      },
+      {
+        "service": "app",
+        "running": true,
+        "health": "healthy",
+        "oomKilled": false,
+        "restarts": 0
+      }
+    ],
+    "directDatabaseMutation": false,
+    "logRetention": {
+      "driver": "local",
+      "maxFiles": 5,
+      "maxSizePerFile": "10m"
+    },
+    "captureMethod": "complete-docker-logs-since-until-no-tail-selection",
+    "transportCompleted": true,
+    "readOnly": true,
+    "coverageNote": "Bounded Docker log selection; rotation may limit retained history",
+    "allServerRequestsEqualK6RequestsClaimed": false
+  },
+  "windowReleasedUtc": "2026-10-13T10:38:34.343Z",
+  "references": [
+    {
+      "file": "e4-capacity-preparation-summary-safe.json",
+      "bytes": 569,
+      "sha256": "a84e218159b26902f9d66cb3262829bec824d4ba9071ce64877b1ef65ae48c5c"
+    },
+    {
+      "file": "e4-capacity-before-load-safe.json",
+      "bytes": 728,
+      "sha256": "86ed2f380db0d0151a776fc95f82027810475818e53fd0b79f8ce46490a95b82"
+    },
+    {
+      "file": "e4-capacity-after-smoke-safe.json",
+      "bytes": 727,
+      "sha256": "10bb9fbeef56d5f2719e664b0666774d707e68e9f05b9c557c7db53e0c73add0"
+    },
+    {
+      "file": "e4-capacity-after-vu-safe.json",
+      "bytes": 735,
+      "sha256": "6b42656143284462e957182268cdc585b52941d08f80c1dde05b5b0d594ee17c"
+    },
+    {
+      "file": "e4-capacity-after-rps-safe.json",
+      "bytes": 735,
+      "sha256": "0dbea1e90b53c964553aff31cdebb1726d3140eb218ca8fb70e33f0736a00a5b"
+    },
+    {
+      "file": "e4-capacity-after-cleanup-safe.json",
+      "bytes": 732,
+      "sha256": "f9dec74c745e94bf5ed52e3fb11f6d70b05dc22f6f8e53f97954c01139640e50"
+    },
+    {
+      "file": "e4-capacity-financial-after-safe.json",
+      "bytes": 146,
+      "sha256": "890932b1dd7ed003281c6dcc934b3dd62d7f1a40558f849eeb6caec4b7c2ed95"
+    },
+    {
+      "file": "e4-capacity-window-released.json",
+      "bytes": 177,
+      "sha256": "cedf547f1a0a54f60c7646e4e2c0b6ae257931dfad5419a6c9356b8849f9f898"
+    },
+    {
+      "file": "e4-capacity-full-server-log-safe.json",
+      "bytes": 1005,
+      "sha256": "573781116dbcfd6f4ac5446c241091cbeea7c2bf3a000323834036f1ee993cb3"
+    },
+    {
+      "file": "e4-capacity-rps-health-early-safe.json",
+      "bytes": 501,
+      "sha256": "4b069313ea6d7e01eeda574a64b9950cc5ffc81348f21140912942ba76f37e4f"
+    },
+    {
+      "file": "e4-capacity-rps-health-high-safe.json",
+      "bytes": 503,
+      "sha256": "cce50ec3766682be86bead1bdf5db514855f2564e920d29069b15e3abcf8deaf"
+    },
+    {
+      "file": "e4-capacity-rps-health-mid-safe.json",
+      "bytes": 503,
+      "sha256": "77aaa27ef14e1251db1d41470466a0df9baef97767b0b39ffe47cec1fd14c23f"
+    },
+    {
+      "file": "e4-capacity-vu-health-first-safe.json",
+      "bytes": 513,
+      "sha256": "0d551a6617f20752152bd1ad889ded98d04e00ebb5bdc538952a20bdffc4d485"
+    },
+    {
+      "file": "e4-capacity-vu-health-late-safe.json",
+      "bytes": 514,
+      "sha256": "0f648098b8db216ecc7475c03379039ce1713e725a7cee7ba78c716a91e107ce"
+    },
+    {
+      "file": "e4-capacity-vu-health-mid-safe.json",
+      "bytes": 514,
+      "sha256": "15794a24eee7e18cfb24b355fab198b3f8e841915464b6e95a86c42e162d5855"
+    }
+  ],
+  "limitations": [
+    "Observed closed-model200VU/20min and a separate catalog arrival-rate sweep; not a saturation boundary or unlimited capacity guarantee.",
+    "SSH-loopback transport; private-IP/perimeter/native preview and Iranian client networks not tested by this load.",
+    "API paths only; image/CDN/prefetch/browser Core Web Vitals and actual provider latencies excluded.",
+    "High-stock single purchase SKU; last-unit competition is a separate correctness proof.",
+    "Sampled resource peaks miss between-sample events; same-db pg_locks query excludes database-null transaction locks.",
+    "Generator host CPU peaks cannot be attributed solely to k6."
+  ]
+}

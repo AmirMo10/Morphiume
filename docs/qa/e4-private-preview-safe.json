@@ -1,0 +1,632 @@
+{
+  "schemaVersion": 1,
+  "scope": "actual-e4-private-ip-three-engine-native-preview",
+  "state": "native-observed-and-root-operator-accepted",
+  "identity": {
+    "accessProfileSha256": "a6988f3f27309c198e378e307ca856643686ae1c3fb49617bed9a770634e50ed",
+    "archiveSha256": "aed2f8a7b868d32410c55708042dcf945a0491a1f747632df16689e3d072432c",
+    "candidateManifestDigest": "sha256:dea7a91aa15b8ea653f92d68aee16a168a204f8c0da79a2459e5f748df659c47",
+    "engineProofSha256": "3f1b15a278706ac09be6f644b2042728b1a5ae3cacf3dfb5315181c51de03810",
+    "opsSha256": "68bc527a9c34ccefef72bb4427288da47c75c3a584e7cb140ecfc3c3fbdad6a3",
+    "runtimeImageId": "sha256:3b78dc30dcaa2a6d9b88f913e8bec4002454a0eef7b81ea83a953c5e8a5c2b6d",
+    "sourceCommit": "e4bed691dc938a9c0f79022696d24f063ad97724",
+    "testedPlatformConfig": "sha256:246b9226db86bf63b37499c2b4a80c2e5e8f62265b3546674de48c480f524665"
+  },
+  "nativeRunnerSourceCommit": "0e7fb648072633fd3dc2b0d99bc25b44f075e771",
+  "origin": "http://192.168.240.51",
+  "transport": {
+    "directPrivateIp": true,
+    "basicAuthentication": true,
+    "clientCidrRestricted": true,
+    "httpTlsProved": false,
+    "capacityOverPrivateIpProved": false
+  },
+  "timing": {
+    "dispatchStartedUtc": "2026-10-13T11:09:13.435726Z",
+    "reportStartedUtc": "2026-10-13T11:09:15.096Z",
+    "observedCompleteUtc": "2026-10-13T11:10:13.446712Z",
+    "childDurationSeconds": 58.69064508700103,
+    "reportDurationMs": 56939.897000000004,
+    "acceptanceDeadlineUtc": "2026-10-13T11:28:35.623391Z"
+  },
+  "counts": {
+    "passed": 3,
+    "unexpected": 0,
+    "skipped": 0,
+    "flaky": 0,
+    "testRetries": 0,
+    "realNativeServer200": 21,
+    "realNativeServer400": 3,
+    "realNativeServer429": 0,
+    "controlledUi503": 3
+  },
+  "engines": [
+    {
+      "engine": "chromium",
+      "checks": {
+        "adminMfa": true,
+        "cookies": true,
+        "csrf": true,
+        "headers": true,
+        "mediaHashes": true,
+        "nativeLogin": true,
+        "newT25": true,
+        "ownedOrder": true,
+        "paymentReceiptDedup": true,
+        "perimeter": true
+      },
+      "observedProofUtc": "2026-10-13T11:09:35.391Z",
+      "testDurationMs": 17154,
+      "unexpected": 0,
+      "skipped": 0,
+      "retries": 0,
+      "native": {
+        "server200": 7,
+        "server400": 1,
+        "observed429": 0,
+        "controlledUi503": 1,
+        "waitElapsedMeasured": false,
+        "actions": [
+          {
+            "category": "admin-sign-in-email",
+            "stage": "password-sign-in",
+            "attempt": 1,
+            "status": 200,
+            "source": "native-server-response",
+            "retryAfterHeader": "absent",
+            "retryAfterSeconds": null
+          },
+          {
+            "category": "admin-two-factor-enable",
+            "stage": "mfa-enable",
+            "attempt": 1,
+            "status": 200,
+            "source": "native-server-response",
+            "retryAfterHeader": "absent",
+            "retryAfterSeconds": null
+          },
+          {
+            "category": "admin-two-factor-verify-totp",
+            "stage": "totp-enrollment",
+            "attempt": 1,
+            "status": 200,
+            "source": "native-server-response",
+            "retryAfterHeader": "absent",
+            "retryAfterSeconds": null
+          },
+          {
+            "category": "customer-phone-send-otp",
+            "stage": "customer-otp-send",
+            "attempt": 1,
+            "status": 503,
+            "source": "controlled-ui-interception",
+            "retryAfterHeader": "absent",
+            "retryAfterSeconds": null
+          },
+          {
+            "category": "customer-phone-send-otp",
+            "stage": "customer-otp-send",
+            "attempt": 1,
+            "status": 200,
+            "source": "native-server-response",
+            "retryAfterHeader": "absent",
+            "retryAfterSeconds": null
+          },
+          {
+            "category": "customer-phone-verify",
+            "stage": "customer-otp-wrong-code",
+            "attempt": 1,
+            "status": 400,
+            "source": "native-server-response",
+            "retryAfterHeader": "absent",
+            "retryAfterSeconds": null
+          },
+          {
+            "category": "customer-phone-verify",
+            "stage": "customer-otp-verify",
+            "attempt": 1,
+            "status": 200,
+            "source": "native-server-response",
+            "retryAfterHeader": "absent",
+            "retryAfterSeconds": null
+          },
+          {
+            "category": "customer-phone-send-otp",
+            "stage": "customer-otp-send",
+            "attempt": 1,
+            "status": 200,
+            "source": "native-server-response",
+            "retryAfterHeader": "absent",
+            "retryAfterSeconds": null
+          },
+          {
+            "category": "customer-phone-verify",
+            "stage": "customer-otp-verify",
+            "attempt": 1,
+            "status": 200,
+            "source": "native-server-response",
+            "retryAfterHeader": "absent",
+            "retryAfterSeconds": null
+          }
+        ]
+      }
+    },
+    {
+      "engine": "firefox",
+      "checks": {
+        "adminMfa": true,
+        "cookies": true,
+        "csrf": true,
+        "headers": true,
+        "mediaHashes": true,
+        "nativeLogin": true,
+        "newT25": true,
+        "ownedOrder": true,
+        "paymentReceiptDedup": true,
+        "perimeter": true
+      },
+      "observedProofUtc": "2026-10-13T11:09:56.198Z",
+      "testDurationMs": 16912,
+      "unexpected": 0,
+      "skipped": 0,
+      "retries": 0,
+      "native": {
+        "server200": 7,
+        "server400": 1,
+        "observed429": 0,
+        "controlledUi503": 1,
+        "waitElapsedMeasured": false,
+        "actions": [
+          {
+            "category": "admin-sign-in-email",
+            "stage": "password-sign-in",
+            "attempt": 1,
+            "status": 200,
+            "source": "native-server-response",
+            "retryAfterHeader": "absent",
+            "retryAfterSeconds": null
+          },
+          {
+            "category": "admin-two-factor-enable",
+            "stage": "mfa-enable",
+            "attempt": 1,
+            "status": 200,
+            "source": "native-server-response",
+            "retryAfterHeader": "absent",
+            "retryAfterSeconds": null
+          },
+          {
+            "category": "admin-two-factor-verify-totp",
+            "stage": "totp-enrollment",
+            "attempt": 1,
+            "status": 200,
+            "source": "native-server-response",
+            "retryAfterHeader": "absent",
+            "retryAfterSeconds": null
+          },
+          {
+            "category": "customer-phone-send-otp",
+            "stage": "customer-otp-send",
+            "attempt": 1,
+            "status": 503,
+            "source": "controlled-ui-interception",
+            "retryAfterHeader": "absent",
+            "retryAfterSeconds": null
+          },
+          {
+            "category": "customer-phone-send-otp",
+            "stage": "customer-otp-send",
+            "attempt": 1,
+            "status": 200,
+            "source": "native-server-response",
+            "retryAfterHeader": "absent",
+            "retryAfterSeconds": null
+          },
+          {
+            "category": "customer-phone-verify",
+            "stage": "customer-otp-wrong-code",
+            "attempt": 1,
+            "status": 400,
+            "source": "native-server-response",
+            "retryAfterHeader": "absent",
+            "retryAfterSeconds": null
+          },
+          {
+            "category": "customer-phone-verify",
+            "stage": "customer-otp-verify",
+            "attempt": 1,
+            "status": 200,
+            "source": "native-server-response",
+            "retryAfterHeader": "absent",
+            "retryAfterSeconds": null
+          },
+          {
+            "category": "customer-phone-send-otp",
+            "stage": "customer-otp-send",
+            "attempt": 1,
+            "status": 200,
+            "source": "native-server-response",
+            "retryAfterHeader": "absent",
+            "retryAfterSeconds": null
+          },
+          {
+            "category": "customer-phone-verify",
+            "stage": "customer-otp-verify",
+            "attempt": 1,
+            "status": 200,
+            "source": "native-server-response",
+            "retryAfterHeader": "absent",
+            "retryAfterSeconds": null
+          }
+        ]
+      }
+    },
+    {
+      "engine": "webkit",
+      "checks": {
+        "adminMfa": true,
+        "cookies": true,
+        "csrf": true,
+        "headers": true,
+        "mediaHashes": true,
+        "nativeLogin": true,
+        "newT25": true,
+        "ownedOrder": true,
+        "paymentReceiptDedup": true,
+        "perimeter": true
+      },
+      "observedProofUtc": "2026-10-13T11:10:13.225Z",
+      "testDurationMs": 14925,
+      "unexpected": 0,
+      "skipped": 0,
+      "retries": 0,
+      "native": {
+        "server200": 7,
+        "server400": 1,
+        "observed429": 0,
+        "controlledUi503": 1,
+        "waitElapsedMeasured": false,
+        "actions": [
+          {
+            "category": "admin-sign-in-email",
+            "stage": "password-sign-in",
+            "attempt": 1,
+            "status": 200,
+            "source": "native-server-response",
+            "retryAfterHeader": "absent",
+            "retryAfterSeconds": null
+          },
+          {
+            "category": "admin-two-factor-enable",
+            "stage": "mfa-enable",
+            "attempt": 1,
+            "status": 200,
+            "source": "native-server-response",
+            "retryAfterHeader": "absent",
+            "retryAfterSeconds": null
+          },
+          {
+            "category": "admin-two-factor-verify-totp",
+            "stage": "totp-enrollment",
+            "attempt": 1,
+            "status": 200,
+            "source": "native-server-response",
+            "retryAfterHeader": "absent",
+            "retryAfterSeconds": null
+          },
+          {
+            "category": "customer-phone-send-otp",
+            "stage": "customer-otp-send",
+            "attempt": 1,
+            "status": 503,
+            "source": "controlled-ui-interception",
+            "retryAfterHeader": "absent",
+            "retryAfterSeconds": null
+          },
+          {
+            "category": "customer-phone-send-otp",
+            "stage": "customer-otp-send",
+            "attempt": 1,
+            "status": 200,
+            "source": "native-server-response",
+            "retryAfterHeader": "absent",
+            "retryAfterSeconds": null
+          },
+          {
+            "category": "customer-phone-verify",
+            "stage": "customer-otp-wrong-code",
+            "attempt": 1,
+            "status": 400,
+            "source": "native-server-response",
+            "retryAfterHeader": "absent",
+            "retryAfterSeconds": null
+          },
+          {
+            "category": "customer-phone-verify",
+            "stage": "customer-otp-verify",
+            "attempt": 1,
+            "status": 200,
+            "source": "native-server-response",
+            "retryAfterHeader": "absent",
+            "retryAfterSeconds": null
+          },
+          {
+            "category": "customer-phone-send-otp",
+            "stage": "customer-otp-send",
+            "attempt": 1,
+            "status": 200,
+            "source": "native-server-response",
+            "retryAfterHeader": "absent",
+            "retryAfterSeconds": null
+          },
+          {
+            "category": "customer-phone-verify",
+            "stage": "customer-otp-verify",
+            "attempt": 1,
+            "status": 200,
+            "source": "native-server-response",
+            "retryAfterHeader": "absent",
+            "retryAfterSeconds": null
+          }
+        ]
+      }
+    }
+  ],
+  "sourceVerification": {
+    "trackedFiles": 721,
+    "approvedScreenshotChanges": 6,
+    "unexpectedSourceChanges": 0
+  },
+  "financial": {
+    "tables": 14,
+    "priorRowsCompared": 4646,
+    "afterCapturedRows": 4694,
+    "priorRowsPreserved": true,
+    "readOnlyComparison": true,
+    "allPublicTableRowEqualityClaimed": false
+  },
+  "serverEvidence": {
+    "observedUtc": "2026-10-13T11:11:57.881192Z",
+    "requestedSinceUtc": "2026-10-13T11:08:35Z",
+    "requestedUntilUtc": "2026-10-13T11:11:57.762257Z",
+    "firstWrapperUtc": "2026-10-13T11:08:35.328Z",
+    "lastWrapperUtc": "2026-10-13T11:11:53.401Z",
+    "rawBytes": 66513,
+    "lineCount": 355,
+    "stdoutSha256": "d2cceeb27e2e3ac6bc9ce6f64f9066150f2239171f295ed3a1c64416b8542690",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "requestStatuses": {
+      "200": 270,
+      "201": 12,
+      "303": 3,
+      "400": 21,
+      "401": 6,
+      "403": 9,
+      "404": 3
+    },
+    "errorCodes": {
+      "UNAUTHENTICATED": 6,
+      "VALIDATION": 18,
+      "unclassified": 3,
+      "NOT_FOUND": 3,
+      "FORBIDDEN": 9
+    },
+    "wrapper500Count": 0,
+    "capsReached": false,
+    "readSamples": 27,
+    "serverReadP95Ms": 6,
+    "serverReadMaxMs": 10,
+    "readiness": 200,
+    "containers": [
+      {
+        "service": "worker",
+        "running": true,
+        "health": "healthy",
+        "oomKilled": false,
+        "restarts": 0
+      },
+      {
+        "service": "app",
+        "running": true,
+        "health": "healthy",
+        "oomKilled": false,
+        "restarts": 0
+      }
+    ],
+    "readOnly": true,
+    "negativeCasesPresent": true,
+    "errorStatusCountIsNotZero": true,
+    "coverageNote": "Bounded Docker log selection; rotation may limit retained history"
+  },
+  "activation": {
+    "mode": "private-preview-ready-native-acceptance-pending",
+    "startedUtc": "2026-10-13T11:07:44.735Z",
+    "completedUtc": "2026-10-13T11:08:35.418Z",
+    "exitCode": 0,
+    "driverSha256": "78fc607fbca7595f7a7b1afaf0e9e1b108535c8bc5bdf4606d71f85e981e407f",
+    "rawSha256": "abb795a3c07e50889f7379d965e863024848d93123d81ce0e290fee178294f78"
+  },
+  "leaseHistory": [
+    {
+      "attempt": 1,
+      "mode": "lease-preflight-failed",
+      "startedUtc": "2026-10-13T10:39:07.364Z",
+      "completedUtc": "2026-10-13T10:39:09.271Z",
+      "exitCode": 1,
+      "driverSha256": "d20a9c5203302ba81e8229f823dcdf77be749fdadb2f071a4eb2bc94af9f691d",
+      "rawSha256": "965a452235c78f14bbf6f47260a91528a16b3842bc12d8f2dd69bb84266f2054",
+      "failedPreflightRetained": true
+    },
+    {
+      "attempt": 2,
+      "mode": "lease-preflight-failed",
+      "startedUtc": "2026-10-13T10:45:39.395Z",
+      "completedUtc": "2026-10-13T10:45:40.977Z",
+      "exitCode": 1,
+      "driverSha256": "215e3f5e41e43f642da8fd378c24b3927b4c3ff6439b45c7f84ccd6886fa85bd",
+      "rawSha256": "965a452235c78f14bbf6f47260a91528a16b3842bc12d8f2dd69bb84266f2054",
+      "failedPreflightRetained": true
+    },
+    {
+      "attempt": 3,
+      "mode": "actual-lease-missing-transition-refusal",
+      "startedUtc": "2026-10-13T11:02:09.533904Z",
+      "completedUtc": "2026-10-13T11:02:09.944909Z",
+      "exitCode": 0,
+      "driverSha256": "12f27b6630247dd60ba4d349d1c46f3b62034de90a72ebfcb35426ff0e36eb06",
+      "rawSha256": "9a27a41451d35d2b057c20654b3dca984d3748efed0ecf9bcc6977d500924fa1",
+      "refusedBeforeState": true,
+      "appProxyProfileUnchanged": true,
+      "withdrawalExecuted": false,
+      "timerInstalled": false,
+      "sourceAndManagerChecksPassed": true
+    }
+  ],
+  "generatedLease": {
+    "observedUtc": "2026-10-13T11:09:11.234902Z",
+    "actualServiceState": "inactive",
+    "serviceStarted": false,
+    "typedEmptyEnvironmentFiles": true,
+    "exactFrozenUnitAndTimer": true,
+    "timerActiveEnabled": true,
+    "staticCommandValidationOnly": true,
+    "actualExpiryWithdrawalProved": false
+  },
+  "rootAcceptance": {
+    "state": "private-preview-accepted",
+    "acceptedMarkerCreatedBy": "root-operator",
+    "preparedRecordUtc": "2026-10-13T11:16:50.750588Z",
+    "completedUtc": "2026-10-13T11:17:04.540Z",
+    "acceptanceRecordSha256": "9beab7bb2de023204e0debe2313e834f49a4cc209e8b46a7f00abfd05147dbe9",
+    "requestSha256": "b0bcefd7743523320ccc1a55d683297d421a14fd924fa04d35e881e004020d9a",
+    "actionExitCode": 0,
+    "driverSha256": "78fc607fbca7595f7a7b1afaf0e9e1b108535c8bc5bdf4606d71f85e981e407f",
+    "rawSha256": "6a1d3864acb7216c6323d292041c2beb7e704d956237bdbfa327042f0ab2e050",
+    "withinAcceptanceDeadline": true,
+    "finalOwnedFixtureCleanupAudit": {
+      "capturedUtc": "2026-10-13T11:14:38.837Z",
+      "readOnly": true,
+      "http": false,
+      "mutation": false,
+      "oldFinancialTables": 14,
+      "oldFinancialRowsUnchanged": 4646,
+      "newPaidOrders": 3,
+      "primaryReceipts": 3,
+      "shipments": 3,
+      "stockCommits": 3,
+      "consumedReservations": 3,
+      "archivedProducts": 3,
+      "onHandPerProduct": 2,
+      "reservedPerProduct": 0,
+      "disabledFixtureUsers": 9,
+      "fixtureSessions": 0,
+      "retainedBuyerEnabled": true,
+      "retainedOriginalSessionUnchanged": true,
+      "priorFailedReadOnlyCorrelationsRetained": 2,
+      "correlationFixRequiredNoWritesOrNativeRerun": true
+    }
+  },
+  "references": [
+    {
+      "file": "e4-preview-observed-summary.json",
+      "bytes": 11862,
+      "sha256": "86368ed8e1b44c46a1c26486fb64e9ffe13cdd8d3d4c6395978fbcaa5e32302b"
+    },
+    {
+      "file": "e4-preview-started.json",
+      "bytes": 1168,
+      "sha256": "0f882bc6aa5d0db84bc3951ee54cef9274d03965c52d575ce319b1c98dac66f6"
+    },
+    {
+      "file": "e4-preview-native-report.json",
+      "bytes": 53868,
+      "sha256": "270b2b01ca1cb16164675c500b18d84643b4290a912dad41432b4ae81fc54a7d"
+    },
+    {
+      "file": "e4-preview-financial-after-safe.json",
+      "bytes": 147,
+      "sha256": "c1d7ad2c65b59d560dd6f681fc6b61851535e92f4a47ef6f9258756e07deeaa6"
+    },
+    {
+      "file": "e4-preview-server-log-safe.json",
+      "bytes": 1122,
+      "sha256": "bb49491895542d954e0f9301e0c0ceecc680d0f69963bcdfd4299074463c066b"
+    },
+    {
+      "file": "e4-preview-activate-safe.json",
+      "bytes": 540,
+      "sha256": "2e607cc6174d5e65889cf3220bb409c134e9e8f9d0ca106eda72e484b89fefd1"
+    },
+    {
+      "file": "e4-preview-generated-lease-safe.json",
+      "bytes": 392,
+      "sha256": "f0f23dec48e29cacfded42075f87ca0db4e711335b4963f7e364f2f928a69701"
+    },
+    {
+      "file": "e4-preview-lease-safe.json",
+      "bytes": 485,
+      "sha256": "8f730dd9630f012ef78906d9eabf0191ef11f815c3588161157392d09b9dfba1"
+    },
+    {
+      "file": "e4-preview-lease-v2-safe.json",
+      "bytes": 485,
+      "sha256": "2ac8195341956f2b566c0d2faab08cbf56bc00e9505fa77ae04149624ebc5b77"
+    },
+    {
+      "file": "e4-preview-lease-v3-safe.json",
+      "bytes": 1071,
+      "sha256": "4f3aa667381d059c2c0e40ecb1be59ae4cc602fb6debffa4a461669e29200492"
+    },
+    {
+      "file": "e4-preview-cleanup-audit-result.json",
+      "bytes": 2630,
+      "sha256": "8685529c8ba2a11d9b1cebfbe3fdfa26d411a83be976ef4710d4913adf09fc2c"
+    },
+    {
+      "file": "e4-preview-acceptance-prepared-safe.json",
+      "bytes": 461,
+      "sha256": "ca2a5fed3e0e08285e25efacf405ff73dce57537606dd2fe7c19f1919a20ecbd"
+    },
+    {
+      "file": "e4-preview-accept-safe.json",
+      "bytes": 453,
+      "sha256": "2e29ad4af19cd1157037fe4d7492f5bb8c8a83ed848c4952243107dbc89705d9"
+    },
+    {
+      "file": "e4-preview-accepted-noop-safe.json",
+      "bytes": 416,
+      "sha256": "5f0197551db18503418a8b13ae3fa046d2291e4a50d28c7b58dbf8b8ac7f1fd7"
+    },
+    {
+      "file": "e4-preview-window-released.json",
+      "bytes": 630,
+      "sha256": "f0ee17e261e80ea44723d6f939e3f2b625de6975e2c8491f93fab2c268234d59"
+    }
+  ],
+  "limitations": [
+    "Three fresh native T25 journeys on private-IP HTTP with restricted perimeter; no public/live/TLS acceptance.",
+    "503 is controlled UI interception, not a provider or server outage.",
+    "Wrong-code400 and other negative-case4xx are preserved; zero wrapper500 does not mean every response200.",
+    "Static timer/source refusal proof is distinct from actual expiry or withdrawal.",
+    "Capacity measured earlier over SSH tunnel; not a private-IP capacity run.",
+    "Scoped cleanup and operator acceptance are recorded separately from observed native browser success."
+  ],
+  "acceptedLeaseNoop": {
+    "mode": "actual-accepted-preview-lease-no-op",
+    "exitCode": 0,
+    "startedUtc": "2026-10-13T11:18:14.953804Z",
+    "completedUtc": "2026-10-13T11:18:29.195781Z",
+    "completedEvidenceSha256": "1f47a7c4a3b3cc26b2e8f8d0cc3e1d3ffa283de967c84fba54567636e2537b04",
+    "sourceAndManagerVerified": true,
+    "appProxyProfileUnchanged": true,
+    "expiredWithdrawalExercised": false
+  },
+  "windowRelease": {
+    "released": true,
+    "releasedUtc": "2026-10-13T11:19:06.498Z",
+    "actualThreeEngineAccepted": true,
+    "leaseAcceptedNoopVerified": true,
+    "serverMutationInProgress": false,
+    "nextOwner": "devops_sre-scheduled-services"
+  }
+}

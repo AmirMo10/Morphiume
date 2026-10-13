@@ -1,5 +1,15 @@
 # Protected staging deployment contract
 
+## Current E4 runtime — 2026-10-13, 11:19 UTC
+
+The accepted application is `e4bed691dc938a9c0f79022696d24f063ad97724`, immutable runtime image `sha256:3b78dc30dcaa2a6d9b88f913e8bec4002454a0eef7b81ea83a953c5e8a5c2b6d`, with the separately frozen Ops68 bundle. App/worker use project `morphiume-staging-runtime`, configuration `/etc/morphiume-staging-runtime`, storage `/srv/morphiume/staging/runtime` and database `morphiume_staging_runtime` (13 migrations, 53 tables). The original staging database and `/srv/morphiume/postgres` remain separate and preserved.
+
+Current browser origin is `http://192.168.240.51`, restricted to the reviewed client CIDR and distinct Basic authentication on every route. Unknown Host/IPv6 routes are denied; application3001 and PostgreSQL5433 remain host-loopback only. Three actual browser engines and independent financial/cleanup checks passed before operator acceptance. [Private-preview execution](../qa/E4_PRIVATE_PREVIEW_EXECUTION.md), [accepted image](E4_ACCEPTED_IMAGE_EVIDENCE.md), [cutover](E4_RUNTIME_CUTOVER_EXECUTION.md).
+
+The SSH3100 origin and generic project settings below are historical preparation contracts, not the active browser/auth origin. Do not redeploy from those examples or resume the old613 consumer against schema13. New releases require a newly tested image and explicit compatible migration; pushing operations/docs to main does not replace the accepted image. HTTPS/domain, live providers, offsite/PITR and owner activation remain separate prerequisites.
+
+## Historical initial preparation
+
 The coordinator owns release/publishing. These settings describe the intended staging stack; server mutation requires the coordinator's explicit dispatch. The user currently requested private-IP infrastructure. Public sales, live payment credentials, live SMS and real customer data are outside this staging contract.
 
 | Boundary | Staging | Reserved live environment |

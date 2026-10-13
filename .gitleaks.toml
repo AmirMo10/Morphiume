@@ -21,6 +21,13 @@ regexes = ['''^67f77b1636d0ae2b9b81df9e46f4a3c93087b01e0d4e6fdaa730b2604e60dd96$
 paths = ['''^tests/ops/e4-restore-business-contract\.mjs$''']
 
 [[rules.allowlists]]
+description = "Exact canonical SHA256 of the accepted E4 private-IP profile in its execution evidence; independently verified public digest, not Basic credentials"
+condition = "AND"
+regexTarget = "secret"
+regexes = ['''^a6988f3f27309c198e378e307ca856643686ae1c3fb49617bed9a770634e50ed$''']
+paths = ['''^docs/qa/e4-private-preview-safe\.json$''']
+
+[[rules.allowlists]]
 description = "Exact public migration filename in schema readiness; not a credential"
 condition = "AND"
 regexTarget = "secret"

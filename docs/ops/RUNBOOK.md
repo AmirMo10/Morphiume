@@ -1,5 +1,13 @@
 # Operations runbook
 
+## Current runtime entry point
+
+As of 2026-10-13 11:19 UTC, use the [current E4 staging contract](STAGING_CONTRACT.md), [actual cutover evidence](E4_RUNTIME_CUTOVER_EXECUTION.md), [private-IP acceptance](../qa/E4_PRIVATE_PREVIEW_EXECUTION.md) and [E4 recovery evidence](E4_RESTORE_EXECUTION.md). The running source is E4 with Ops68 and schema13; its accepted private-IP origin is `http://192.168.240.51`. Access credentials remain in protected operator files outside Git. The database DML and migration-owner identities remain separate.
+
+The generic commands below describe earlier preparation. They must not overwrite the current runtime configuration or restore a previous consumer. In particular, restarting613 after migrations0012/0013 is unsupported. Current config/proxy recovery uses the frozen preview transition and the same accepted E4 image; it does not rewind financial data. Preserve both stopped restore projects, original storage and immutable release evidence. Read current [STATUS](../STATUS.md) and the exact published operation's execution report before another deployment action.
+
+## Historical preparation procedures
+
 Run server-changing commands only after the coordinator dispatches the exact staging deployment contract. These scripts are scoped to staging and do not apply the existing `deploy/provision.sh`. Record commit, image ID/digest, UTC time, command exit status and real health results for each release. Current executed evidence is in [environment audit](ENVIRONMENT_AUDIT.md).
 
 ## Local database and off-server build

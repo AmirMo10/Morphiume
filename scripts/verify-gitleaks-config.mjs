@@ -10,7 +10,12 @@ const directory=mkdtempSync(resolve(privateRoot,"gitleaks-policy-"));
 if(!directory.startsWith(privateRoot+sep))throw new Error("Private test boundary");
 const configuration=resolve(".gitleaks.toml");
 const profile="3a246edfcd2b1fa6a6754ec848b479e12e12661a6b00947a9d39cf7821b82a1c";
+const privatePreviewProfile="a6988f3f27309c198e378e307ca856643686ae1c3fb49617bed9a770634e50ed";
 const cases=[
+  {name:"public-private-preview-profile",file:"docs/qa/e4-private-preview-safe.json",value:privatePreviewProfile,expected:0},
+  {name:"private-preview-other-value",file:"docs/qa/e4-private-preview-safe.json",value:randomBytes(32).toString("hex"),expected:1},
+  {name:"private-preview-other-path",file:"unrelated-config.txt",value:privatePreviewProfile,expected:1},
+  {name:"private-preview-mutated-digest",file:"docs/qa/e4-private-preview-safe.json",value:"b"+privatePreviewProfile.slice(1),expected:1},
   {name:"public-profile-js",file:"tests/ops/restore-business-contract.mjs",value:profile,expected:0},
   {name:"public-profile-python",file:"tests/ops/restore-business-remote.py",value:profile,expected:0},
   {name:"public-worker-report",file:"docs/ops/WORKER_ALERT_DRILL_591.json",value:profile,expected:0},

@@ -1,5 +1,13 @@
 # Backup and restore
 
+## Current E4 recovery evidence
+
+The later E4 rehearsal supersedes the older613 result below for the active runtime: a fresh encrypted backup with13 migrations was restored into a separate database/application, all eight media files matched, and six native business checks passed. Acceptance at2026-10-13T09:11:27.877614Z measured full incident-to-business RTO516.390835s. The retained-fixture-to-capture gap1657.188s is not PITR or a measured general RPO. Both restore pairs remain stopped with their data/evidence preserved, and the temporary RAM key was removed. [Full execution and limitations](E4_RESTORE_EXECUTION.md).
+
+The live runtime subsequently accepted its protected private-IP profile; the restored application's3101 origin remains a separate historical recovery environment. Future backups must bind the current canonical profile and exact accepted image. Offsite storage, key custody, WAL/PITR and an actual alert recipient remain owner prerequisites; a successful local restore does not establish them. Do not use the generic scripts below to overwrite either restore pair or the current runtime.
+
+## Earlier613 rehearsal and generic preparation
+
 The fresh-runtime encrypted isolated restore rehearsal is now accepted: actual613 retained fixture, encrypted writer-free backup, diagnosed first-project failure, finite tool923 recovery and QA6/6 native/business/media checks. Root wrote acceptance, stopped the restore pair, removed the guarded temporary RAM key/directory and resumed healthy runtime writers. [Measured full RTO3333.396461s and retained-fixture-to-capture gap122.003162s](POST_RESTORE_OPERATIONS.md) describe that specific staging rehearsal; they do not establish general order-data RPO<=15 minutes or offsite/PITR.
 
 Earlier encryption preparation installed Ubuntu's signed `age=1.1.1-1ubuntu0.24.04.3` and passed a real encryption/decryption digest roundtrip. The dedicated identity remains ignored and user-ACL-protected at local `deploy/staging/.local/backup-age-identity.txt`; the fresh-runtime recipient is independently configured in protected `/etc/morphiume-staging-runtime/backup-recipients.txt`. The original `/etc/morphiume-staging` configuration remains separate. This key separation is not an owner-approved offsite backup/key-custody solution. The historical generic preparation below must not replace the immutable591 runtime/legacy-root recovery contract.
