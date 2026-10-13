@@ -1,5 +1,7 @@
 # Accepted E4 image: actual CI and archive verification
 
+Subsequent actual execution,07:44UTC: stopped-writer old-release backup, before49/11 observation, owner-only0012/0013, after53/13 preservation and independently recomputed compatible E4 activation all completed with exit0. Actual profile SHA256 is `67f77b1636d0ae2b9b81df9e46f4a3c93087b01e0d4e6fdaa730b2604e60dd96`. Post-load observations below remain historical; current app/worker are E4. Server-native retained T25/new E4 restore/private preview/load/scheduling remain separate pending gates. The chronological [status](../STATUS.md) distinguishes actual phases from the original preparation.
+
 Observed on2026-10-13 through06:56UTC. This establishes CI/archive acceptance, actual private transfer/load and Ops-scoped engine mapping. Runtime migration and app/worker cutover remain unexecuted gates.
 
 Source `e4bed691dc938a9c0f79022696d24f063ad97724`: [CI38352565901](https://github.com/AmirMo10/Morphiume/actions/runs/38352565901) completed both jobs successfully. Verify115148051427 passed837 domain tests in55 files and78 native browser cases. Image115154350593 passed78 packaged-image browser cases and actual migration/seed/app/media/auth/worker-heartbeat/graceful-shutdown acceptance. The CI runtime DML account was independently authenticated apart from the migration owner.
@@ -9,11 +11,11 @@ Source `e4bed691dc938a9c0f79022696d24f063ad97724`: [CI38352565901](https://githu
 | Cases per engine |26|26|
 | Passed / failed / skipped / flaky / retries |78 /0 /0 /0 /0|78 /0 /0 /0 /0|
 | Authoritative duration, ms |1136524.312|1091052.720|
-| Native auth responses |540|539|
+| Client-observed auth action responses |540|539|
 | Auth status200 /400 /429 /503 |486 /3 /48 /3|486 /3 /47 /3|
 | Server-log lines / wrapper500 |5403 /0|5414 /0|
 
-Both server exports are `collected`, with byte/line/event caps all false. Expected negative auth/limiter/outage scenarios remain in the counts. These are distinct runs, not156 unique cases or proof of capacity. Verify started05:43:56.188Z; image started06:06:42.028Z. Browser summaries SHA256: `466d16c1caf60e633b1d01e3b14c94de25313e77d469befd104e41f6ea22fae4` and `289fe28b15143a8a16b2901510eb74b047ef0729edf966585193238c9ca24c22`.
+Both server exports are `collected`, with byte/line/event caps all false. Expected negative auth/limiter/UI-outage scenarios remain in the counts. The report field `nativeAuthStatuses` also includes the full-purchase spec's explicit browser `route.fulfill(503)`, once per engine: the three503 values in each run prove UI error handling, not native server/provider outage. Source review and the downloaded summaries independently bind all three toT25. The totals remain540/539 client observations; excluding those explicit UI interceptions gives537/536 other observed auth responses. The prior native-response heading was imprecise and is corrected without changing raw evidence. These are distinct runs, not156 unique cases or proof of capacity. Verify started05:43:56.188Z; image started06:06:42.028Z. Browser summaries SHA256: `466d16c1caf60e633b1d01e3b14c94de25313e77d469befd104e41f6ea22fae4` and `289fe28b15143a8a16b2901510eb74b047ef0729edf966585193238c9ca24c22`.
 
 ## Trusted bytes and release identity
 

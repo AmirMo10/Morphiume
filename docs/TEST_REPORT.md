@@ -1,5 +1,18 @@
 # آزمون‌های واقعاً اجراشده
 
+۱۳ اکتبر، ۰۸:۴۲ UTC: [T25 واقعی سرور E4](qa/E4_SERVER_RETAINED_T25.md) یک آزمون موفق در 17219.785ms با صفر retry/skip/flaky داشت. هشت پاسخ واقعی احراز هویت و یک 503 تزریق‌شدهٔ UI جدا طبقه‌بندی شدند. audit نهایی حفظ ۱۲ ردیف مالی قبلی در ۱۰ جدول، یک receipt/shipment/stock commit، موجودی۲، رزرو۰ و پاک‌سازی حساب‌های موقت را تأیید کرد. مشاهدهٔ اولیهٔ helper خصوصی به‌علت نام جدول قدیمی شکست خورد؛ اصلاح فقط‌خواندنی و بدون تکرار native یا تعمیر داده موفق شد.
+
+Root دادهٔ نگه‌داری‌شده را با SHA256 تأیید و در 08:38:22Z ثبت کرد؛ خطای ابتدایی بررسی شکل pointer پروفایل پیش از پذیرش اصلاح شد. پشتیبان واقعی E4/schema13 در `20261013T084014Z-8e5fa45e` ایجاد شد: manifest `d3163b5964e4711be35dbdfce9a9f6fe8c786fd2ecd5be48452cae310ebd24d1`، رسانه۷۳۶بایت، زمان کل driver 34.862711s و فاصلهٔ توقف تأییدشده تا سلامت مجدد20.435473s. app/worker دوباره سالم‌اند؛ بازیابی و offsite هنوز تأیید نشده‌اند.
+
+تصحیح شمارش CI در۰۸:۱۹ UTC: عنوان قبلی native540/539 شامل سه پاسخ503شبیه‌سازی‌شدهٔ مرورگر درT25هرrun بود. شمارش خام ثابت است؛540/539مشاهدهٔ client، شامل3UIinterception و537/536مشاهدهٔ دیگرauth. این503ها آزمون مدیریت خطایUIهستند، نه شاهد outageواقعیSMS/سرور. [هویت و دامنهٔ اصلاح](ops/E4_ACCEPTED_IMAGE_EVIDENCE.md).
+
+## اجرای واقعی ارتقای runtime، ۰۸:۰۵ UTC
+
+- Prepare62.679802913s/exit0: writerمتوقف، backupold613/591 و backupOps68؛ ciphertextDB120662B/media720B، فقطintegrity/header ثابت‌شده و decrypt/restoreتازه هنوزunrun.
+- BeforeRR/DML49table/11history،0.772435037s؛ migrateowneronly33.212320675s/no seed؛ afterRR/DML53/13،0.960155648s/accepted=true. همه49oldcolumnrowmultiset/catalog/ACL/sequences/first11history برابرند و addonspristine؛ این equalityهدفruntime در پنجرهٔ متوقف است، نه DBاصلی یا پس ازactivation.
+- Activation37.475751705s/exit0/committed با recomputeواقعیnetworknone، pairedE4appworker وready200؛ old613resumeForbidden. Postreadonly07:47:01Z هردوhealthy/E4/engine3b78…/UID1001/readOnly/limits ثابت وreservedmountمحفوظ. ProfilecanonicalSHA67f77… ثبت شد.
+- NativeT25رویسرورE4، encryptedE4backup/restore6checks/preview/200VU وtimerها هنوزپذیرفته‌نشده؛ شاهد قبلی613 وCI/localnative جای آن‌ها گزارش نمی‌شود.
+
 ## ابزار مرحله‌ای و preflight واقعی، ۰۷:۲۳ UTC
 
 - RootLinuxregression:24/24companion، reported0.294s/wall0.5202044s؛121/121original+runtimeobserver،0fail/skip/wall0.722171232s؛19sourcecanonicalhashبدونتغییر. CompanionSHA30d521ea… و suiteSHAf204475c… برابر freezeعامل؛ puremock/disposablefiles، بدونDB/Docker/browser.

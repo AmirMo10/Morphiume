@@ -1,0 +1,239 @@
+{
+  "schemaVersion": 1,
+  "mode": "runtime-cutover-executed-native-acceptance-pending",
+  "asOfUtc": "2026-10-13T08:12:00Z",
+  "evidenceOrigin": "root-operator-safe-results-and-public-E4-evidence",
+  "operationId": "8df98db3-9359-4cc5-b083-d2ea7ee2222a",
+  "target": {
+    "deploymentEnvironment": "staging",
+    "databaseName": "morphiume_staging_runtime",
+    "schemaBefore": 11,
+    "schemaAfter": 13
+  },
+  "release": {
+    "sourceCommit": "e4bed691dc938a9c0f79022696d24f063ad97724",
+    "testedPlatformConfig": "sha256:246b9226db86bf63b37499c2b4a80c2e5e8f62265b3546674de48c480f524665",
+    "candidateManifestDigest": "sha256:dea7a91aa15b8ea653f92d68aee16a168a204f8c0da79a2459e5f748df659c47",
+    "archiveSha256": "aed2f8a7b868d32410c55708042dcf945a0491a1f747632df16689e3d072432c",
+    "opsSha256": "68bc527a9c34ccefef72bb4427288da47c75c3a584e7cb140ecfc3c3fbdad6a3",
+    "runtimeImageId": "sha256:3b78dc30dcaa2a6d9b88f913e8bec4002454a0eef7b81ea83a953c5e8a5c2b6d",
+    "engineProofSha256": "3f1b15a278706ac09be6f644b2042728b1a5ae3cacf3dfb5315181c51de03810",
+    "accessProfileSha256": {
+      "algorithm": "sha256",
+      "digest": "67f77b1636d0ae2b9b81df9e46f4a3c93087b01e0d4e6fdaa730b2604e60dd96"
+    },
+    "toolSha256": "30d521ea58b66917b9365d4d1b88d33a81e8ea8b739d172698a8fa2bfc5f2112"
+  },
+  "phases": [
+    {
+      "phase": "backup-completed",
+      "exitCode": 0,
+      "durationSeconds": 62.67980291300046,
+      "writersStarted": false,
+      "preservationAccepted": false,
+      "stateSha256": "5970892d43ff04e602671d61780996241b65bf149b9a037bf32b1851e426bcdf",
+      "completedUtc": "2026-10-13T07:32:28.798707Z",
+      "safeInputFile": "e4-prepare-safe-result.json",
+      "safeInputRawSha256": "24da8dbcaa2a91015c97e8a045a3fac0b8c420733cd9a9b524b273e83d787d1e"
+    },
+    {
+      "sqlMutation": false,
+      "migrationCount": 11,
+      "phase": "writer-free-gate",
+      "completedUtc": "2026-10-13T07:35:11.565366Z",
+      "safeInputFile": "e4-preservation-gate-safe-result.json",
+      "safeInputRawSha256": "dfb337e66e7a3bf37d799222eed8c9895752a53cbed1d8d075c2991aca4f3c7f"
+    },
+    {
+      "phase": "before",
+      "exitCode": 0,
+      "durationSeconds": 0.7724350369971944,
+      "preservationAccepted": false,
+      "sqlMutation": false,
+      "tableCount": 49,
+      "migrationCount": 11,
+      "evidenceSha256": "d752b6d66e75886fa1db6d9c167e77f84042f26a07b3d581a80d78397d613bd5",
+      "completedUtc": "2026-10-13T07:38:07.238382Z",
+      "safeInputFile": "e4-before-safe-result.json",
+      "safeInputRawSha256": "eac0ad063393aa658247e3b3ebdf64441e0376c9ce5b0d463cd137899923eeae"
+    },
+    {
+      "phase": "migration-completed",
+      "exitCode": 0,
+      "durationSeconds": 33.21232067501114,
+      "writersStarted": false,
+      "preservationAccepted": false,
+      "stateSha256": "c228cc497731f6c70c9bb53d73093b0f08a3cba7e577e2aa429ec63a4098c916",
+      "seedInvoked": false,
+      "completedUtc": "2026-10-13T07:40:48.694099Z",
+      "safeInputFile": "e4-migrate-safe-result.json",
+      "safeInputRawSha256": "89c0a9d287c97c921897b08c42b1190e2338c0c2c783a1896f34ef6131ad6f57"
+    },
+    {
+      "phase": "after",
+      "exitCode": 0,
+      "durationSeconds": 0.9601556480047293,
+      "preservationAccepted": true,
+      "sqlMutation": false,
+      "tableCount": 53,
+      "migrationCount": 13,
+      "evidenceSha256": "959245309e1f8da68d2717fe85d7a4ec20ade0b47f90c5a765b652b93333e8bd",
+      "completedUtc": "2026-10-13T07:41:28.159535Z",
+      "safeInputFile": "e4-after-safe-result.json",
+      "safeInputRawSha256": "bbd5bb2929ec05f99cd0a86079d1d43244b8c0f364ed890e7973383b1e12fb8e"
+    },
+    {
+      "phase": "committed",
+      "exitCode": 0,
+      "durationSeconds": 37.47575170500204,
+      "writersStarted": true,
+      "preservationAccepted": true,
+      "stateSha256": "cac3c21df42d29d8a66a0e39f71b73e0e620b014a40b42773ae29d6e658e78ef",
+      "seedInvoked": false,
+      "completedUtc": "2026-10-13T07:44:07.468774Z",
+      "safeInputFile": "e4-activated-safe-result.json",
+      "safeInputRawSha256": "3ac5c83eac29d890b8b9d1c0800ee6ee2d113d9c0631351926a68c3d42568399"
+    }
+  ],
+  "backup": {
+    "directory": "/srv/morphiume/staging/runtime/backups/20261013T073228Z-7a9c830f",
+    "previousSourceCommit": "6130f4ed7ec090344a5a4a1937a65ef04572975b",
+    "previousOpsSha256": "591ad92162d1747238db946c9a9a22724edde79627c6995a353c5064b39a77db",
+    "backupOpsSha256": "68bc527a9c34ccefef72bb4427288da47c75c3a584e7cb140ecfc3c3fbdad6a3",
+    "manifestSha256": "2311f7c07bb175f26ce9c8f9ca8f89a17b6009609bb626e838b2a016c743b41e",
+    "ciphertextSha256": {
+      "database.dump.age": "c455ebff8fa42761ffff9a5c082f9d67e7291b8f50d33bd65fcf592e5a6bc9a8",
+      "media.tar.gz.age": "b89dec398a0a11f21f99cb1f88a23423471f9506ebcb7e40051de9ccaad59f33"
+    },
+    "ciphertextBytes": {
+      "database.dump.age": 120662,
+      "media.tar.gz.age": 720
+    },
+    "writerFreeGate": {
+      "writersStopped": true,
+      "runtimeClientBackends": 0,
+      "migrationCount": 11,
+      "serverVersion": 180006
+    },
+    "decryptionOrRestoreProved": false,
+    "offsiteEstablished": false,
+    "pitrEstablished": false
+  },
+  "evidenceBindings": {
+    "gateRawSha256": "52074603c69802c3247cc39930c5715d20415978fcd8314592599e40c3e0be13",
+    "beforeRawSha256": "d752b6d66e75886fa1db6d9c167e77f84042f26a07b3d581a80d78397d613bd5",
+    "afterRawSha256": "959245309e1f8da68d2717fe85d7a4ec20ade0b47f90c5a765b652b93333e8bd",
+    "catalogRawSha256": "ec92b04adf34e3d9f9c6b19d8f26e7fa6fc0f47effec1e1d669eccd2683c92f0",
+    "catalogCanonicalSha256": "d1b313d5291756e74dea9011df45e8e887e7860ce0cc20446f1fc061add4d2a4",
+    "committedStateRawSha256": "cac3c21df42d29d8a66a0e39f71b73e0e620b014a40b42773ae29d6e658e78ef",
+    "safeInputChainChecked": true,
+    "privateRawRecordsReopenedByDocumentingAgent": false
+  },
+  "preservation": {
+    "accepted": true,
+    "bindingDigest": "4a2ca757215f93a061897bc76e6cbc70045048742fc0b4c14425e6e6da1e0274",
+    "databaseName": "morphiume_staging_runtime",
+    "kind": "runtime-preservation",
+    "migrationAfterCount": 13,
+    "migrationBeforeCount": 11,
+    "migrationPrefixDigest": "8215c98b6313dcf0f36e9c1214e67a7436fd3987327f66fd0abb2d58d5b4686d",
+    "newCatalogDigest": "2d6952868112b1b7d23d14bb8ffd250c6963a702642e510ef24c495317fe3326",
+    "newTableCount": 4,
+    "oldCatalogDigest": "3b63909e992d601bbb728f37cf34366b2e2182e807b6f5f7e6a96495c2cd243b",
+    "preservedRowsDigest": "e2713048ac892696c9befd5ea6c5e2a3cba2ee9ae59dde7ab7695d5cd352f64c",
+    "preservedTableCount": 49,
+    "schemaVersion": 1
+  },
+  "preservationScope": {
+    "interval": "before-to-after-readonly-observations-while-runtime-writers-stopped",
+    "oldTableProjectionCount": 49,
+    "historyProjection": "original11entries",
+    "wholePostSchemaEqualityClaimed": false,
+    "originalDatabaseEqualityMeasured": false,
+    "postActivationGlobalRowsEqualityMeasured": false
+  },
+  "activation": {
+    "committed": true,
+    "pairedWritersStarted": true,
+    "networkNoneComparisonAccepted": true,
+    "seedInvoked": false,
+    "nativeAcceptance": "pending",
+    "old613ConsumerResumeForbidden": true,
+    "notificationMaterializationCount": "not-reported"
+  },
+  "postActivationOperatorObservation": {
+    "observedUtc": "2026-10-13T07:47:01.811046Z",
+    "evidenceOrigin": "root-provided-readonly-inventory-safe-file",
+    "safeInputFile": "e4-post-activation-inventory-safe.json",
+    "safeInputRawSha256": "ea22a2ad3594955e8a252b6725bc5fa998e6bad72346fd552967cbde6a66659a",
+    "sqlMutation": false,
+    "serviceMutation": false,
+    "checkoutSource": "e4bed691dc938a9c0f79022696d24f063ad97724",
+    "checkoutDirtyCount": 0,
+    "healthyRuntimeServices": 2,
+    "sourceCommitMatchesAcceptedE4": true,
+    "runtimeEngineMatchesAcceptedE4": true,
+    "uid": "1001:1001",
+    "readOnly": true,
+    "configuredServiceLimits": [
+      {
+        "service": "app",
+        "memoryBytes": 1610612736,
+        "nanoCpus": 1500000000,
+        "pids": 128
+      },
+      {
+        "service": "worker",
+        "memoryBytes": 402653184,
+        "nanoCpus": 500000000,
+        "pids": 128
+      }
+    ],
+    "reservedPostgresMount": {
+      "source": "/dev/mapper/vg0-lv--2",
+      "filesystem": "ext4",
+      "target": "/srv/morphiume/postgres",
+      "preserved": true
+    },
+    "protectedParentsRootOwnedNoSymlink": true,
+    "runtimeAndConfigParentsMode": "0700",
+    "observedProtectedFileCount": 5,
+    "observedProtectedFilesMode": "0600",
+    "observedProtectedFilesNoSymlink": true,
+    "rootFreeBytes": 20585222144,
+    "dockerFreeBytes": 37926895616,
+    "ready": null,
+    "additionalHttpReadinessSample": false,
+    "capacityMeasurement": false
+  },
+  "pendingAcceptance": [
+    "deployed-E4-retained-native-T25",
+    "deployed-E4-scoped-notifications-and-analytics",
+    "fresh-E4-encrypted-backup-and-isolated-business-media-restore",
+    "private-IP-preview-native-three-engine-acceptance",
+    "external200VU-and-arrival-rate-capacity",
+    "new-release-scheduled-health-and-timers"
+  ],
+  "documentingAgentActions": {
+    "serverActions": 0,
+    "databaseConnections": 0,
+    "nativeRequests": 0,
+    "rawPrivateCaptureReads": 0
+  },
+  "retainedHistories": [
+    "E4_ACCEPTED_IMAGE_EVIDENCE.md",
+    "E4_SCHEMA_COMPATIBILITY.md",
+    "E4_RUNTIME_UPGRADE_DISPATCH.md",
+    "../qa/LINUX_RUNTIME_EXECUTION.md",
+    "../qa/LINUX_E4_FOCUSED_NATIVE_EXECUTION.md",
+    "../qa/BROWSER_TOOLCHAIN_CACHE.md"
+  ],
+  "separateToolsCi": {
+    "sourceCheckpoint": "c059260",
+    "runId": 38362550966,
+    "conclusion": "success",
+    "evidenceOrigin": "root-provided-conclusion",
+    "rawCountsParsed": false,
+    "applicationImageAcceptanceRebound": false
+  }
+}
