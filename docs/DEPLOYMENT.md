@@ -1,5 +1,7 @@
 # مسیر استقرار اجراپذیر
 
+وضعیت جاری ۱۳ اکتبر ۲۰۲۶: تصویر پذیرفتهٔ E4 واقعاً روی سرور فعال است؛ checkout برنامهٔ سرور عمداً روی همان منبع پذیرفته ثابت می‌ماند، درحالی‌که main شامل ابزارها و گزارش‌های جدید نیز هست. [قرارداد staging](ops/STAGING_CONTRACT.md)، [اجرای انتقال E4](ops/E4_RUNTIME_CUTOVER_EXECUTION.md)، [پذیرش IP خصوصی](qa/E4_PRIVATE_PREVIEW_EXECUTION.md) و [زمان‌بندی پذیرفته](ops/E4_SCHEDULE_EXECUTION.md) مرجع عملیات جاری‌اند. دستورهای عمومی پایین مربوط به مسیر اولیه‌اند؛ آن‌ها را برای جایگزینی خودکار تصویر/پروژه/پروفایل فعال اجرا نکنید.
+
 میزبان فعلی `192.168.240.51` با SSH alias `morphiume-deploy` و host key تأییدشده متصل است؛ جزئیات اولیه در [سند اتصال](../DEPLOYMENT.md) ثبت‌اند. محیط staging زیر `/srv/morphiume/staging` و secretها در `/etc/morphiume-staging` جدا هستند؛ mount قدیمی `/srv/morphiume/postgres` حفظ می‌شود و دادهٔ فروش واقعی ندارد.
 
 CI در `.github/workflows/verify.yml` source `main` را با PostgreSQL موقت، آزمون‌ها و مرورگرها بررسی می‌کند. تصویر Linux از `deploy/staging/Dockerfile` خارج از میزبان فروش ساخته و با revision source برچسب می‌خورد. Gitleaks/Grype و dependency audit gate هستند؛ وجود فایل workflow به معنی اجرای موفق نیست. تصویر تأییدشده با digest/ID ثابت در فایل خصوصی deploy.env قرار می‌گیرد.

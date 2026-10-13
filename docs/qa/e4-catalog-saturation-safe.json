@@ -1,0 +1,680 @@
+{
+  "schemaVersion": 1,
+  "scope": "actual_bounded_private_ip_catalog_saturation_search",
+  "identity": {
+    "applicationCommit": "e4bed691dc938a9c0f79022696d24f063ad97724",
+    "catalogToolCommit": "8050f9a1cfa2a5190b9e63cb41fc5f2bcf7eb652",
+    "catalogScriptSha256": "f660bb8fb04a2be2b2f2a13419ead07cf97a9325831f08a14ba6c7110d92b6f7",
+    "k6BinarySha256": "efec04c36452cfb9c0ef313082c021e5656caf5004f922c2d8b807fdf4a0e02f",
+    "profilePrefix": "a6988f3f",
+    "acceptedProfileEvidence": "docs/qa/e4-private-preview-safe.json",
+    "acceptedProfileEvidenceSha256": "457101bea2d23d55b222d1218763addcddfa130d5ee2076d9a5e46177abc1660"
+  },
+  "target": {
+    "origin": "http://192.168.240.51",
+    "perimeter": "accepted_private_cidr_and_basic",
+    "generator": "Windows_official_k6_2.3",
+    "warmCatalogItems": 2
+  },
+  "authorizedPlan": {
+    "targetRates": [
+      120,
+      240,
+      480,
+      960,
+      1920,
+      3200
+    ],
+    "rampSeconds": 15,
+    "steadySeconds": 60,
+    "finalDownSeconds": 15,
+    "nominalDurationSeconds": 465,
+    "preallocatedVus": 400,
+    "maximumVus": 400,
+    "readP95LimitMs": 500,
+    "allowedErrorRate": 0.005,
+    "maximumDroppedIterations": 0
+  },
+  "boundaries": {
+    "catalogOnly": true,
+    "newAuthOrFinancialFixtures": false,
+    "serverOrDatabaseRepairWrites": false,
+    "automaticLoadRetry": false,
+    "independentOfEarlier200VuResult": true,
+    "fullPlanExecuted": false,
+    "exactSaturationRateEstablished": false,
+    "full480PlateauProved": false,
+    "generatorCeilingObserved": false,
+    "componentBottleneckEstablished": false
+  },
+  "runs": [
+    {
+      "run": "v1",
+      "supervisorSha256": "18555c33c02f3f2840a1cb93f7d00350b999a617cceb62e9bb86ec10341d77da",
+      "startedUtc": "2026-10-13T12:01:31.580Z",
+      "childStartedUtc": "2026-10-13T12:01:32.0280819Z",
+      "loadReleasedUtc": "2026-10-13T12:01:40.502Z",
+      "summaryGeneratedUtc": "2026-10-13T12:04:10.231Z",
+      "supervisorCompletedUtc": "2026-10-13T12:04:13.420Z",
+      "exitCode": 103,
+      "savedSupervisorCategory": "critical_or_observer_stop",
+      "savedSupervisorStopReason": "resource-observer-failed",
+      "primaryOutcome": "resource_observer_stop_cause_unknown",
+      "gracefulControlAttempted": true,
+      "hardStopped": false,
+      "automaticRetry": false,
+      "iterations": 25563,
+      "httpRequests": 25565,
+      "setupHttpRequests": 2,
+      "clientWholeRunP95Ms": 35.39876999999995,
+      "unexpectedRate": 0,
+      "droppedIterations": 0,
+      "criticalFaults": 0,
+      "datasetItems": 2,
+      "observedMaximumActiveVus": 41,
+      "phases": [
+        {
+          "targetRps": 120,
+          "requests": 7199,
+          "clientP95Ms": 28.790579999999988,
+          "unexpectedRate": 0,
+          "sampledCountThresholdMet": true,
+          "fullSteadyPlateauProved": false,
+          "scope": "wall_clock_tagged_samples"
+        },
+        {
+          "targetRps": 240,
+          "requests": 14316,
+          "clientP95Ms": 46.4146,
+          "unexpectedRate": 0,
+          "sampledCountThresholdMet": true,
+          "fullSteadyPlateauProved": false,
+          "scope": "wall_clock_tagged_samples"
+        },
+        {
+          "targetRps": 480,
+          "requests": 0,
+          "clientP95Ms": null,
+          "unexpectedRate": null,
+          "sampledCountThresholdMet": false,
+          "fullSteadyPlateauProved": false,
+          "scope": "not_executed"
+        },
+        {
+          "targetRps": 960,
+          "requests": 0,
+          "clientP95Ms": null,
+          "unexpectedRate": null,
+          "sampledCountThresholdMet": false,
+          "fullSteadyPlateauProved": false,
+          "scope": "not_executed"
+        },
+        {
+          "targetRps": 1920,
+          "requests": 0,
+          "clientP95Ms": null,
+          "unexpectedRate": null,
+          "sampledCountThresholdMet": false,
+          "fullSteadyPlateauProved": false,
+          "scope": "not_executed"
+        },
+        {
+          "targetRps": 3200,
+          "requests": 0,
+          "clientP95Ms": null,
+          "unexpectedRate": null,
+          "sampledCountThresholdMet": false,
+          "fullSteadyPlateauProved": false,
+          "scope": "not_executed"
+        }
+      ],
+      "actualEngineClockAvailable": false,
+      "highestCompletedPassingPlateauRps": null,
+      "legacySupervisorCompletedRateClaimAdopted": false,
+      "observedActiveWindowEstimateMs": null,
+      "conservativeObservedStageEndEligibilityMs": null,
+      "resources": {
+        "samples": 18,
+        "firstObservedUtc": "2026-10-13T12:01:47.884Z",
+        "lastObservedUtc": "2026-10-13T12:03:52.983Z",
+        "actualIntervalSeconds": {
+          "samples": 17,
+          "min": 7.173,
+          "mean": 7.358764705882353,
+          "p95": 7.541,
+          "max": 7.541
+        },
+        "serverLogicalCpu": 4,
+        "serverTotalMemoryBytes": 5155532800,
+        "serverCpuPercent": {
+          "samples": 18,
+          "min": 16.83794466403162,
+          "mean": 41.57785927982744,
+          "p95": 54.106776180698155,
+          "max": 54.106776180698155
+        },
+        "serverMinimumAvailableMemoryBytes": 3975286784,
+        "serverMaximumSwapUsedBytes": 0,
+        "k6CpuTotalHostPercent": {
+          "samples": 17,
+          "min": 2.2326024465245315,
+          "mean": 5.306364290417541,
+          "p95": 8.014496288688788,
+          "max": 8.014496288688788
+        },
+        "k6CpuOneCorePercent": {
+          "samples": 17,
+          "min": 8.930409786098126,
+          "mean": 21.225457161670164,
+          "p95": 32.05798515475515,
+          "max": 32.05798515475515
+        },
+        "k6MaximumWorkingSetBytes": 197156864,
+        "generatorHostMaximumCpuPercent": 42.75,
+        "generatorMinimumFreeMemoryBytes": 18315489280,
+        "allSampleReadiness200": true,
+        "allSampleKnownContainersHealthy": true,
+        "unknownContainers": 0,
+        "partialLastLine": false
+      },
+      "completeCapturedServerLog": {
+        "bytes": 5300373,
+        "sha256": "d6e839333daf45e2f98f73f66b8933b80554e3689091e5b8a2a37cf351697a3e",
+        "lines": 25598,
+        "parsedRequestWrappers": 25598,
+        "requestStatuses": {
+          "200": 25598
+        },
+        "wrapper500Count": 0,
+        "allWrapper5xx": 0,
+        "nonJsonLines": 0,
+        "firstWrapperUtc": "2026-10-13T12:01:41.411Z",
+        "lastWrapperUtc": "2026-10-13T12:04:14.174Z",
+        "catalogServerDurationMs": {
+          "samples": 25567,
+          "min": 2,
+          "mean": 4.2771150310947705,
+          "p95": 11,
+          "max": 89
+        }
+      },
+      "rawLogsCapped": false,
+      "secretObservedBySupervisor": false,
+      "fullBoundedRawLogsCaptured": true,
+      "artifactReferences": [
+        {
+          "file": "started.json",
+          "bytes": 984,
+          "sha256": "4f3b7a0d1731e816e8a9e1abe257d8ffdfe893f6196c089ac0e3f8ec22af6acd"
+        },
+        {
+          "file": "supervisor-result.json",
+          "bytes": 40243,
+          "sha256": "7dfa456e4d954d7071ad4814fd1c36078898dcedb2ab2181e0efa3f917c1c189"
+        },
+        {
+          "file": "summary.json",
+          "bytes": 9126,
+          "sha256": "9ae638d6570c8bf5d9cdbb543af21265d49e13f1c55a0d44c92382e6ec195327"
+        },
+        {
+          "file": "k6-stdout.log",
+          "bytes": 21901,
+          "sha256": "d72d867c3275f5c9933b3cbe82b5fa2e41b028808f23f56545de3d1f41105505"
+        },
+        {
+          "file": "k6-stderr.log",
+          "bytes": 82,
+          "sha256": "cdacf7eb5d17685a7571f79eefc16da71af8a061e716ad18a2e6432005273342"
+        },
+        {
+          "file": "samples.jsonl",
+          "bytes": 24142,
+          "sha256": "bf7663a542a26838c1fcea9ae21e5866d6f47f8e1ccfaf92e71ebadf3aaa891c"
+        },
+        {
+          "file": "server-stdout.log",
+          "bytes": 5300373,
+          "sha256": "d6e839333daf45e2f98f73f66b8933b80554e3689091e5b8a2a37cf351697a3e"
+        },
+        {
+          "file": "server-stderr.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    },
+    {
+      "run": "v2",
+      "supervisorSha256": "37dcfd89536b19f3426590fce83168c40c9fb2573ce3dd3414b3b6baa187cd4b",
+      "startedUtc": "2026-10-13T12:27:36.622Z",
+      "childStartedUtc": "2026-10-13T12:27:37.1201668Z",
+      "loadReleasedUtc": "2026-10-13T12:27:39.434Z",
+      "summaryGeneratedUtc": "2026-10-13T12:30:35.247Z",
+      "supervisorCompletedUtc": "2026-10-13T12:30:39.888Z",
+      "exitCode": 99,
+      "savedSupervisorCategory": "critical_or_observer_stop",
+      "savedSupervisorStopReason": "resource-observer-failed",
+      "primaryOutcome": "k6_latency_threshold_self_abort",
+      "gracefulControlAttempted": false,
+      "hardStopped": false,
+      "automaticRetry": false,
+      "iterations": 35930,
+      "httpRequests": 35932,
+      "setupHttpRequests": 2,
+      "clientWholeRunP95Ms": 508.34245999999985,
+      "unexpectedRate": 0,
+      "droppedIterations": 0,
+      "criticalFaults": 0,
+      "datasetItems": 2,
+      "observedMaximumActiveVus": 272,
+      "phases": [
+        {
+          "targetRps": 120,
+          "requests": 7200,
+          "clientP95Ms": 25.925734999999996,
+          "unexpectedRate": 0,
+          "sampledCountThresholdMet": true,
+          "fullSteadyPlateauProved": false,
+          "scope": "wall_clock_tagged_samples"
+        },
+        {
+          "targetRps": 240,
+          "requests": 14400,
+          "clientP95Ms": 36.53484499999996,
+          "unexpectedRate": 0,
+          "sampledCountThresholdMet": true,
+          "fullSteadyPlateauProved": false,
+          "scope": "wall_clock_tagged_samples"
+        },
+        {
+          "targetRps": 480,
+          "requests": 4885,
+          "clientP95Ms": 583.3495800000001,
+          "unexpectedRate": 0,
+          "sampledCountThresholdMet": false,
+          "fullSteadyPlateauProved": false,
+          "scope": "partial_phase"
+        },
+        {
+          "targetRps": 960,
+          "requests": 0,
+          "clientP95Ms": null,
+          "unexpectedRate": null,
+          "sampledCountThresholdMet": false,
+          "fullSteadyPlateauProved": false,
+          "scope": "not_executed"
+        },
+        {
+          "targetRps": 1920,
+          "requests": 0,
+          "clientP95Ms": null,
+          "unexpectedRate": null,
+          "sampledCountThresholdMet": false,
+          "fullSteadyPlateauProved": false,
+          "scope": "not_executed"
+        },
+        {
+          "targetRps": 3200,
+          "requests": 0,
+          "clientP95Ms": null,
+          "unexpectedRate": null,
+          "sampledCountThresholdMet": false,
+          "fullSteadyPlateauProved": false,
+          "scope": "not_executed"
+        }
+      ],
+      "actualEngineClockAvailable": false,
+      "highestCompletedPassingPlateauRps": null,
+      "legacySupervisorCompletedRateClaimAdopted": false,
+      "observedActiveWindowEstimateMs": 177355.6796,
+      "conservativeObservedStageEndEligibilityMs": 176355.6796,
+      "resources": {
+        "samples": 34,
+        "firstObservedUtc": "2026-10-13T12:27:44.308Z",
+        "lastObservedUtc": "2026-10-13T12:30:31.505Z",
+        "actualIntervalSeconds": {
+          "samples": 33,
+          "min": 4.804,
+          "mean": 5.066575757575758,
+          "p95": 5.062,
+          "max": 7.394
+        },
+        "serverLogicalCpu": 4,
+        "serverTotalMemoryBytes": 5155532800,
+        "serverCpuPercent": {
+          "samples": 34,
+          "min": 8.502772643253234,
+          "mean": 45.734993572030156,
+          "p95": 80.98591549295774,
+          "max": 93.5666982024598
+        },
+        "serverMinimumAvailableMemoryBytes": 3973033984,
+        "serverMaximumSwapUsedBytes": 0,
+        "k6CpuTotalHostPercent": {
+          "samples": 33,
+          "min": 3.1428241500279848,
+          "mean": 6.209835963986011,
+          "p95": 9.647230539693185,
+          "max": 10.158222726853534
+        },
+        "k6CpuOneCorePercent": {
+          "samples": 33,
+          "min": 12.571296600111939,
+          "mean": 24.839343855944044,
+          "p95": 38.58892215877274,
+          "max": 40.63289090741414
+        },
+        "k6MaximumWorkingSetBytes": 202932224,
+        "generatorHostMaximumCpuPercent": 55.75,
+        "generatorMinimumFreeMemoryBytes": 18134888448,
+        "allSampleReadiness200": true,
+        "allSampleKnownContainersHealthy": true,
+        "unknownContainers": 0,
+        "partialLastLine": false
+      },
+      "completeCapturedServerLog": {
+        "bytes": 7514705,
+        "sha256": "412261f27ee77f81108d4597ca55d8b18a14948c5042971d663d6fa2621b3c7d",
+        "lines": 36244,
+        "parsedRequestWrappers": 36244,
+        "requestStatuses": {
+          "200": 36244
+        },
+        "wrapper500Count": 0,
+        "allWrapper5xx": 0,
+        "nonJsonLines": 0,
+        "firstWrapperUtc": "2026-10-13T12:27:37.944Z",
+        "lastWrapperUtc": "2026-10-13T12:30:40.636Z",
+        "catalogServerDurationMs": {
+          "samples": 36194,
+          "min": 2,
+          "mean": 21.37011659391059,
+          "p95": 134,
+          "max": 252
+        }
+      },
+      "rawLogsCapped": false,
+      "secretObservedBySupervisor": false,
+      "fullBoundedRawLogsCaptured": true,
+      "artifactReferences": [
+        {
+          "file": "started.json",
+          "bytes": 984,
+          "sha256": "5f57a58cf7ae9ad007afe252b0d100fd5217196ae7873ee6427d19894e614997"
+        },
+        {
+          "file": "supervisor-result.json",
+          "bytes": 173811,
+          "sha256": "323c0107c1e4545c8e65a1449215668790c3a333846acb5a7b9c84a24d0a35bd"
+        },
+        {
+          "file": "summary.json",
+          "bytes": 9243,
+          "sha256": "750c0a6c7e6522088ed52812572a60c9f2690fa75e674cfbeaf76f22dd302fbb"
+        },
+        {
+          "file": "k6-stdout.log",
+          "bytes": 25268,
+          "sha256": "84ddc3c15f17ce2b5073b3e732bda1b92f57cb5e0cbdec8333f3e76d69d2e102"
+        },
+        {
+          "file": "k6-stderr.log",
+          "bytes": 240,
+          "sha256": "56beb796a4afb8e2fa66e153c6e13c3ea39b3c4452b28e3d94b5b2babc4f023e"
+        },
+        {
+          "file": "samples.jsonl",
+          "bytes": 45040,
+          "sha256": "c6a4d06dcf47674a17144ae2a9dc8280ec872431273349842e7e5609032a8b0e"
+        },
+        {
+          "file": "server-stdout.log",
+          "bytes": 7514705,
+          "sha256": "412261f27ee77f81108d4597ca55d8b18a14948c5042971d663d6fa2621b3c7d"
+        },
+        {
+          "file": "server-stderr.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    }
+  ],
+  "v2OfflineInterpretation": {
+    "artifact": "offline-outcome-companion.json",
+    "sha256": "6e91824c3b760a21377ba275ae229bed831e31c631e1df9dd5354dc8f2379306",
+    "originalSupervisorResultPreserved": true,
+    "primary": {
+      "classification": "k6_latency_threshold_self_abort",
+      "confirmedByFixedLogCategories": true,
+      "thresholdMetrics": [
+        "catalog_read_duration",
+        "catalog_read_duration{phase:p480}"
+      ],
+      "summaryGeneratedUtc": "2026-10-13T12:30:35.247Z",
+      "childExitUtc": "2026-10-13T12:30:35.305Z",
+      "exitCode": 99,
+      "supervisorStopRequestedUtc": "2026-10-13T12:30:36.792Z",
+      "supervisorStopRequestedAfterChildExitMs": 1487,
+      "gracefulControlAttempted": false,
+      "hardStopped": false
+    },
+    "secondary": {
+      "classification": "local_observation_failed_after_child_exit",
+      "stage": "local-stats-exit",
+      "localAttemptStartedUtc": "2026-10-13T12:30:31.725Z",
+      "localAttemptCompletedUtc": "2026-10-13T12:30:36.791Z",
+      "exitCode": 1,
+      "stderrBytes": 378,
+      "stderrSha256": "b40f83c560f92c80be7af9937854087294ef9df488dd16cf1e55426566cf0ee0",
+      "completedAfterChildExitMs": 1486,
+      "exactPowerShellCause": "unknown_hash_only",
+      "specificGetProcessFailureProved": false,
+      "serverReadiness": 200,
+      "knownContainersHealthy": true
+    }
+  },
+  "v2AdditionalResourceCollector": {
+    "artifact": {
+      "file": "resources-1791894437944.jsonl",
+      "bytes": 11292,
+      "sha256": "eeb1c4528e3c1fc67293287526dc804213fba83a48634cb708386d6272ac0c25"
+    },
+    "samples": 15,
+    "firstUtc": "2026-10-13T12:27:17.946Z",
+    "lastUtc": "2026-10-13T12:31:20.917Z",
+    "configuredIntervalSeconds": 15,
+    "actualIntervalSeconds": {
+      "samples": 14,
+      "min": 17.283,
+      "mean": 17.35507142857143,
+      "p95": 17.685,
+      "max": 17.685
+    },
+    "operatorStoppedAfterRunUtc": "2026-10-13T12:31:38.708Z",
+    "naturalBudgetCompletionClaimed": false,
+    "invalidLines": 0,
+    "dockerErrors": 0,
+    "databaseErrors": 0,
+    "unknownContainers": 0,
+    "partialLastLine": false,
+    "cpuBasis": "one_logical_cpu_for_docker_percent",
+    "containers": [
+      {
+        "alias": "app",
+        "cpuPercent": {
+          "samples": 15,
+          "min": 0,
+          "mean": 34.92733333333334,
+          "p95": 105.61,
+          "max": 105.61
+        },
+        "memoryUsedBytes": {
+          "samples": 15,
+          "min": 80362865,
+          "mean": 157650605.46666667,
+          "p95": 180459930,
+          "max": 180459930
+        },
+        "memoryLimitBytes": {
+          "samples": 15,
+          "min": 1610612736,
+          "mean": 1610612736,
+          "p95": 1610612736,
+          "max": 1610612736
+        }
+      },
+      {
+        "alias": "worker",
+        "cpuPercent": {
+          "samples": 15,
+          "min": 0.01,
+          "mean": 0.675333333333333,
+          "p95": 8.26,
+          "max": 8.26
+        },
+        "memoryUsedBytes": {
+          "samples": 15,
+          "min": 36815503,
+          "mean": 36877019.666666664,
+          "p95": 36951818,
+          "max": 36951818
+        },
+        "memoryLimitBytes": {
+          "samples": 15,
+          "min": 402653184,
+          "mean": 402653184,
+          "p95": 402653184,
+          "max": 402653184
+        }
+      },
+      {
+        "alias": "db",
+        "cpuPercent": {
+          "samples": 15,
+          "min": 0,
+          "mean": 27.446666666666665,
+          "p95": 81.12,
+          "max": 81.12
+        },
+        "memoryUsedBytes": {
+          "samples": 15,
+          "min": 191050547,
+          "mean": 209253826.53333333,
+          "p95": 218942669,
+          "max": 218942669
+        },
+        "memoryLimitBytes": {
+          "samples": 15,
+          "min": 1342177280,
+          "mean": 1342177280,
+          "p95": 1342177280,
+          "max": 1342177280
+        }
+      }
+    ],
+    "database": {
+      "connections": {
+        "samples": 15,
+        "min": 3,
+        "mean": 8.733333333333333,
+        "p95": 12,
+        "max": 12
+      },
+      "active": {
+        "samples": 15,
+        "min": 1,
+        "mean": 1.2,
+        "p95": 2,
+        "max": 2
+      },
+      "ungrantedLocks": {
+        "samples": 15,
+        "min": 0,
+        "mean": 0,
+        "p95": 0,
+        "max": 0
+      },
+      "pending": {
+        "samples": 15,
+        "min": 0,
+        "mean": 0,
+        "p95": 0,
+        "max": 0
+      },
+      "running": {
+        "samples": 15,
+        "min": 0,
+        "mean": 0,
+        "p95": 0,
+        "max": 0
+      },
+      "dead": {
+        "samples": 15,
+        "min": 0,
+        "mean": 0,
+        "p95": 0,
+        "max": 0
+      },
+      "oldestQueueSeconds": {
+        "samples": 15,
+        "min": 0,
+        "mean": 0,
+        "p95": 0,
+        "max": 0
+      }
+    },
+    "databaseNullTransactionLocksMeasured": false,
+    "poolWaitMeasured": false
+  },
+  "financialPreservation": {
+    "before": {
+      "scope": "preexisting-financial-preservation",
+      "phase": "before",
+      "tables": 14,
+      "capturedRows": 4694,
+      "comparedRows": 0,
+      "mutation": false,
+      "accepted": true
+    },
+    "after": {
+      "scope": "preexisting-financial-preservation",
+      "phase": "after",
+      "tables": 14,
+      "capturedRows": 4694,
+      "comparedRows": 4694,
+      "mutation": false,
+      "accepted": true
+    },
+    "beforeRecordedUtc": "2026-10-13T12:23:09.070Z",
+    "afterRecordedUtc": "2026-10-13T12:31:12.520Z",
+    "laterAuthorizedOwnerCreationUtc": "2026-10-13T12:37:38.963Z",
+    "laterAuthRowsInsertedOutsideBenchmark": 3,
+    "laterOwnerCreationAttributedToLoad": false
+  },
+  "operationalRestoration": {
+    "v1TimersRestoredUtc": "2026-10-13T12:04:57Z",
+    "v1TimestampPrecision": "parent_reported_seconds",
+    "v2TimersRestoredUtc": "2026-10-13T12:31:24.440549Z",
+    "timerCount": 2,
+    "activeAndEnabledAfterRestore": true,
+    "enabledFlagsAndUnitFilesUnchanged": true,
+    "readinessBeforeResume": 200,
+    "serviceStartIssued": false,
+    "expiredLeaseWithdrawalClaimed": false,
+    "v2RestoreArtifact": {
+      "file": "e4-saturation-timers-v2-resume-safe.json",
+      "sha256": "88f3b2fa443aa6907c30b59088c72b457f063945420eb38f579b9d81301972dc"
+    }
+  },
+  "limitations": [
+    "Phase tagging uses wall-clock elapsed; actual k6 engine clock and independent full 60-second plateau completion are unavailable.",
+    "240 RPS samples meet count and latency thresholds; this is a sample-based lower bound, not an exact completed-phase proof.",
+    "480 RPS was partial and breached client latency SLO. Rates 960, 1920 and 3200 were not executed.",
+    "No drops and sampled VUs below 400 do not prove every aspect of generator validity or a precise server-only saturation boundary.",
+    "App-wrapper and client p95 values cover different populations; their difference is not a measured proxy/network latency.",
+    "Warm two-item catalog and protected private-IP transport are narrower than production catalog/traffic capacity.",
+    "Resource samples miss between-sample peaks; scoped pg_locks excludes database-null transaction locks and does not measure pool wait."
+  ]
+}

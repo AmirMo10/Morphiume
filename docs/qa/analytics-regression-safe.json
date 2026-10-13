@@ -1,0 +1,146 @@
+{
+  "schemaVersion": 1,
+  "scope": "actual-isolated-postgres-analytics-regression",
+  "state": "all-declared-and-discovered-analytics-cases-passed",
+  "source": {
+    "startCommit": "8f8c3e3810fb07acc29888497e8ab305241eaf7a",
+    "endCommit": "fbefdc0793e7ba0ad985b90033316c11edd5c440",
+    "testedSourceHashes": [
+      {
+        "file": "tests/integration/backend/analytics.test.ts",
+        "sha256": "9ae3f0739319e7d89b6f30e8b6be2b1f6cb81933bef1968cee3f64bb485d8d3c"
+      },
+      {
+        "file": "src/server/commerce/analytics.ts",
+        "sha256": "a08e83a73d44feea27761de65b7c89640ab10bfb45c1b4a5bc10fce7214e33cb"
+      },
+      {
+        "file": "tests/integration/backend/isolated-database.ts",
+        "sha256": "ca8bcb8ea23ccb8d13f42be107458f212cdfef52876601f493675a93e5e88daa"
+      }
+    ],
+    "unchangedDuringRun": true,
+    "declaredCases": 15,
+    "discoveredCases": 15
+  },
+  "target": {
+    "database": "morphiume_staging",
+    "loopbackPort": 15433,
+    "roleClass": "runtime-dml-no-ddl",
+    "separateNonSuperMigrationOwner": true,
+    "bootstrapCredentialsUsed": false
+  },
+  "timing": {
+    "startedUtc": "2026-10-13T12:16:16.430Z",
+    "completedUtc": "2026-10-13T12:16:55.242Z",
+    "parentChildDurationSeconds": 38.8106368
+  },
+  "results": {
+    "passed": 15,
+    "failed": 0,
+    "pending": 0,
+    "skipped": 0,
+    "childExitCode": 0,
+    "executions": 1,
+    "successfulTestsRerun": false,
+    "correctedExpiredKeyCasePassed": true
+  },
+  "cleanup": {
+    "publicTablesFingerprinted": 49,
+    "publicRowsFingerprintsUnchanged": true,
+    "generatedSchemasBefore": 0,
+    "generatedSchemasAfter": 0,
+    "generatedSchemasUnchanged": true,
+    "scope": "exact-generated-test-schema",
+    "publicMutationObserved": false
+  },
+  "correction": {
+    "fixturePastInterval": "1second",
+    "physicalRowCountBeforeReuse": 1,
+    "expectedSearch": 2,
+    "expectedZeroResultSearch": 1,
+    "expectedSeenRows": 1,
+    "assertionsWeakened": false,
+    "sleepAdded": false,
+    "retryAdded": false,
+    "serviceSourceChanged": false
+  },
+  "diagnosis": {
+    "installedParser": "pg-types2.2.0/OID1184",
+    "timestampInputMicroseconds": 123456,
+    "parsedTimestampMicroseconds": 123000,
+    "precisionMechanismDemonstrated": true,
+    "exactEarlierCiClockObserved": false,
+    "originalCiCauseProved": false,
+    "earlierFailedCiSourceLabels": [
+      "a063",
+      "5d7"
+    ],
+    "earlierExpectedSearch": 2,
+    "earlierObservedSearch": 1,
+    "earlierObservedZeroResultSearch": 1
+  },
+  "preRunChecks": {
+    "offlineParserContracts": 4,
+    "fractionalOffsets": 1000,
+    "durationMs": 277.1815,
+    "scopedLintPassed": true,
+    "globalTypecheckPassed": true,
+    "whitespacePassed": true
+  },
+  "evidenceGuard": {
+    "requestedCount": 16,
+    "actualSourceAndDiscovery": 15,
+    "originalClosedCaptureRetained": true,
+    "dispatchCountingErrorAcknowledgedByRoot": true,
+    "companionCreatedWithoutPgOrTestRerun": true,
+    "originalParentExitCode": 1
+  },
+  "outputPrivacy": {
+    "privateOutputAclOnlyCurrentAdminAndSystem": true,
+    "rawUrlsAndRowsExported": false,
+    "credentialsOrContactsExported": false
+  },
+  "scopeLimits": {
+    "nativeAuthenticationProved": false,
+    "appHttpOrBrowserPerformed": false,
+    "capacityClaimed": false,
+    "analyticsBestEffortCoverageUnchanged": true
+  },
+  "window": {
+    "releasedAfterAuditedCleanup": true,
+    "furtherPgProbesPerformed": false
+  },
+  "references": [
+    {
+      "file": "summary-safe.json",
+      "bytes": 1392,
+      "sha256": "e9074e312cce658f0d2d1fa146f60107e917c4063c13a322acf303f3e1aff79f"
+    },
+    {
+      "file": "clarified-summary-safe.json",
+      "bytes": 1821,
+      "sha256": "7d9b295c5df6ad0ed2e9420e38feec62060502ca88af21153855a2687001ccbf"
+    },
+    {
+      "file": "report-private.json",
+      "bytes": 7564,
+      "sha256": "3e880acdd60164badb3a217546c35f512d66196a3d453e02abdce81a8af7a21c"
+    },
+    {
+      "file": "run-output-private.log",
+      "bytes": 486,
+      "sha256": "d3e60988d921a0494c3d2de32e6cf7f6cc7f5e24d3821389ce31b6b1e1dc5ea8"
+    },
+    {
+      "file": "before-private.json",
+      "bytes": 4097,
+      "sha256": "a516ee6cfc422904adb3a35355da03456d916906f0baee62e080124c5fe61879"
+    },
+    {
+      "file": "after-private.json",
+      "bytes": 4097,
+      "sha256": "a516ee6cfc422904adb3a35355da03456d916906f0baee62e080124c5fe61879"
+    }
+  ]
+}
