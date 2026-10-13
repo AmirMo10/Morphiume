@@ -69,6 +69,17 @@ class Safety(unittest.TestCase):
         self.assertEqual(m.inventory_shape(x), x)
         self.assertEqual(len(m.validate_old_actual(x, [docker_item('app'), docker_item('db')], PG, {'runtimeImageId': IMAGE})), 2)
 
+    def test_old_config_canonical_hash_distinct_from_raw_inventory_bytes(self):
+        config = {'origin': 'http://localhost:3101', 'mode': 'staging'}
+        raw = (json.dumps(config, indent=2) + '\n').encode()
+        hashes = {'recovery-ready.json': 'a' * 64, 'recovery-journal.json': 'b' * 64, 'app.json': m.sha(raw)}
+        accepted = {'readyRecordSha256': 'a' * 64, 'journalSha256': 'b' * 64,
+                    'restoreConfigSha256': m.sha(json.dumps(config, sort_keys=True, separators=(',', ':')).encode())}
+        self.assertNotEqual(accepted['restoreConfigSha256'], hashes['app.json'])
+        m.old_acceptance_hashes(accepted, hashes, config)
+        with self.assertRaises(ValueError): m.old_acceptance_hashes(accepted, hashes, dict(config, mode='changed'))
+        with self.assertRaises(ValueError): m.old_acceptance_hashes(accepted, dict(hashes, **{'recovery-ready.json': 'c' * 64}), config)
+
     def test_inventory_unknown_field_rejected(self):
         x = inventory(); x['approved'] = True
         with self.assertRaises(ValueError): m.inventory_shape(x)

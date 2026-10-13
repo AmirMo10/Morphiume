@@ -217,6 +217,14 @@ def old_files(record):
             need(stat.st_size == item['bytes'] and sha(path.read_bytes()) == item['sha256'])
 
 
+def old_acceptance_hashes(accepted, file_hashes, config):
+    need(accepted['readyRecordSha256'] == file_hashes['recovery-ready.json'])
+    need(accepted['journalSha256'] == file_hashes['recovery-journal.json'])
+    # The accepted613 contract records canonical config JSON, while inventory
+    # separately binds its original raw bytes and inode. Preserve both meanings.
+    need(accepted['restoreConfigSha256'] == sha(json.dumps(config, sort_keys=True, separators=(',', ':')).encode()))
+
+
 def old_pair(c, record):
     inventory_shape(record)
     metadata(OLD_ROOT, mode=0o700, directory=True)
@@ -232,7 +240,7 @@ def old_pair(c, record):
     need(set(accepted.get('checks', {})) == CHECKS and all(x is True for x in accepted['checks'].values()))
     need(accepted.get('workerStarted') is False and accepted.get('restoreProject') == OLD_PROJECT)
     file_hashes = {Path(item['path']).name: item['sha256'] for item in record['files']}
-    need(accepted['readyRecordSha256'] == file_hashes['recovery-ready.json'] and accepted['journalSha256'] == file_hashes['recovery-journal.json'] and accepted['restoreConfigSha256'] == file_hashes['app.json'])
+    old_acceptance_hashes(accepted, file_hashes, parse(metadata(OLD_ROOT / 'app.json', uid=1001).read_bytes()))
     timestamp(accepted['acceptedUtc'])
     old_ready = parse(metadata(OLD_ROOT / 'recovery-ready.json').read_bytes())
     old_journal = parse(metadata(OLD_ROOT / 'recovery-journal.json').read_bytes())
