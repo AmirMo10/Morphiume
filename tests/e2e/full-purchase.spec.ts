@@ -10,8 +10,12 @@ import { nativeAuthAction } from "./native-auth-actions";
 import { controlledQaDatabase } from "../helpers/qa-target.mjs";
 import { openAdminProductForm } from "./admin-readiness";
 import { readyDraftScreenshot } from "./draft-readiness";
+import { privatePreviewSettings, createPurchaseContext, provePreviewDatabase, capturePaymentState, assertPaymentReplay, provePreviewAssertions, recordPreviewProof, type PreviewCheck } from "./private-preview-support";
 
-test("T01/T12/T17/T19/T20/T21/T23/T25: real admin product → guest purchase → mock verification → stock → owned tracking", async ({ browser, page, baseURL }, info) => {
+test("T01/T12/T17/T19/T20/T21/T23/T25: real admin product → guest purchase → mock verification → stock → owned tracking", async ({ browser, page: defaultPage, baseURL }, info) => {
+  const preview = privatePreviewSettings(process.env);
+  const previewAdmin = preview ? await createPurchaseContext(browser, preview, { baseURL, viewport: { width: 1366, height: 768 } }) : undefined;
+  const page = previewAdmin ? await previewAdmin.newPage() : defaultPage;
   const target = controlledQaDatabase(process.env);
   if (!process.env.MOCK_CONTROL_SECRET) throw new Error("QA requires private controlled mock credentials");
   const pool = new pg.Pool({ connectionString: target.toString(), max: 2 });
@@ -19,11 +23,13 @@ test("T01/T12/T17/T19/T20/T21/T23/T25: real admin product → guest purchase →
   const slug = `qa-${fixture}`, productName = `آزمون مستقل Morphiume ${fixture.slice(0, 8)}`;
   const customerPhone = `+989${String(randomInt(0, 1_000_000_000)).padStart(9, "0")}`;
   const otherPhone = `+989${String(randomInt(0, 1_000_000_000)).padStart(9, "0")}`;
-  const customer = await browser.newContext({ baseURL, viewport: { width: 390, height: 844 }, reducedMotion: "reduce" });
+  const customer = await createPurchaseContext(browser, preview, { baseURL, viewport: { width: 390, height: 844 }, reducedMotion: "reduce" });
   const buyer = await customer.newPage();
   let productId: string | undefined;
   let retainCustomer = false;
+  let previewChecks: Record<PreviewCheck, boolean> | undefined;
   try {
+    if (preview) await provePreviewDatabase(pool);
     await pool.query('INSERT INTO "user"(id,name,email,email_verified) VALUES($1,\'QA browser admin\',$2,true)', [adminId, email]);
     await pool.query("INSERT INTO account(id,user_id,account_id,provider_id,password) VALUES($1,$2,$2,'credential',$3)", [randomUUID(), adminId, await hashPassword(password)]);
     await pool.query("INSERT INTO role_membership(user_id,role) VALUES($1,'owner')", [adminId]);
@@ -85,7 +91,9 @@ test("T01/T12/T17/T19/T20/T21/T23/T25: real admin product → guest purchase →
     await expect(displayedImage).toHaveAttribute("src", /^\/media\/[0-9a-f-]{36}\.webp$/);
     const decoded = await displayedImage.evaluate(async (element: HTMLImageElement) => { await element.decode(); return { width: element.naturalWidth, height: element.naturalHeight, currentSrc: element.currentSrc }; });
     expect(decoded.width).toBe(16); expect(decoded.height).toBe(20);
-    expect((await customer.request.get(decoded.currentSrc)).status()).toBe(200);
+    const displayedMedia = await customer.request.get(decoded.currentSrc);
+    expect(displayedMedia.status()).toBe(200);
+    const displayedMediaSha256 = createHash("sha256").update(await displayedMedia.body()).digest("hex");
     const catalogAxe = await new AxeBuilder({ page: buyer }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
     expect(catalogAxe.violations).toEqual([]);
     await buyer.screenshot({ path: `docs/qa/screenshots/product-${info.project.name}-390.png`, fullPage: true });
@@ -137,6 +145,16 @@ test("T01/T12/T17/T19/T20/T21/T23/T25: real admin product → guest purchase →
     expect((await pool.query("SELECT count(*)::int AS n FROM shipment WHERE order_id=$1", [orderId])).rows[0].n).toBe(1);
     const financial = (await pool.query("SELECT unit_price_irr::text AS price FROM order_item WHERE order_id=$1", [orderId])).rows[0];
     expect(financial.price).toBe("1234560");
+    // A successful provider callback replay is separate from unknown→success.
+    // Compare scoped immutable/receipt/stock/shipment evidence, not transient UI.
+    const beforeCallback = await capturePaymentState(pool, orderId, productId);
+    assertPaymentReplay(beforeCallback, beforeCallback);
+    const authority = new URL(mockUrl).pathname.split("/").at(-1)!;
+    expect(authority).toBe(beforeCallback.attempts[0]?.authority);
+    const callback = await customer.request.get(`/api/payments/mock/callback?Authority=${encodeURIComponent(authority)}`, { maxRedirects: 0, maxRetries: 0, timeout: 10_000 });
+    expect(callback.status()).toBe(303);
+    expect(callback.headers().location).toBe(`${baseURL}/orders/${orderId}`);
+    assertPaymentReplay(beforeCallback, await capturePaymentState(pool, orderId, productId));
     await page.goto(`/admin/orders/${orderId}`);
     await page.getByLabel("شرکت ارسال", { exact: true }).fill("شرکت ارسال آزمایشی QA");
     await page.getByLabel("کد رهگیری", { exact: true }).fill(`QA-TRACK-${fixture.slice(0, 8)}`);
@@ -146,7 +164,7 @@ test("T01/T12/T17/T19/T20/T21/T23/T25: real admin product → guest purchase →
     await expect(buyer.getByText(`QA-TRACK-${fixture.slice(0, 8)}`, { exact: true })).toBeVisible();
     const privateResponse = await customer.request.get(`/api/orders/${orderId}`);
     expect(privateResponse.headers()["cache-control"]).toContain("no-store");
-    const foreign = await browser.newContext({ baseURL });
+    const foreign = await createPurchaseContext(browser, preview, { baseURL });
     const denied = await foreign.request.get(`/api/orders/${orderId}`);
     expect([401, 404]).toContain(denied.status());
     await nativeAuthAction(foreign.request, "customer-otp-send", () => foreign.request.post("/api/auth/phone-number/send-otp", { headers: { Origin: baseURL! }, data: { phoneNumber: otherPhone } }));
@@ -164,18 +182,37 @@ test("T01/T12/T17/T19/T20/T21/T23/T25: real admin product → guest purchase →
     expect(await buyer.evaluate(() => document.activeElement?.tagName)).not.toBe("BODY");
     const orderAxe = await new AxeBuilder({ page: buyer }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
     expect(orderAxe.violations).toEqual([]);
+    if (preview) {
+      const mediaReplay = await customer.request.get(uploaded.url, { maxRetries: 0, maxRedirects: 0, timeout: 10_000 });
+      expect(mediaReplay.status()).toBe(200);
+      expect(createHash("sha256").update(await mediaReplay.body()).digest("hex")).toBe(createHash("sha256").update(await derived.body()).digest("hex"));
+      const displayedReplay = await customer.request.get(decoded.currentSrc, { maxRetries: 0, maxRedirects: 0, timeout: 10_000 });
+      expect(displayedReplay.status()).toBe(200);
+      expect(createHash("sha256").update(await displayedReplay.body()).digest("hex")).toBe(displayedMediaSha256);
+      const state = await capturePaymentState(pool, orderId, productId);
+      const proof = await provePreviewAssertions({ settings: preview, browser, admin: page, customer, orderId, mediaUrl: uploaded.url, customerPhone, state });
+      previewChecks = { ...proof, newT25: true, paymentReceiptDedup: true, mediaHashes: true };
+    }
     if (process.env.QA_RETAIN_RESTORE_FIXTURE === "1" && info.project.name === "chromium") {
       if (!process.env.E2E_BASE_URL || new URL(baseURL!).port !== "3100") throw new Error("Retained restore fixture must be created through the actual staging SSH tunnel, not local Windows media storage");
       await mkdir(".local", { recursive: true });
       await writeFile(".local/restore-acceptance.json", JSON.stringify({ fixtureId: fixture, createdAt: new Date().toISOString(), baseURL, phone: customerPhone, orderId, productId, media: [{ url: uploaded.url, sha256: createHash("sha256").update(await derived.body()).digest("hex") }], expected: { paymentStatus: "paid", stockOnHand: 2, stockReserved: 0, receipts: 1, shipments: 1, trackingCode: `QA-TRACK-${fixture.slice(0, 8)}`, unitPriceIrr: "1234560" } }), { mode: 0o600 });
       retainCustomer = true;
     }
+  } catch (error) {
+    // Do not expose Basic credentials from transport call logs/causes. Existing
+    // non-preview failure behavior remains unchanged.
+    // eslint-disable-next-line preserve-caught-error
+    if (preview) throw new Error("Private preview purchase failed; private details withheld.");
+    throw error;
   } finally {
     if (productId && !retainCustomer) await pool.query("UPDATE product SET status='archived' WHERE id=$1", [productId]);
     const disablePhones = retainCustomer ? [otherPhone] : [customerPhone, otherPhone];
     await pool.query('UPDATE "user" SET disabled=true WHERE id=$1 OR phone_number=ANY($2::text[])', [adminId, disablePhones]);
     await pool.query("DELETE FROM session WHERE user_id IN(SELECT id FROM \"user\" WHERE id=$1 OR phone_number=ANY($2::text[]))", [adminId, disablePhones]);
     await customer.close();
+    if (previewAdmin) await previewAdmin.close();
     await pool.end();
   }
+  if (preview && previewChecks) recordPreviewProof(info, preview, previewChecks);
 });
