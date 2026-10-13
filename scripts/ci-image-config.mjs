@@ -3,7 +3,7 @@ import { parse } from "dotenv";
 
 if (process.env.CI !== "true") throw new Error("CI-only synthetic image configuration generator");
 const settings=parse(await readFile(".env.local","utf8"));
-const keys=["DATABASE_URL","AUTH_SECRET","ADMIN_AUTH_SECRET","MOCK_CONTROL_SECRET","APP_BASE_URL","PAYMENT_PROVIDER","SMS_PROVIDER"];
+const keys=["DATABASE_URL","AUTH_SECRET","ADMIN_AUTH_SECRET","MOCK_CONTROL_SECRET","APP_BASE_URL","PAYMENT_PROVIDER","SMS_PROVIDER","ANONYMOUS_ANALYTICS_ENABLED"];
 const runtime=Object.fromEntries(keys.map(key=>{
   if(!settings[key]) throw new Error(`Missing synthetic configuration key: ${key}`);
   return [key,settings[key]];

@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "engine": "webkit",
+  "source": "retained-native-browser-network-trace",
+  "scope": "before-collector-route-installation",
+  "records": [
+    {
+      "kind": "config",
+      "status": 200,
+      "cookiePresent": true,
+      "authorizationPresent": false,
+      "referrerPresent": false,
+      "controlHeaderPresent": false,
+      "originMatchesCanonical": false,
+      "originIsNull": false
+    },
+    {
+      "kind": "event",
+      "status": 202,
+      "cookiePresent": true,
+      "authorizationPresent": false,
+      "referrerPresent": false,
+      "controlHeaderPresent": false,
+      "originMatchesCanonical": true,
+      "originIsNull": false
+    },
+    {
+      "kind": "config",
+      "status": 200,
+      "cookiePresent": true,
+      "authorizationPresent": false,
+      "referrerPresent": false,
+      "controlHeaderPresent": false,
+      "originMatchesCanonical": false,
+      "originIsNull": false
+    },
+    {
+      "kind": "event",
+      "status": 202,
+      "cookiePresent": true,
+      "authorizationPresent": false,
+      "referrerPresent": false,
+      "controlHeaderPresent": false,
+      "originMatchesCanonical": true,
+      "originIsNull": false
+    },
+    {
+      "kind": "event",
+      "status": 202,
+      "cookiePresent": true,
+      "authorizationPresent": false,
+      "referrerPresent": false,
+      "controlHeaderPresent": false,
+      "originMatchesCanonical": true,
+      "originIsNull": false
+    },
+    {
+      "kind": "config",
+      "status": 200,
+      "cookiePresent": false,
+      "authorizationPresent": false,
+      "referrerPresent": false,
+      "controlHeaderPresent": false,
+      "originMatchesCanonical": false,
+      "originIsNull": false
+    }
+  ],
+  "serverReceivedHeaderProved": false,
+  "cookieCauseClassified": false
+}

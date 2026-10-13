@@ -22,14 +22,19 @@ export function validateOperatorConfigs(app, connections, profile, trusted) {
     if (typeof trusted[key] !== 'string' || !pattern.test(trusted[key]) || profile[key] !== trusted[key]) throw Error('Untrusted runtime release identity');
   }
   if (profile.opsRoot !== `/srv/morphiume/staging/runtime/releases/${profile.sourceCommit}/ops-bundles/${profile.opsSha256}/ops`) throw Error('Untrusted runtime Ops path');
-  if (!app || Object.keys(app).sort().join(',') !== 'ADMIN_AUTH_SECRET,APP_BASE_URL,AUTH_SECRET,DATABASE_URL,MEDIA_ROOT,MOCK_CONTROL_SECRET,PAYMENT_PROVIDER,SMS_PROVIDER' || Object.values(app).some(value => typeof value !== 'string' || value.includes('\0')) || app.APP_BASE_URL !== profile.origin || app.MEDIA_ROOT !== '/app/media' || app.PAYMENT_PROVIDER !== 'mock' || app.SMS_PROVIDER !== 'mock') throw Error('Invalid isolated runtime configuration');
+  const analyticsKey = 'ANONYMOUS_ANALYTICS_ENABLED';
+  const appKeys = ['ADMIN_AUTH_SECRET', 'APP_BASE_URL', 'AUTH_SECRET', 'DATABASE_URL', 'MEDIA_ROOT', 'MOCK_CONTROL_SECRET', 'PAYMENT_PROVIDER', 'SMS_PROVIDER'];
+  if (app && Object.hasOwn(app, analyticsKey)) appKeys.push(analyticsKey);
+  if (!app || typeof app !== 'object' || Array.isArray(app) || Object.keys(app).sort().join(',') !== appKeys.sort().join(',') || Object.values(app).some(value => typeof value !== 'string' || value.includes('\0')) || app.APP_BASE_URL !== profile.origin || app.MEDIA_ROOT !== '/app/media' || app.PAYMENT_PROVIDER !== 'mock' || app.SMS_PROVIDER !== 'mock') throw Error('Invalid isolated runtime configuration');
+  const analytics = Object.hasOwn(app, analyticsKey) ? app[analyticsKey] : 'false';
+  if (!['true', 'false'].includes(analytics)) throw Error('Invalid explicit anonymous analytics setting');
   if (canonicalHash(app) !== profile.configSha256?.['app.json']) throw Error('Private runtime config differs from profile');
   const keys = [app.AUTH_SECRET, app.ADMIN_AUTH_SECRET, app.MOCK_CONTROL_SECRET];
   if (new Set(keys).size !== 3 || keys.some(value => !/^[a-f0-9]{64}$/.test(value))) throw Error('Invalid independent runtime keys');
   const match = /^postgresql:\/\/morphiume_runtime_app:([a-f0-9]{64})@db:5432\/morphiume_staging_runtime$/.exec(app.DATABASE_URL);
   if (!match || !connections || Object.keys(connections).sort().join(',') !== 'databaseUrl,migrationDatabaseUrl' || connections.databaseUrl !== `postgresql://morphiume_runtime_app:${match[1]}@127.0.0.1:15434/morphiume_staging_runtime` || !/^postgresql:\/\/morphiume_runtime_owner:[a-f0-9]{64}@127\.0\.0\.1:15434\/morphiume_staging_runtime$/.test(connections.migrationDatabaseUrl)) throw Error('Wrong database/role/tunnel or URI override');
   // Owner credentials do not enter an ordinary browser/load process.
-  return { ...app, DATABASE_URL: connections.databaseUrl, APP_BASE_URL: profile.origin, E2E_BASE_URL: profile.origin, NODE_ENV: 'production', DEPLOYMENT_ENV: 'staging' };
+  return { ...app, ANONYMOUS_ANALYTICS_ENABLED: analytics, DATABASE_URL: connections.databaseUrl, APP_BASE_URL: profile.origin, E2E_BASE_URL: profile.origin, NODE_ENV: 'production', DEPLOYMENT_ENV: 'staging' };
 }
 
 function privateJson(name) {
@@ -53,7 +58,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     }));
     const env = validateOperatorConfigs(privateJson('runtime-app.json'), privateJson('runtime-connections.json'), privateJson('runtime-profile.json'), trusted);
     const processEnv = { ...process.env };
-    for (const key of ['DATABASE_URL', 'MIGRATION_DATABASE_URL', 'APP_BASE_URL', 'E2E_BASE_URL', 'AUTH_SECRET', 'ADMIN_AUTH_SECRET', 'MOCK_CONTROL_SECRET', 'BOOTSTRAP_ADMIN_EMAIL', 'BOOTSTRAP_ADMIN_PASSWORD', 'ZARINPAL_MERCHANT_ID', 'SMS_API_KEY', 'SMS_SERVICE_TEMPLATE', 'PUBLIC_SITE_URL', 'OBJECT_STORAGE_ENDPOINT']) delete processEnv[key];
+    for (const key of ['DATABASE_URL', 'MIGRATION_DATABASE_URL', 'APP_BASE_URL', 'E2E_BASE_URL', 'AUTH_SECRET', 'ADMIN_AUTH_SECRET', 'MOCK_CONTROL_SECRET', 'ANONYMOUS_ANALYTICS_ENABLED', 'BOOTSTRAP_ADMIN_EMAIL', 'BOOTSTRAP_ADMIN_PASSWORD', 'ZARINPAL_MERCHANT_ID', 'SMS_API_KEY', 'SMS_SERVICE_TEMPLATE', 'PUBLIC_SITE_URL', 'OBJECT_STORAGE_ENDPOINT']) delete processEnv[key];
     const child = spawn(process.argv[separator + 1], process.argv.slice(separator + 2), { env: { ...processEnv, ...env }, stdio: 'inherit', shell: false, windowsHide: true });
     child.on('error', () => { process.stderr.write('Operator process failed to start.\n'); process.exitCode = 1; });
     child.on('exit', code => { process.exitCode = code ?? 1; });

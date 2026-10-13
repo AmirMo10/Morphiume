@@ -3,6 +3,7 @@ export const HTTP_RESPONSE_STAGES = Object.freeze([
   "product-update", "product-publish", "product-read", "product-import",
   "product-export", "product-lock-revocation", "role-revoke",
   "admin-session-read", "admin-http-session-read",
+  "analytics-config", "analytics-capture", "analytics-period", "analytics-denied",
 ]);
 const stages = new Set(HTTP_RESPONSE_STAGES);
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;

@@ -7,6 +7,7 @@ import { MAX_MONEY_IRR, moneyDto, normalizeDigits, normalizeIranPhone, percentag
 import { ROLE_PERMISSIONS } from "./permissions";
 import { normalizeSearch } from "../../lib/persian";
 import { tomanToIrr as rangeTomanToIrr } from "../../lib/money";
+import { notificationTemplate } from "../jobs/notification-events";
 
 type Row = Record<string, unknown>;
 type Connection = Pool | PoolClient;
@@ -163,10 +164,19 @@ export function createCommerce(options: CommerceOptions) {
   async function audit(db: Connection, actor: Actor, action: string, entityType: string, entityId: string, reason: string) {
     await db.query("INSERT INTO audit_event(id,actor_id,action,entity_type,entity_id,reason) VALUES($1,$2,$3,$4,$5,$6)",[randomUUID(),actor.userId,action,entityType,entityId,reason]);
   }
-  async function event(db: Connection, orderId: string, type: string, key: string, actorId?: string) {
-    await db.query("INSERT INTO order_event(id,order_id,event_key,type,actor_id) VALUES($1,$2,$3,$4,$5) ON CONFLICT(event_key) DO NOTHING",[randomUUID(),orderId,key,type,actorId ?? null]);
+  async function event(db: PoolClient, orderId: string, type: string, key: string, actorId?: string) {
+    const inserted=await one(db,"INSERT INTO order_event(id,order_id,event_key,type,actor_id) VALUES($1,$2,$3,$4,$5) ON CONFLICT(event_key) DO NOTHING RETURNING id",[randomUUID(),orderId,key,type,actorId ?? null]);
+    if(inserted){
+      const id=text(inserted,"id");
+      if(notificationTemplate(type))await enqueue(db,"notification.event",`notification:event:${id}`,{eventId:id,orderId});
+      return {id,inserted:true};
+    }
+    const existing=await one(db,"SELECT id,order_id,type FROM order_event WHERE event_key=$1",[key]);
+    if(!existing || existing.order_id!==orderId || existing.type!==type)fail("CONFLICT","رویداد سفارش با سابقهٔ ثبت‌شده سازگار نیست.",409);
+    // A pre-cutover/replayed event keeps its canonical ID and gets no historical notification job.
+    return {id:text(existing,"id"),inserted:false};
   }
-  async function enqueue(db: Connection, type: string, key: string, payload: object) {
+  async function enqueue(db: PoolClient, type: string, key: string, payload: object) {
     await db.query("INSERT INTO outbox_job(id,type,dedupe_key,payload) VALUES($1,$2,$3,$4::jsonb) ON CONFLICT(dedupe_key) DO NOTHING",[randomUUID(),type,key,JSON.stringify(payload)]);
   }
   const readyGallerySql="SELECT pi.*,v.sku AS variant_sku FROM product_image pi LEFT JOIN variant v ON v.id=pi.variant_id LEFT JOIN media m ON m.id=pi.media_id WHERE pi.product_id=ANY($1::uuid[]) AND ($2::boolean OR pi.media_id IS NOT NULL) AND (pi.media_id IS NULL OR (m.status='ready' AND m.mime_type='image/webp')) ORDER BY pi.product_id,pi.position";
@@ -465,7 +475,7 @@ export function createCommerce(options: CommerceOptions) {
       await db.query("INSERT INTO payment_attempt(id,order_id,provider,merchant_key,amount_irr) VALUES($1,$2,$3,$4,$5)",[attemptId,orderId,payments.name,merchantKey,quote.total.amountIrr]);
       await enqueue(db,"payment.initialize",`initialize:${attemptId}`,{attemptId});
       await db.query("UPDATE checkout_idempotency SET order_id=$1,attempt_id=$2 WHERE user_id=$3 AND operation='checkout' AND key=$4",[orderId,attemptId,actor.userId,key]);
-      await event(db,orderId,"order.created",`created:${orderId}`,actor.userId);await enqueue(db,"order.created",`order-created:${orderId}`,{orderId});
+      await event(db,orderId,"order.created",`created:${orderId}`,actor.userId);
       await db.query("DELETE FROM cart_item WHERE cart_id=$1",[cart.id]);
       await db.query("UPDATE cart SET user_id=$1,guest_token_digest=$2,coupon_code=NULL,version=version+1,updated_at=now() WHERE id=$3",[actor.userId,digest(randomBytes(32).toString("base64url")),cart.id]);
       await assertCurrentCustomer(db,actor,true);return {orderId,attemptId};
@@ -506,9 +516,9 @@ export function createCommerce(options: CommerceOptions) {
         if(canCommit && couponAvailable && order.status!=="cancelled" && !cancelled){
           for(const reservation of reservations){const reserved=reservation.status==="active" ? number(reservation,"quantity") : 0;await db.query("UPDATE inventory_balance SET on_hand=on_hand-$1,reserved=reserved-$2 WHERE variant_id=$3",[reservation.quantity,reserved,reservation.variant_id]);await db.query("UPDATE inventory_reservation SET status='consumed' WHERE id=$1",[reservation.id]);await db.query("INSERT INTO inventory_ledger(id,variant_id,order_id,operation_key,on_hand_delta,reserved_delta,reason) VALUES($1,$2,$3,$4,$5,$6,'payment_commit') ON CONFLICT(operation_key) DO NOTHING",[randomUUID(),reservation.variant_id,order.id,`commit:${order.id}:${reservation.variant_id}`,-number(reservation,"quantity"),-reserved]);}
           await db.query("UPDATE orders SET status='confirmed',payment_status='paid',committed_at=now(),updated_at=now() WHERE id=$1",[order.id]);await db.query("UPDATE coupon_redemption SET status='consumed' WHERE order_id=$1",[order.id]);await db.query("INSERT INTO shipment(id,order_id) VALUES($1,$2) ON CONFLICT(order_id) DO NOTHING",[randomUUID(),order.id]);disposition="primary";
-          await event(db,text(order,"id"),"payment.verified",`paid:${order.id}`);await enqueue(db,"order.paid",`order-paid:${order.id}`,{orderId:order.id});
-        }else{disposition="inventory_exception";await db.query("UPDATE orders SET status='payment_exception',payment_status='paid',updated_at=now() WHERE id=$1",[order.id]);await event(db,text(order,"id"),"payment.inventory_exception",`exception:${attempt.id}`);await enqueue(db,"payment.exception",`exception:${attempt.id}`,{orderId:order.id,attemptId:attempt.id});}
-      }else{await event(db,text(order,"id"),"payment.extra_receipt",`extra:${attempt.id}:${receipt.providerRef}`);await enqueue(db,"payment.exception",`extra:${attempt.id}:${receipt.providerRef}`,{orderId:order.id,attemptId:attempt.id});}
+          await event(db,text(order,"id"),"payment.verified",`paid:${order.id}`);
+        }else{disposition="inventory_exception";await db.query("UPDATE orders SET status='payment_exception',payment_status='paid',updated_at=now() WHERE id=$1",[order.id]);await event(db,text(order,"id"),"payment.inventory_exception",`exception:${attempt.id}`);}
+      }else{await event(db,text(order,"id"),"payment.extra_receipt",`extra:${attempt.id}:${receipt.providerRef}`);}
       await db.query("INSERT INTO payment_receipt(id,attempt_id,order_id,provider,merchant_key,provider_ref,amount_irr,currency,disposition) VALUES($1,$2,$3,$4,$5,$6,$7,'IRR',$8)",[randomUUID(),attempt.id,order.id,payments.name,merchantKey,receipt.providerRef,attempt.amount_irr,disposition]);
       await db.query("UPDATE payment_attempt SET status='succeeded',updated_at=now() WHERE id=$1",[attempt.id]);await db.query("INSERT INTO payment_event(id,attempt_id,event_key,type,code) VALUES($1,$2,$3,'verified',$4) ON CONFLICT(event_key) DO NOTHING",[randomUUID(),attempt.id,`verified:${attempt.id}:${receipt.providerRef}`,receipt.alreadyVerified ? "101" : "100"]);
       return {orderId:text(order,"id"),status:"paid"};
@@ -568,7 +578,7 @@ export function createCommerce(options: CommerceOptions) {
       if(!["paid","partially_refunded"].includes(text(order,"payment_status")))fail("NOT_ELIGIBLE","این سفارش آمادهٔ ارسال نیست.",409);
       await db.query("UPDATE shipment SET carrier=$1,tracking_code=$2,status=$3,shipped_at=coalesce(shipped_at,now()),updated_at=now() WHERE order_id=$4",[carrier,trackingCode,input.status,orderId]);
       if(input.status==="delivered")await db.query("UPDATE orders SET status='completed',updated_at=now() WHERE id=$1",[orderId]);
-      await event(db,orderId,`shipment.${input.status}`,`shipment:${orderId}:${input.status}`,actor.userId);await enqueue(db,"shipment.updated",`shipment:${orderId}:${input.status}`,{orderId});await audit(db,actor,"shipment.updated","order",orderId,input.status);
+      await event(db,orderId,`shipment.${input.status}`,`shipment:${orderId}:${input.status}`,actor.userId);await audit(db,actor,"shipment.updated","order",orderId,input.status);
     });return getOrder(actor,orderId);
   }
   async function adjustInventory(actor:Actor,variantId:string,delta:number,reason:string,operationKey:string){if(!Number.isInteger(delta) || Math.abs(delta)>100000)fail("VALIDATION","تغییر موجودی معتبر نیست.");boundedString(reason,"دلیل",500);boundedString(operationKey,"شناسهٔ عملیات",128,8);return transaction(async(db)=>{await assertActor(db,actor,"inventory.write");const prior=await one(db,"SELECT * FROM inventory_ledger WHERE operation_key=$1",[operationKey]);if(prior){if(prior.variant_id!==variantId || prior.on_hand_delta!==delta || prior.reason!==reason)fail("CONFLICT","شناسهٔ عملیات برای تغییر دیگری استفاده شده است.",409);return;}const balance=await one(db,"SELECT * FROM inventory_balance WHERE variant_id=$1 FOR UPDATE",[variantId]);if(!balance)return fail("NOT_FOUND","کالا پیدا نشد.",404);if(number(balance,"on_hand")+delta<number(balance,"reserved"))fail("CONFLICT","موجودی از رزروهای فعال کمتر می‌شود.",409);await db.query("UPDATE inventory_balance SET on_hand=on_hand+$1 WHERE variant_id=$2",[delta,variantId]);await db.query("INSERT INTO inventory_ledger(id,variant_id,operation_key,on_hand_delta,reserved_delta,reason,actor_id) VALUES($1,$2,$3,$4,0,$5,$6)",[randomUUID(),variantId,operationKey,delta,reason,actor.userId]);await audit(db,actor,"inventory.adjusted","variant",variantId,reason);});}

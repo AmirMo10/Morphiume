@@ -161,3 +161,79 @@ raise SystemExit(0 if result.wasSuccessful() else 1)
   const child = spawnSync("python", ["-B", "-c", script, resolve("deploy/staging/post-restore/measure-591-health-remote.py")], { encoding: "utf8", input: JSON.stringify(request()), timeout: 15000, windowsHide: true });
   assert.equal(child.status, 0, child.stderr); const result = JSON.parse(child.stdout.trim()); assert.equal(result.pythonPureCases, 18); assert.equal(result.failures, 0); assert.equal(result.errors, 0); assert.equal(result.realCommands, 0);
 });
+
+test("actual Linux repeated ExecStartPre formatting passes while scalar and execution guards stay strict", () => {
+  const script = String.raw`
+import importlib.util,json,sys,unittest
+from pathlib import PurePosixPath
+from unittest.mock import patch
+spec=importlib.util.spec_from_file_location('parser_test',sys.argv[1]);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+for name in ('ROOT','CONFIG','OPS_ROOT','CACHE','RESTORE','BACKUP'):setattr(m,name,PurePosixPath(getattr(m,name).as_posix()))
+m.TARGETS={name:PurePosixPath(path.as_posix()) for name,path in m.TARGETS.items()}
+# Exact old properties body from published52/79e; actual bytes were preserved
+# and separately tested before integration. This fixture needs no Git/remote.
+class Published79Runner(m.Runner):
+ def properties(self,unit=m.UNIT):
+  selected=m.PROPERTIES if unit==m.UNIT else ('LoadState','ActiveState','UnitFileState')
+  raw=self.run(['systemctl','show',unit,'--property='+','.join(selected)])
+  pairs=[line.split('=',1) for line in raw.splitlines() if '=' in line];m.require(len(pairs)==len({p[0] for p in pairs}))
+  return dict(pairs)
+def pre(flag):return '{ path=/usr/bin/test ; argv[]=/usr/bin/test ! '+flag+' '+str(m.CACHE)+' ; ignore_errors=no ; start_time=[n/a] ; stop_time=[n/a] ; pid=0 ; code=(null) ; status=0/0 }'
+def props():
+ return {'LoadState':'loaded','FragmentPath':'/etc/systemd/system/'+m.UNIT,'Type':'oneshot','User':'root','UMask':'0077','WorkingDirectory':str(m.CONFIG),'NoNewPrivileges':'yes','PrivateTmp':'yes','ProtectHome':'yes','ProtectSystem':'strict','MemoryMax':'268435456','CPUAccounting':'yes','MemoryAccounting':'yes','Restart':'no','RemainAfterExit':'no','StandardOutput':'journal','StandardError':'journal','UnitFileState':'static','CPUQuotaPerSecUSec':'1s','TimeoutStartUSec':'50s','TimeoutStopUSec':'5s','DropInPaths':' '.join(map(str,m.TARGETS.values())),'EnvironmentFiles':str(m.CONFIG/'deploy.env')+' (ignore_errors=no)','Environment':'PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX='+str(m.CACHE),'UnsetEnvironment':'PYTHONPATH PYTHONHOME PYTHONSTARTUP PYTHONCASEOK','ExecStart':'{ path=/usr/bin/python3 ; argv[]=/usr/bin/python3 '+str(m.OPS_ROOT/'runtime/scheduled.py')+' health --apply ; ignore_errors=no ; }','ActiveState':'inactive','InvocationID':'','ExecMainStartTimestampMonotonic':'0'}
+def raw():return ''.join(key+'='+value+'\n' for key,value in props().items())+'ExecStartPre='+pre('-e')+'\nExecStartPre='+pre('-L')+'\n'
+def response(value):return type('Result',(),{'stdout':value,'stderr':'','returncode':0})()
+class Parser(unittest.TestCase):
+ def test_published79_rejects_actual_collection_before_start(self):
+  with patch.object(m.subprocess,'run',return_value=response(raw())) as command:
+   runner=Published79Runner()
+   with self.assertRaises(ValueError):runner.properties()
+   self.assertEqual(runner.starts,0);self.assertEqual(command.call_count,1);self.assertEqual(command.call_args.args[0][:2],['systemctl','show'])
+ def test_fixed_same_collection_all_effective_guards_pass(self):
+  with patch.object(m.subprocess,'run',return_value=response(raw())) as command:
+   runner=m.Runner();value=runner.properties();m.validate_effective(value)
+   self.assertEqual(m.argv_vectors(value['ExecStartPre']),[['/usr/bin/test','!','-e',str(m.CACHE)],['/usr/bin/test','!','-L',str(m.CACHE)]])
+   self.assertEqual(runner.starts,0);self.assertEqual(command.call_count,1)
+ def test_prior_joined_mock_form_still_passes(self):
+  value=raw().replace('ExecStartPre='+pre('-e')+'\nExecStartPre='+pre('-L'),'ExecStartPre='+pre('-e')+' '+pre('-L'));m.validate_effective(m.parse_properties(value))
+ def test_every_duplicate_scalar_rejected(self):
+  for key in m.PROPERTIES:
+   if key=='ExecStartPre':continue
+   with self.subTest(key=key),self.assertRaises(ValueError):m.parse_properties(key+'=synthetic\n'+key+'=synthetic\n')
+ def test_unknown_property_rejected(self):
+  with self.assertRaises(ValueError):m.parse_properties(raw()+'UnknownField=ignored\n')
+ def test_unstructured_stdout_rejected(self):
+  with self.assertRaises(ValueError):m.parse_properties(raw()+'unstructured line\n')
+ def test_third_precheck_rejected(self):
+  with self.assertRaises(ValueError):m.parse_properties(raw()+'ExecStartPre='+pre('-e')+'\n')
+ def test_repeated_identical_precheck_rejected(self):
+  with self.assertRaises(ValueError):m.parse_properties(raw().replace(pre('-L'),pre('-e')))
+ def test_wrong_order_rejected(self):
+  value=''.join(key+'='+value+'\n' for key,value in props().items())+'ExecStartPre='+pre('-L')+'\nExecStartPre='+pre('-e')+'\n'
+  with self.assertRaises(ValueError):m.parse_properties(value)
+ def test_wrong_prefix_rejected(self):
+  with self.assertRaises(ValueError):m.parse_properties(raw().replace(str(m.CACHE),'/unreviewed-cache'))
+ def test_extra_hidden_vector_rejected(self):
+  with self.assertRaises(ValueError):m.parse_properties(raw().replace(pre('-L'),pre('-L')+' '+pre('-e')))
+ def test_missing_guard_rejected(self):
+  with self.assertRaises(ValueError):m.parse_properties(raw().replace('ExecStartPre='+pre('-L')+'\n',''))
+ def test_ignore_errors_true_rejected(self):
+  with self.assertRaises(ValueError):m.parse_properties(raw().replace('ignore_errors=no','ignore_errors=yes'))
+ def test_empty_not_found_collection_only_once(self):
+  self.assertEqual(m.parse_properties('LoadState=not-found\nExecStartPre=\n')['ExecStartPre'],'')
+  with self.assertRaises(ValueError):m.parse_properties('ExecStartPre=\nExecStartPre=\n')
+  with self.assertRaises(ValueError):m.validate_effective(props()|{'ExecStartPre':''})
+ def test_health_budgets_still_exact(self):
+  for key,value in (('CPUQuotaPerSecUSec','2s'),('MemoryMax','536870912'),('TimeoutStartUSec','120s'),('TimeoutStopUSec','60s')):
+   parsed=m.parse_properties(raw());parsed[key]=value
+   with self.subTest(key=key),self.assertRaises(ValueError):m.validate_effective(parsed)
+ def test_selected_daemon_scope_rejects_health_collection(self):
+  self.assertEqual(m.parse_properties('LoadState=loaded\nActiveState=active\nUnitFileState=enabled\n',('LoadState','ActiveState','UnitFileState'))['ActiveState'],'active')
+  with self.assertRaises(ValueError):m.parse_properties(raw(),('LoadState','ActiveState','UnitFileState'))
+suite=unittest.defaultTestLoader.loadTestsFromTestCase(Parser);result=unittest.TextTestRunner(verbosity=0).run(suite)
+print(json.dumps({'pythonParserCases':result.testsRun,'failures':len(result.failures),'errors':len(result.errors),'realCommands':0,'oldOpsImports':0}))
+raise SystemExit(0 if result.wasSuccessful() else 1)
+`;
+  const child = spawnSync("python", ["-B", "-c", script, resolve("deploy/staging/post-restore/measure-591-health-remote.py")], { encoding: "utf8", timeout: 15000, windowsHide: true });
+  assert.equal(child.status, 0, child.stderr); const result = JSON.parse(child.stdout.trim()); assert.equal(result.pythonParserCases, 16); assert.equal(result.failures, 0); assert.equal(result.errors, 0); assert.equal(result.realCommands, 0); assert.equal(result.oldOpsImports, 0);
+});

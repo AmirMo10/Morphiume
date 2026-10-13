@@ -14,6 +14,7 @@ vi.mock("@/server/admin", () => ({ getSettings: vi.fn(), saveSettings: vi.fn(), 
 vi.mock("@/server/media", () => ({ uploadMedia: vi.fn() }));
 vi.mock("@/server/shipping", () => ({ getShippingSettings: vi.fn(), saveShippingSettings: vi.fn() }));
 vi.mock("@/server/presentation", () => ({ getPresentation: vi.fn(), getAdminPresentation: vi.fn(), savePresentation: vi.fn() }));
+vi.mock("@/server/notifications", () => ({ getNotificationFeed: vi.fn() }));
 vi.mock("@/server/observability", () => ({ withRequestContext: (_request: Request, run: () => unknown) => run(), finishRequest: (response: Response) => response, unexpectedFailureCategory: () => "unexpected", recordCommerceResponse: vi.fn() }));
 
 const cartId = randomUUID(), variantId = randomUUID(), otherCartId = randomUUID(), token = randomBytes(32).toString("base64url");

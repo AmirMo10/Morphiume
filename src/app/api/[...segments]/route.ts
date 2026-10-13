@@ -15,6 +15,10 @@ import { getShippingSettings, saveShippingSettings } from "@/server/shipping";
 import { recordCommerceResponse } from "@/server/observability";
 import { getPresentation, getAdminPresentation, savePresentation } from "@/server/presentation";
 import { exportCsv } from "@/server/export-csv";
+import { analyticsCaptureEnabled, getAnalyticsRuntime } from "@/server/analytics-runtime";
+import { getAnalytics } from "@/server/analytics";
+import { getNotificationFeed } from "@/server/notifications";
+import { assertRuntimeSchema } from "@/server/runtime-schema";
 
 export const runtime = "nodejs";
 const id = z.uuid();
@@ -23,6 +27,7 @@ const address = z.object({ recipient: z.string().min(1).max(120), phone: z.strin
 const productImage = z.object({url:z.string().max(128),alt:z.string().max(240),variantSku:z.string().max(64).nullable().optional()}).strict();
 const product = z.object({ name: z.string().min(1).max(160), slug: z.string().max(160), description: z.string().max(10000), shortDescription:z.string().trim().max(600).optional(), careInstructions:z.string().trim().max(4000).optional(), approvedWarnings:z.string().trim().max(4000).optional(), concentration: z.string().max(80), family: z.string().max(80), topNotes: z.array(z.string().max(120)).max(30), heartNotes: z.array(z.string().max(120)).max(30), baseNotes: z.array(z.string().max(120)).max(30), imageUrl: z.string().max(500).optional(), images:z.array(productImage).max(10).optional(), variants: z.array(z.object({ sku: z.string().max(64), volumeMl: z.number().int().positive().max(5000), priceToman: z.string().max(20), initialStock: z.number().int().min(0).max(100000).optional() }).strict()).min(1).max(20) }).strict();
 const paging=z.object({page:z.coerce.number().int().positive().max(100000).optional(),pageSize:z.coerce.number().int().positive().max(100).optional()});
+const notificationPage=paging.extend({unreadOnly:z.enum(["true","false"]).transform(value=>value==="true").optional()}).strict();
 const productPage=paging.extend({search:z.string().max(120).optional(),family:z.string().max(80).optional(),concentration:z.string().max(80).optional(),note:z.string().max(120).optional(),minPriceToman:z.string().max(30).optional(),maxPriceToman:z.string().max(30).optional(),volumeMl:z.coerce.number().int().positive().max(5000).optional(),available:z.enum(["true","false"]).transform(value=>value==="true").optional(),sort:z.enum(["name","price_asc","price_desc"]).optional()}).strict();
 const orderPage=paging.extend({search:z.string().max(100).optional(),status:z.enum(["awaiting_payment","confirmed","payment_exception","cancelled","completed"]).optional(),paymentStatus:z.enum(["pending","paid","partially_refunded","refunded","failed","unknown"]).optional()}).strict();
 const collectionIndexPage=paging.extend({search:z.string().max(120).optional()}).strict();
@@ -30,6 +35,14 @@ const adminCollectionIndexPage=collectionIndexPage.extend({published:z.enum(["tr
 const collectionProductsPage=productPage.extend({sort:z.enum(["position","name","price_asc","price_desc"]).optional()});
 function pageQuery(request:NextRequest,keys:string[]) {
   return Object.fromEntries(keys.filter(key=>request.nextUrl.searchParams.has(key)).map(key=>[key,request.nextUrl.searchParams.get(key)]));
+}
+function strictQuery(request:NextRequest,keys:string[]) {
+  const entries=[...request.nextUrl.searchParams.entries()],seen=new Set<string>();
+  for(const [key] of entries) {
+    if(!keys.includes(key) || seen.has(key)) throw new CommerceError("VALIDATION","پارامتر درخواست معتبر نیست.",400);
+    seen.add(key);
+  }
+  return Object.fromEntries(entries);
 }
 const productPageKeys=["page","pageSize","search","family","concentration","note","minPriceToman","maxPriceToman","volumeMl","available","sort"];
 const orderPageKeys=["page","pageSize","search","status","paymentStatus"];
@@ -87,7 +100,13 @@ async function dispatch(request: NextRequest): Promise<Response> {
   const method = request.method;
   const commerce = getCommerce();
   if (route === "health/live" && method === "GET") return success({ status: "alive", environment: getConfig().DEPLOYMENT_ENV });
-  if (route === "health/ready" && method === "GET") { await pool.query("SELECT 1"); return success({ status: "ready" }); }
+  if (route === "health/ready" && method === "GET") { await assertRuntimeSchema(pool); return success({ status: "ready" }); }
+  if (route === "analytics/config" && method === "GET") return success({ captureEnabled: analyticsCaptureEnabled() });
+  if (route === "analytics/events" && method === "POST") {
+    if (!/^application\/json(?:\s*;|$)/i.test(request.headers.get("content-type") ?? "")) throw new CommerceError("VALIDATION", "قالب درخواست معتبر نیست.", 415);
+    return success(await getAnalyticsRuntime().captureBrowserEvent(await body(request, 1024)), 202);
+  }
+  if (route === "admin/analytics/period" && method === "GET") return success(await getAnalytics(await adminActor(request.headers, "analytics.read"), strictQuery(request, ["from", "to"])));
   if (route === "catalog/page" && method === "GET") return success(await commerce.listProductsPage(productPage.parse(pageQuery(request,productPageKeys))));
   if (route === "catalog/resolve" && method === "GET") {
     const raw=z.string().max(37000).parse(request.nextUrl.searchParams.get("ids") ?? "");
@@ -166,8 +185,12 @@ async function dispatch(request: NextRequest): Promise<Response> {
   }
   if (path[0] === "notifications") {
     const actor=(await customerActor(request.headers))!;
-    if(method === "GET" && path.length === 1) return success((await pool.query("SELECT id,title,body,created_at AS \"createdAt\",read_at AS \"readAt\" FROM notification_message WHERE user_id=$1 ORDER BY created_at DESC LIMIT 100",[actor.userId])).rows);
-    if(method === "PATCH" && path.length === 2) {const updated=await pool.query("UPDATE notification_message SET read_at=coalesce(read_at,now()) WHERE id=$1 AND user_id=$2 RETURNING id,read_at AS \"readAt\"",[id.parse(path[1]),actor.userId]);if(!updated.rowCount)return missing();return success(updated.rows[0]);}
+    const feed=getNotificationFeed();
+    if(method === "GET" && path.length === 1) return success((await feed.listCustomerNotifications(actor,{pageSize:100})).items);
+    if(method === "GET" && path.length === 2 && path[1] === "page") return success(await feed.listCustomerNotifications(actor,notificationPage.parse(strictQuery(request,["page","pageSize","unreadOnly"]))));
+    if(method === "GET" && path.length === 2) return success(await feed.getNotification(actor,id.parse(path[1]),"customer"));
+    if(method === "PATCH" && path.length === 2) {z.object({}).strict().parse(await body(request,256));return success(await feed.markNotificationRead(actor,id.parse(path[1]),"customer"));}
+    return missing();
   }
   if (route === "test/otp" && method === "GET") {
     const config = getConfig();
@@ -194,6 +217,13 @@ async function dispatch(request: NextRequest): Promise<Response> {
   }
   if (route === "admin/session" && method === "GET") { const state = await adminSession(request.headers); return success({user:state.user,role:state.role,roles:state.roles,permissions:state.permissions,mfaRequired:state.mfaRequired,mfaVerified:state.mfaVerified}); }
   if (path[0] === "admin") {
+    if(path[1] === "notifications") {
+      const actor=await adminActor(request.headers),feed=getNotificationFeed();
+      if(method === "GET" && (path.length === 2 || (path.length === 3 && path[2] === "page"))) return success(await feed.listOperatorNotifications(actor,notificationPage.parse(strictQuery(request,["page","pageSize","unreadOnly"]))));
+      if(method === "GET" && path.length === 3) return success(await feed.getNotification(actor,id.parse(path[2]),"operator"));
+      if(method === "PATCH" && path.length === 3) {z.object({}).strict().parse(await body(request,256));return success(await feed.markNotificationRead(actor,id.parse(path[2]),"operator"));}
+      return missing();
+    }
     if (route === "admin/presentation") {
       const actor=await adminActor(request.headers,"content.write");
       if (method === "GET") return success(await getAdminPresentation(actor));

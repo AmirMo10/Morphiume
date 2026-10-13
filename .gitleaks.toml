@@ -1,4 +1,4 @@
-title = "Morphiume default rules with an exact public access-profile digest exception"
+title = "Morphiume default rules with exact public profile and migration identity exceptions"
 
 [extend]
 useDefault = true
@@ -12,3 +12,17 @@ condition = "AND"
 regexTarget = "secret"
 regexes = ['''^3a246edfcd2b1fa6a6754ec848b479e12e12661a6b00947a9d39cf7821b82a1c$''']
 paths = ['''^tests/ops/restore-business-(contract\.mjs|remote\.py)$''', '''^docs/ops/WORKER_ALERT_DRILL_591\.json$''']
+
+[[rules.allowlists]]
+description = "Exact public migration filename in schema readiness; not a credential"
+condition = "AND"
+regexTarget = "secret"
+regexes = ['''^0005_bulk_operations\.sql$''']
+paths = ['''^src/server/runtime-schema\.ts$''']
+
+[[rules.allowlists]]
+description = "Exact canonical public migration2/4 SHA256 values in the preservation guard; verified against SQL bytes"
+condition = "AND"
+regexTarget = "secret"
+regexes = ['''^(e36cd53d36bb82c7af27438a350f089391475213860d7e9aee0ecf052726d524|af97c98d7a3775bad6219cfd3b381b638585acaf9f2c7e74ae1cf1bd0a0ea162)$''']
+paths = ['''^deploy/staging/upgrade-original-observation\.mjs$''']

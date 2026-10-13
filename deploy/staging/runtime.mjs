@@ -3,7 +3,7 @@ import { spawn } from 'node:child_process';
 
 const allowed = new Set([
   'DATABASE_URL', 'AUTH_SECRET', 'ADMIN_AUTH_SECRET', 'MOCK_CONTROL_SECRET',
-  'APP_BASE_URL', 'MEDIA_ROOT', 'PAYMENT_PROVIDER', 'SMS_PROVIDER',
+  'APP_BASE_URL', 'MEDIA_ROOT', 'PAYMENT_PROVIDER', 'SMS_PROVIDER', 'ANONYMOUS_ANALYTICS_ENABLED',
 ]);
 
 try {
@@ -15,6 +15,11 @@ try {
   const config = JSON.parse(readFileSync(file, 'utf8'));
   if (!config || typeof config !== 'object' || Array.isArray(config)) {
     throw new Error('Staging runtime config must be a JSON object.');
+  }
+  // Explicit staging opt-in only; an inherited host variable cannot activate it.
+  process.env.ANONYMOUS_ANALYTICS_ENABLED = 'false';
+  if (Object.hasOwn(config, 'ANONYMOUS_ANALYTICS_ENABLED') && !['true', 'false'].includes(config.ANONYMOUS_ANALYTICS_ENABLED)) {
+    throw new Error('Invalid anonymous analytics activation setting.');
   }
   for (const [key, value] of Object.entries(config)) {
     if (!allowed.has(key) || typeof value !== 'string' || value.includes('\0')) {

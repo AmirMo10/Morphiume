@@ -46,6 +46,55 @@ class Safety(unittest.TestCase):
         same = configs['app.json'] | {'ADMIN_AUTH_SECRET': configs['app.json']['AUTH_SECRET']}
         with self.assertRaises(ValueError): c.validate_config(same, c.APP)
 
+    def test_analytics_legacy_default_and_explicit_values_preserve_input(self):
+        _, configs, _, _ = c.generate_configs()
+        original = copy.deepcopy(configs)
+        with patch.dict(os.environ, {'ANONYMOUS_ANALYTICS_ENABLED': 'true'}):
+            for name in ('app.json', 'worker.json'):
+                c.validate_config(configs[name], c.APP)
+                self.assertEqual(c.analytics_flag(configs[name]), 'false')
+                for flag in ('true', 'false'):
+                    explicit = configs[name] | {'ANONYMOUS_ANALYTICS_ENABLED': flag}
+                    c.validate_config(explicit, c.APP)
+                    self.assertEqual(c.analytics_flag(explicit), flag)
+            self.assertEqual(configs, original)
+        for flag in (True, False, 1, None, 'TRUE', ' false', '1', 'true\0'):
+            with self.subTest(flag=flag), self.assertRaises(ValueError):
+                c.validate_config(configs['app.json'] | {'ANONYMOUS_ANALYTICS_ENABLED': flag}, c.APP)
+        with self.assertRaises(ValueError):
+            c.validate_config(configs['app.json'] | {'ANONYMOUS_ANALYTICS_OPT_IN': 'true'}, c.APP)
+        with self.assertRaises(ValueError):
+            c.validate_config(configs['migration.json'] | {'ANONYMOUS_ANALYTICS_ENABLED': 'false'}, c.OWNER, migration=True)
+
+    def test_analytics_pair_is_enforced_before_profile_and_on_private_load(self):
+        _, base, _, _ = c.generate_configs()
+        report = {'sourceCommit': 'a' * 40, 'testedPlatformConfig': 'sha256:' + 'b' * 64,
+                  'candidateManifestDigest': 'sha256:' + 'c' * 64, 'archiveSha256': 'd' * 64,
+                  'opsSha256': 'e' * 64, 'runtimeImageId': 'sha256:' + '9' * 64, 'engineProofSha256': '8' * 64}
+        private_root = c.OPS_ROOT / '.local'; private_root.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(prefix='runtime-analytics-pair-', dir=private_root) as location:
+            root = Path(location).resolve()
+            self.assertTrue(root.is_relative_to(private_root.resolve()))
+            class ConfigDirectory:
+                def stat(self): return SimpleNamespace(st_uid=0, st_mode=0o700)
+                def __truediv__(self, name): return root / name
+            for app_flag, worker_flag in ((None, None), ('false', None), (None, 'false'), ('true', 'true'), ('false', 'false'),
+                                          (None, 'true'), ('true', None), ('true', 'false'), ('false', 'true')):
+                values = copy.deepcopy(base)
+                for name, flag in (('app.json', app_flag), ('worker.json', worker_flag)):
+                    if flag is not None: values[name]['ANONYMOUS_ANALYTICS_ENABLED'] = flag
+                for name, value in values.items(): (root / name).write_text(json.dumps(value), encoding='utf-8')
+                equal = (app_flag or 'false') == (worker_flag or 'false')
+                with self.subTest(app=app_flag, worker=worker_flag), patch.object(c, 'CONFIG', ConfigDirectory()), \
+                     patch.object(c, 'active_profile', return_value=None), patch.object(c, 'private_file', side_effect=lambda path, uid=0: path):
+                    if equal:
+                        profile = c.make_profile(report, 'ssh-localhost', values)
+                        self.assertEqual(profile['configSha256']['app.json'], c.canonical_hash(values['app.json']))
+                        self.assertEqual(c.load_configs(), values)
+                    else:
+                        with self.assertRaises(ValueError): c.make_profile(report, 'ssh-localhost', values)
+                        with self.assertRaises(ValueError): c.load_configs()
+
     def test_every_partial_state_stops(self):
         prepare.initial_state(False, 0, False, False)
         for state in ((True, 0, False, False), (False, 1, False, False), (False, 2, True, False), (False, 0, False, True)):

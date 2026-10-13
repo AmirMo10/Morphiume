@@ -117,6 +117,7 @@ def make_profile(report, name, configs):
     if name not in ORIGINS: raise ValueError('Unknown access profile')
     for file, value in configs.items():
         validate_config(value, OWNER if file == 'migration.json' else APP, file == 'migration.json', profile=name)
+    validate_analytics_pair(configs)
     record = {key: report[key] for key in RELEASE_KEYS + ('opsSha256', 'runtimeImageId', 'engineProofSha256')}
     record |= {'version': 2, 'profile': name, 'origin': ORIGINS[name],
                'opsRoot': bundle_path(report['sourceCommit'], report['opsSha256']).as_posix(),
@@ -264,13 +265,28 @@ def validate_url(value, role, host='db', port=5432):
         raise ValueError('Private connection selects an unexpected database or role')
 
 
+def analytics_flag(config):
+    """Resolve protected-file activation only; preserve legacy bytes and hashes."""
+    flag = config.get('ANONYMOUS_ANALYTICS_ENABLED', 'false')
+    if not isinstance(flag, str) or flag not in ('true', 'false'):
+        raise ValueError('Invalid explicit anonymous analytics setting')
+    return flag
+
+
+def validate_analytics_pair(configs):
+    if analytics_flag(configs['app.json']) != analytics_flag(configs['worker.json']):
+        raise ValueError('App and worker analytics settings must agree')
+
+
 def validate_config(config, role, migration=False, profile='ssh-localhost'):
     if profile not in ORIGINS: raise ValueError('Unknown explicit canonical profile')
     keys = {'DATABASE_URL', 'PAYMENT_PROVIDER', 'SMS_PROVIDER'}
     if not migration:
         keys |= {'APP_BASE_URL', 'MEDIA_ROOT', 'AUTH_SECRET', 'ADMIN_AUTH_SECRET', 'MOCK_CONTROL_SECRET'}
-    if not isinstance(config, dict) or set(config) != keys or any(not isinstance(value, str) or '\0' in value for value in config.values()):
+    shapes = (keys,) if migration else (keys, keys | {'ANONYMOUS_ANALYTICS_ENABLED'})
+    if not isinstance(config, dict) or set(config) not in shapes or any(not isinstance(value, str) or '\0' in value for value in config.values()):
         raise ValueError('Unexpected private runtime configuration shape')
+    if not migration: analytics_flag(config)
     validate_url(config['DATABASE_URL'], role)
     if not re.fullmatch('postgresql://' + re.escape(role) + ':[a-f0-9]{64}@db:5432/' + DATABASE, config['DATABASE_URL']):
         raise ValueError('Runtime settings require the exact generated database URL shape')
@@ -490,6 +506,7 @@ def load_configs():
     secrets_used = [configs[name][key] for name in ('app.json', 'worker.json') for key in ('AUTH_SECRET', 'ADMIN_AUTH_SECRET', 'MOCK_CONTROL_SECRET')]
     if len(set(secrets_used)) != 6 or configs['app.json']['DATABASE_URL'] != configs['worker.json']['DATABASE_URL']:
         raise ValueError('Private runtime credentials are not independently scoped')
+    validate_analytics_pair(configs)
     return configs
 
 

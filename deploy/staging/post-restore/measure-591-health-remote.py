@@ -195,6 +195,32 @@ def journal_health(raw):
     return candidates[0]
 
 
+def parse_properties(raw, allowed=PROPERTIES):
+    """Only ExecStartPre is a collection; never collapse duplicate scalars."""
+    require(isinstance(raw, str) and len(raw.encode()) <= 4 * 1024 ** 2)
+    values = {}; prechecks = []; pre_lines = 0; pre_empty = False
+    expected = [['/usr/bin/test', '!', '-e', str(CACHE)], ['/usr/bin/test', '!', '-L', str(CACHE)]]
+    for line in raw.splitlines():
+        require('=' in line)
+        key, value = line.split('=', 1); require(key in allowed)
+        if key == 'ExecStartPre':
+            pre_lines += 1; require(pre_lines <= 2)
+            if not value:
+                require(pre_lines == 1); pre_empty = True
+            else:
+                require(not pre_empty)
+                vectors = argv_vectors(value); require(1 <= len(vectors) <= 2)
+                for vector in vectors:
+                    require(vector in expected and vector not in prechecks); prechecks.append(vector)
+                require(len(prechecks) <= 2)
+            values[key] = values[key] + ' ' + value if key in values else value
+        else:
+            require(key not in values); values[key] = value
+    if pre_lines:
+        require((pre_empty and pre_lines == 1 and not prechecks) or prechecks == expected)
+    return values
+
+
 class Runner:
     def __init__(self): self.commands = []; self.starts = 0
 
@@ -209,8 +235,7 @@ class Runner:
     def properties(self, unit=UNIT):
         selected = PROPERTIES if unit == UNIT else ('LoadState', 'ActiveState', 'UnitFileState')
         raw = self.run(['systemctl', 'show', unit, '--property=' + ','.join(selected)])
-        pairs = [line.split('=', 1) for line in raw.splitlines() if '=' in line]; require(len(pairs) == len({p[0] for p in pairs}))
-        return dict(pairs)
+        return parse_properties(raw, selected)
 
     def start_once(self):
         require(self.starts == 0); self.starts += 1

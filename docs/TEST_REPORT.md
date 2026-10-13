@@ -1,5 +1,22 @@
 # آزمون‌های واقعاً اجراشده
 
+اسکن staged انتشار B/C با Gitleaks8.30.1 پس از بررسی موارد ثابت، صفر یافته دارد. سه علامت اولیه شامل نام عمومی `0005_bulk_operations.sql` در readiness و دو checksum واقعی مهاجرت‌های0002/0004 در observer بود؛ نوع آن‌ها با manifest canonical و فایل‌های SQL تطبیق داده شد. استثناها فقط همان مقدار و همان مسیر را با شرط AND می‌پذیرند. کنترل مستقل در Git موقتِ خصوصی، دو مقدار عمومی مجاز را عبور داد و هم مقدار تصادفی متفاوت در همان guard و هم checksum عمومی در مسیر دیگر را شناسایی کرد. هیچ فایل یا rule عمومی از اسکن حذف نشده؛ گزارش‌های اولیه محفوظ‌اند.
+
+## پذیرش B/C اصلاح‌شده، ۰۳:۲۸ UTC، ۱۳ اکتبر ۲۰۲۶
+
+- build96160، lint23098exit0 و typecheckpublication exit0. Native هدفمند **۱۳/۱۴ در457838.256ms**، start03:11:53.879Z/end03:19:31.717Z؛ Chrome۷/۷/WK۶/۷، تمام اعلان‌ها۸/۸، skip/flaky/testretry0. تنها شکست Cookie omission در WebKit ویندوز محفوظ؛ سهevent۲۰۲ باOrigincanonical وCookiepresent، بدونauth/referrer/controlheader. سرور۸۷۷خط/صفر500/no cap؛ Native۱۱۹=۱۱۶200+۳429، انتظارواقعی۸/۹/۵۰ثانیه و تلاش دوم موفق. Source394ثابت؛ audit03:21:52.366Z چهارcleanupcount0/history13/53table وwindowreleased. [گزارش](qa/BC_CORRECTED_NATIVE_QA.md).
+- worker fixture نهایی600100… تابع وcleanup را واقعاً در11751ms تمام کرد؛ job1/messages2/replay0/read2/مالی و jobهای دیگر ثابت/nativeAuthenticationProvedfalse. نخستینloaderTLA شکست و دومینparentCaptureJSONparse شکست محفوظ‌اند؛ دومین summary تنها از همان capture و بدونPG/rerun بازیابی شد. allPublicRowsEqualityMeasuredfalse؛ [گزارش](NOTIFICATION_WORKER_EXECUTION.md).
+- parser سلامت جدید750317…:34/34Node1175.5309ms، suiteهای توکار۱۸ و۱۶Python مستقل و هم‌پوشان‌اند. actualservice با این source هنوزشروع نشده. observer49b0…:44/44Node788.8845ms و savedactualPG18metadata سه کنترل محلی قبول؛ اصلDB مشاهده/backup/DDL نشده است.
+- CI52 مستقل complete-success است:629domain/41files،57Linux و57image، server3917/3913line و0events/allcapsfalse. Grype سهMediumbusybox-CVEبدونfixversion دارد؛ [جزئیات](CI_RECOVERY_EXECUTION.md). این تصویر B/C را ندارد و روی سرور جایگزین نشده است.
+
+Firefoxویندوز، whole52/78sourceجدید، Linuxprivacy، packagedconsumer جدید، انتقال/health/backup/preview/۲۰۰VU وASVS هنوز پذیرش نشده‌اند. شمارهای بالا به هم اضافه نشوند.
+
+## انتشار و پایگاه تازهٔ B/C، ۰۲:۲۰ UTC، ۱۳ اکتبر ۲۰۲۶
+
+- انتشار واقعی `52ee407044d3705ce3dfe444681abc0dfe34f2f5` روی GitHub main؛ Gitleaks تغییرهای staged برابر صفر یافته، lint و typecheck checkout انتشار موفق. [CI همین commit](https://github.com/AmirMo10/Morphiume/actions/runs/38334783199) هنوز نتیجهٔ نهایی ندارد؛ مراحل پیش از مرورگر موفق‌اند. پذیرش محلی ۳۸/۳۸ قبلی مستقل باقی است.
+- اجرای واقعی بررسی سلامت با شناسهٔ `0f243c22-6be2-49d0-8523-074b7338e253` ناموفق بود: صفر شروع سرویس، صفر نمونه، `unitResult=unavailable`. شواهد خصوصی محلی SHA256 برابر `2528522eb974c84fd43aca7f9cb0ffee170f1ddad2a369c36fb2bfdf7df6b178` و شواهد سرور برابر `321ccfc8b98a0dd0764af32f7e5d1fec2019a87831f5858d7844849da4850678` محفوظ‌اند. تایمر، backup، توقف نویسنده و تغییر SQL همگی false؛ پذیرش یا اجرای مجدد گزارش نمی‌شود.
+- provision واقعی پایگاه جدا با suffix `b625408702be90db` موفق؛ نقش برنامه DML و فاقد دسترسی به دو پایگاه تجاری قبلی است. مهاجرت و seed واقعی روی همان پایگاه تازه موفق. مشاهدهٔ فقط‌خواندنی `02:19:24.078Z`: ۱۳ migration با checksum canonical، ۵۳ جدول، یک محصول seed، نقش برنامه فاقد CREATE پایگاه/schema و فاقد migration credential در محیط برنامه. بیلد و آزمون بومی B/C هنوز در این checkpoint نهایی نیستند.
+
 ## پذیرش نهایی recovery در محیط جدا، ۰۱:۵۵ UTC، ۱۳ اکتبر ۲۰۲۶
 
 - build83681/server76753/targetqa7f59/canonical3004: **۳۸/۳۸909.964618s**،۱۹درهردوموتور، start01:33:20.090Z/end01:48:30.054Z؛0skip/flaky/testretry، observeroff/budgetsunchanged.۲۱۸native(۲۰۸200/۶429/۲wrongcode400/۲controlled503) باهمان boundedretryواقعی429. Capturedwrapper500=0،۲۵۷۹خط/no truncation/caps.۲۵۰sourcehashوprovider/HTTPثابت؛audit01:51:24.417Z چهارownedfixturecount0 وreleasedwindow. [گزارش](qa/DEDICATED_RECOVERY_QA.md)،[مرورگر](qa/browser-recovery-dedicated-whole.json)،[سرور](qa/server-recovery-dedicated-whole.json).

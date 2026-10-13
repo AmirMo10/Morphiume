@@ -2,7 +2,7 @@ export type DeploymentEnvironment = "test" | "staging" | "live";
 export type MoneyDto = { amountIrr: string; currency: "IRR" };
 export type Actor = { userId: string; sessionId: string; kind: "customer" | "admin" };
 export type Role = "owner" | "product_manager" | "fulfillment" | "support" | "finance";
-export type Permission = "catalog.write" | "inventory.write" | "orders.read" | "orders.fulfill" | "refunds.write" | "roles.write" | "content.write";
+export type Permission = "catalog.write" | "inventory.write" | "orders.read" | "orders.fulfill" | "refunds.write" | "roles.write" | "content.write" | "analytics.read";
 export type ProductImage = { url: string; alt: string; variantSku?: string | null };
 export type ProductInput = {
   name: string; slug: string; description: string; concentration: string; family: string;

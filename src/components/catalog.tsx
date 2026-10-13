@@ -11,6 +11,7 @@ import { ProductContentDetails, ProductIntro } from "./product-content-view";
 import { productImages } from "./product-images";
 import { FavoriteButton } from "./wishlist";
 import { useCustomerSession } from "./customer-session";
+import { captureAnalytics, createAnalyticsEventId } from "./analytics-client";
 import type { CatalogPageDto, ProductDto } from "@/contracts/commerce";
 import { api, Empty, errorMessage, faNumber, Loading, money, Notice, useCommerce } from "./commerce-client";
 
@@ -51,6 +52,8 @@ function PagedCatalog({ initialPage, initialError, initialQuery }: { initialPage
   const remote = usePagedData<CatalogPageDto>("/api/catalog/page", query, !serverPage && !serverError);
   const data = serverPage ?? remote.data;
   const [draftErrors, setDraftErrors] = useState<{ query: string; fields: PriceRangeFields } | null>(null);
+  const [searchIntent, setSearchIntent] = useState<{ query: string; hasQuery: boolean; eventId: string | null } | null>(null);
+  const observedSearch = useRef<typeof searchIntent>(null);
   const summary = useRef<HTMLDivElement>(null);
   const id = useId();
   const rangeErrors = draftErrors?.query === query && Object.keys(draftErrors.fields).length ? draftErrors.fields : range.fields;
@@ -65,8 +68,14 @@ function PagedCatalog({ initialPage, initialError, initialQuery }: { initialPage
     const next = new URLSearchParams(params.toString());
     next.delete("page");
     for (const [key, value] of Object.entries({ search: String(values.get("search") ?? ""), minPriceToman, maxPriceToman })) { if (value.trim()) next.set(key, value); else next.delete(key); }
+    setSearchIntent({ query: pageQuery(catalogInput(next)), hasQuery: !!String(values.get("search") ?? "").trim(), eventId: createAnalyticsEventId() });
     router.replace(`/products${next.size ? "?" + next.toString() : ""}`, { scroll: false });
   };
+  useEffect(() => {
+    if (!searchIntent || observedSearch.current === searchIntent || searchIntent.query !== query || queryError || !range.valid || !data || !Number.isSafeInteger(data.totalItems) || data.totalItems < 0) return;
+    observedSearch.current = searchIntent;
+    if (searchIntent.eventId) captureAnalytics({ kind: "search", eventId: searchIntent.eventId, hasQuery: searchIntent.hasQuery, resultBucket: data.totalItems === 0 ? "zero" : data.totalItems <= 10 ? "1_10" : data.totalItems <= 100 ? "11_100" : "over_100" });
+  }, [searchIntent, query, queryError, range.valid, data]);
   const { families = [], concentrations = [], volumesMl = [] } = data?.facets ?? {};
   const filtered = !!(input.search || input.family || input.concentration || input.note || input.volumeMl || input.available || input.minPriceToman || input.maxPriceToman);
   return <>
@@ -91,7 +100,7 @@ function PagedCatalog({ initialPage, initialError, initialQuery }: { initialPage
     </>}
   </>;
 }
-export function ProductView({ id, initialProduct }: { id: string; initialProduct?: ProductDto }) {
+export function ProductView({ id, initialProduct, observe = false }: { id: string; initialProduct?: ProductDto; observe?: boolean }) {
   const [loadedProduct, setProduct] = useState<ProductDto | null>(initialProduct ?? null);
   // A refreshed server DTO is authoritative; do not retain an older same-product content snapshot.
   const product = initialProduct ?? loadedProduct;
@@ -100,9 +109,22 @@ export function ProductView({ id, initialProduct }: { id: string; initialProduct
   const identity = useCustomerSession();
   const [addition, setAddition] = useState({ scopeKey: "", busy: false, added: false, error: "", refreshFailed: false });
   const operation = useRef<{ scopeKey: string; controller: AbortController } | null>(null);
+  const viewedProduct = useRef<string | null>(null);
+  const completedAddition = useRef<{ scopeKey: string; productId: string; eventId: string | null; emitted: boolean } | null>(null);
   const { refreshCart, announce, ready } = useCommerce();
   const feedback = !identity.pending && addition.scopeKey === identity.scopeKey ? addition : null;
   const busy = addition.scopeKey === identity.scopeKey && addition.busy;
+  useEffect(() => {
+    if (!observe || !product || product.status !== "published" || viewedProduct.current === product.id) return;
+    viewedProduct.current = product.id;
+    captureAnalytics({ kind: "product_view", productId: product.id });
+  }, [observe, product]);
+  useEffect(() => {
+    const completed = completedAddition.current;
+    if (!observe || !feedback?.added || !completed || completed.emitted || completed.scopeKey !== feedback.scopeKey) return;
+    completed.emitted = true;
+    if (completed.eventId) captureAnalytics({ kind: "add_to_cart", productId: completed.productId, eventId: completed.eventId });
+  }, [observe, feedback?.added, feedback?.scopeKey]);
   useEffect(() => () => { const active = operation.current; if (active?.scopeKey === identity.scopeKey) { active.controller.abort(); operation.current = null; } }, [identity.scopeKey]);
   const load = useCallback(() => { api<ProductDto>(`/api/products/${encodeURIComponent(id)}`).then(p => { setError(""); setProduct(p); setSelected(current => p.variants.some(v => v.id === current) ? current : p.variants.find(v => v.available > 0)?.id ?? p.variants[0]?.id ?? ""); }).catch(e => setError(errorMessage(e))); }, [id]);
   useEffect(() => { if (!initialProduct) load(); }, [load, initialProduct]);
@@ -111,12 +133,14 @@ export function ProductView({ id, initialProduct }: { id: string; initialProduct
     if (!variant || !ready || identity.pending || operation.current?.scopeKey === identity.scopeKey) return;
     const active = { scopeKey: identity.scopeKey, controller: new AbortController() };
     operation.current = active;
+    completedAddition.current = null;
     const current = () => operation.current === active && !active.controller.signal.aborted;
     setAddition({ scopeKey: active.scopeKey, busy: true, added: false, error: "", refreshFailed: false });
     try {
       await api("/api/cart", { method: "POST", signal: active.controller.signal, body: JSON.stringify({ variantId: variant.id, quantity: 1 }) });
       if (!current()) return;
       // A successful additive mutation is known even if its follow-up read is interrupted.
+      if (observe && product?.status === "published") completedAddition.current = { scopeKey: active.scopeKey, productId: product.id, eventId: createAnalyticsEventId(), emitted: false };
       setAddition({ scopeKey: active.scopeKey, busy: true, added: true, error: "", refreshFailed: false });
       announce("محصول به سبد خرید افزوده شد.");
       await refreshCart().catch(() => { if (current()) setAddition(previous => previous.scopeKey === active.scopeKey ? { ...previous, refreshFailed: true } : previous); });

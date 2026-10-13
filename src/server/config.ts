@@ -13,6 +13,7 @@ const schema = z.object({
   PAYMENT_PROVIDER: z.enum(["mock", "zarinpal"]),
   SMS_PROVIDER: z.enum(["mock", "kavenegar"]),
   MOCK_CONTROL_SECRET: z.string().min(32).optional(),
+  ANONYMOUS_ANALYTICS_ENABLED: z.enum(["true", "false"]).default("false").transform(value => value === "true"),
   MEDIA_ROOT: z.string().min(1),
   ZARINPAL_MERCHANT_ID: z.string().optional(),
   SMS_API_KEY: z.string().optional(),

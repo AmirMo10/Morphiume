@@ -6,6 +6,8 @@ import copy
 import configparser
 import datetime
 import json
+import os
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -236,6 +238,62 @@ process.stdout.write(JSON.stringify({operatorValid:1,rejectedOverrides:rejected,
         result = subprocess.run(['node', '--input-type=module', '-e', script, module], input=json.dumps({'app': app, 'connections': connections, 'profile': profile, 'trusted': trusted}), text=True, capture_output=True)
         self.assertEqual(result.returncode, 0, 'Pure Node operator contract failed (private inputs withheld)')
         self.assertEqual(json.loads(result.stdout), {'operatorValid': 1, 'rejectedOverrides': 5, 'hashMatches': True})
+
+    def test_operator_analytics_defaults_exact_values_and_rejected_shapes(self):
+        fixtures = []
+        for flag in (None, 'false', 'true'):
+            values = configs()
+            if flag is not None:
+                for name in ('app.json', 'worker.json'): values[name]['ANONYMOUS_ANALYTICS_ENABLED'] = flag
+            profile = c.make_profile(report(), 'ssh-localhost', values)
+            fixtures.append({'app': values['app.json'], 'profile': profile,
+                'connections': {'databaseUrl': values['app.json']['DATABASE_URL'].replace('@db:5432/', '@127.0.0.1:15434/'),
+                                'migrationDatabaseUrl': values['migration.json']['DATABASE_URL'].replace('@db:5432/', '@127.0.0.1:15434/')},
+                'trusted': {key: profile[key] for key in c.RELEASE_KEYS + ('opsSha256',)} | {'accessProfileSha256': c.canonical_hash(profile)},
+                'expected': flag or 'false'})
+        module = (c.OPS_ROOT / 'runtime/operator-config.mjs').as_uri()
+        script = f"""import {{canonicalHash,validateOperatorConfigs}} from {json.dumps(module)};
+import {{readFileSync}} from 'node:fs';const fixtures=JSON.parse(readFileSync(0,'utf8'));let positive=0,negative=0;
+for(const value of fixtures){{const env=validateOperatorConfigs(value.app,value.connections,value.profile,value.trusted);if(env.ANONYMOUS_ANALYTICS_ENABLED!==value.expected)throw Error('Wrong effective flag');positive++;}}
+const legacy=fixtures[0],inherited=Object.assign(Object.create({{ANONYMOUS_ANALYTICS_ENABLED:'true'}}),legacy.app);
+if(validateOperatorConfigs(inherited,legacy.connections,legacy.profile,legacy.trusted).ANONYMOUS_ANALYTICS_ENABLED!=='false')throw Error('Inherited opt-in');positive++;
+for(const change of [{{ANONYMOUS_ANALYTICS_ENABLED:true}},{{ANONYMOUS_ANALYTICS_ENABLED:false}},{{ANONYMOUS_ANALYTICS_ENABLED:1}},{{ANONYMOUS_ANALYTICS_ENABLED:null}},{{ANONYMOUS_ANALYTICS_ENABLED:'TRUE'}},{{ANONYMOUS_ANALYTICS_ENABLED:' false'}},{{ANONYMOUS_ANALYTICS_ENABLED:'1'}},{{ANONYMOUS_ANALYTICS_OPT_IN:'true'}}]){{
+ const app={{...legacy.app,...change}},profile={{...legacy.profile,configSha256:{{...legacy.profile.configSha256,'app.json':canonicalHash(app)}}}},trusted={{...legacy.trusted,accessProfileSha256:canonicalHash(profile)}};
+ let denied=false;try{{validateOperatorConfigs(app,legacy.connections,profile,trusted)}}catch{{denied=true}}if(!denied)throw Error('Analytics shape bypass');negative++;
+}}console.log(JSON.stringify({{positive,negative}}));"""
+        result = subprocess.run(['node', '--input-type=module', '-e', script], input=json.dumps(fixtures), capture_output=True, text=True, timeout=15)
+        self.assertEqual(result.returncode, 0, 'Pure operator analytics checks failed; synthetic input withheld')
+        self.assertEqual(json.loads(result.stdout), {'positive': 4, 'negative': 8})
+
+    def test_operator_child_uses_protected_flag_instead_of_ambient_activation(self):
+        private_root = c.OPS_ROOT / '.local'; private_root.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(prefix='operator-analytics-child-', dir=private_root) as location:
+            root = Path(location).resolve()
+            self.assertTrue(root.is_relative_to(private_root.resolve()))
+            runtime = root / 'runtime'; runtime.mkdir()
+            local = root / '.local'; local.mkdir(mode=0o700)
+            launcher = runtime / 'operator-config.mjs'; shutil.copyfile(c.OPS_ROOT / 'runtime/operator-config.mjs', launcher)
+            for flag in (None, 'false', 'true'):
+                values = configs()
+                if flag is not None:
+                    for name in ('app.json', 'worker.json'): values[name]['ANONYMOUS_ANALYTICS_ENABLED'] = flag
+                profile = c.make_profile(report(), 'ssh-localhost', values)
+                inputs = {'runtime-app.json': values['app.json'], 'runtime-profile.json': profile,
+                          'runtime-connections.json': {'databaseUrl': values['app.json']['DATABASE_URL'].replace('@db:5432/', '@127.0.0.1:15434/'),
+                                                      'migrationDatabaseUrl': values['migration.json']['DATABASE_URL'].replace('@db:5432/', '@127.0.0.1:15434/')}}
+                for name, value in inputs.items():
+                    file = local / name; file.write_text(json.dumps(value), encoding='utf-8'); file.chmod(0o600)
+                command = ['node', str(launcher)]
+                for option, value in (('--source', profile['sourceCommit']), ('--config-id', profile['testedPlatformConfig']),
+                    ('--manifest-digest', profile['candidateManifestDigest']), ('--archive-sha256', profile['archiveSha256']),
+                    ('--ops-sha256', profile['opsSha256']), ('--profile-sha256', c.canonical_hash(profile))): command.extend((option, value))
+                command.extend(('--', 'node', '-e', "console.log(JSON.stringify({analytics:process.env.ANONYMOUS_ANALYTICS_ENABLED,ownerCredentialPresent:Boolean(process.env.MIGRATION_DATABASE_URL)}))"))
+                for ambient in ('true', 'false', 'malformed-host-value'):
+                    # Public synthetic fixtures only; no actual operator credentials/ACL acknowledgement is reused.
+                    result = subprocess.run(command, capture_output=True, text=True, timeout=15,
+                        env=os.environ | {'ANONYMOUS_ANALYTICS_ENABLED': ambient, 'MIGRATION_DATABASE_URL': 'synthetic-owner-must-not-inherit', 'MORPHIUME_PRIVATE_ACL_VERIFIED': '1'})
+                    self.assertEqual(result.returncode, 0, 'Synthetic operator child failed; private output withheld')
+                    self.assertEqual(json.loads(result.stdout), {'analytics': flag or 'false', 'ownerCredentialPresent': False})
 
     def mock_transition(self, fail=None, rollback=False):
         local = c.OPS_ROOT / '.local'; local.mkdir(exist_ok=True)
