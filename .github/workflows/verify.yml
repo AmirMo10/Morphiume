@@ -37,11 +37,13 @@ jobs:
           python3 deploy/staging/runtime/preview-safety-check.py
           python3 deploy/staging/runtime/engine-image-safety-check.py
           python3 -B deploy/staging/runtime-preserved-upgrade-safety-check.py
+          python3 -B deploy/staging/e4-isolated-restore-safety.py
           python3 deploy/staging/extract-ci-artifact-safety.py
           python3 deploy/staging/recover-pre-service-restore-safety.py
           python3 tests/ops/restore-business-remote.test.py
           python3 -B tests/ops/browser-toolchain-import.test.py
           node --test tests/ops/restore-business-contract.test.mjs
+          node --test tests/ops/e4-restore-business-contract.test.mjs
           node --test tests/e2e/cart-lifecycle-diagnostics.test.ts
           node --conditions=react-server --import tsx --test tests/e2e/notification-delivery-contract.test.ts
           node --test tests/unit/backend/native-qa-provision.test.mjs

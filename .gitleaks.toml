@@ -14,6 +14,13 @@ regexes = ['''^3a246edfcd2b1fa6a6754ec848b479e12e12661a6b00947a9d39cf7821b82a1c$
 paths = ['''^tests/ops/restore-business-(contract\.mjs|remote\.py)$''', '''^docs/ops/WORKER_ALERT_DRILL_591\.json$''']
 
 [[rules.allowlists]]
+description = "Exact public SHA256 of the accepted E4 access profile in its restore contract; verified profile digest, not an access credential"
+condition = "AND"
+regexTarget = "secret"
+regexes = ['''^67f77b1636d0ae2b9b81df9e46f4a3c93087b01e0d4e6fdaa730b2604e60dd96$''']
+paths = ['''^tests/ops/e4-restore-business-contract\.mjs$''']
+
+[[rules.allowlists]]
 description = "Exact public migration filename in schema readiness; not a credential"
 condition = "AND"
 regexTarget = "secret"
