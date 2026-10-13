@@ -97,6 +97,35 @@ test("real vendor preferences retain normal mode/hash checks and reject user pre
   });
 });
 
+test("exact official Playwright preference source is required in addition to path and metadata", async () => {
+  const bytes = await readFile(new URL("../fixtures/firefox-playwright-preferences-1.64.0.txt", import.meta.url));
+  const digest = createHash("sha256").update(bytes).digest("hex"), base = "firefox-1555/firefox/browser/defaults/preferences", path = `${base}/00-playwright-prefs.js`;
+  assert.equal(bytes.length, 160); assert.equal(digest, "8c2d32801a924f2c2b133f1191d01213513c86e8d1e42e144e9cb1015ea71084");
+  const parents = ["firefox-1555/firefox", "firefox-1555/firefox/browser", "firefox-1555/firefox/browser/defaults", base].map(directory);
+  const asset = { ...file(path), bytes: bytes.length, sha256: digest }, valid = [...entries(), ...parents, asset];
+  assert.equal(validateEntries(valid, roots).fileCount, 4);
+  for (const patch of [{ bytes: 159 }, { bytes: 161 }, { sha256: "a".repeat(64) }, { type: "symlink", bytes: 0, target: "LICENSE" }]) rejected(() => validateEntries([...entries(), ...parents, { ...asset, ...patch }], roots));
+  rejected(() => validateEntries(valid, roots.map(root => root.engine === "firefox" ? { ...root, browserVersion: "158.0" } : root)));
+});
+
+test("real source-bound preference emits only a closed alias/content boolean on tampering", { skip: process.platform !== "linux" ? "Unix filesystem contract runs on Linux." : false }, async () => {
+  await fixture(async ({ cache, root }) => {
+    const base = join(cache, "firefox-1555/firefox/browser/defaults/preferences"), path = join(base, "00-playwright-prefs.js");
+    await mkdir(base, { recursive: true, mode: 0o755 });
+    const bytes = await readFile(new URL("../fixtures/firefox-playwright-preferences-1.64.0.txt", import.meta.url));
+    await writeFile(path, bytes, { mode: 0o644 });
+    const manifest = await exportBrowserToolchain({ cacheDir: cache, outputDir: join(root, "source-bound-export"), metadata, sourceCommit: "a".repeat(40), lockfileSha256: "b".repeat(64), exporterSha256: "c".repeat(64) });
+    assert.equal(manifest.entries.find(entry => entry.path.endsWith("/00-playwright-prefs.js"))?.bytes, 160);
+    const changed = Buffer.from(bytes); changed[0] ^= 1; await writeFile(path, changed);
+    await assert.rejects(inspectBrowserCache(cache, metadata), error => {
+      const record = safeExportFailure(error, "cache-inspection"); assert.equal(record.code, "entry-vendor-content");
+      assert.equal(record.entry.reviewedVendorAlias, "firefox-playwright-default-preferences"); assert.equal(record.entry.vendorContentMatches, false);
+      assert.equal(JSON.stringify(record).includes("00-playwright-prefs.js"), false); assert.equal(JSON.stringify(record).includes(cache), false); return true;
+    });
+    await writeFile(path, Buffer.concat([bytes, Buffer.from("\n")])); await assert.rejects(inspectBrowserCache(cache, metadata), /contract rejected/u);
+  });
+});
+
 test("member identity, parent directories, types and permission modes are fail closed", () => {
   assert.deepEqual(validateEntries(entries(), roots), { memberCount: 6, totalBytes: 72, fileCount: 3, symlinkCount: 0 });
   rejected(() => validateEntries([...entries(), file("chromium-1248/LICENSE")], roots));

@@ -6,6 +6,7 @@ on:
       - .github/workflows/browser-toolchain.yml
       - scripts/prepare-browser-toolchain-artifact.mjs
       - tests/ops/browser-toolchain-artifact.test.mjs
+      - tests/fixtures/firefox-playwright-preferences-1.64.0.txt
 permissions:
   contents: read
 jobs:

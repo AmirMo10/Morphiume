@@ -1,5 +1,13 @@
 # Pinned Linux browser cache — preparation contract
 
+## Content-bound preparation after E4 export failure
+
+Producer e4bed691dc938a9c0f79022696d24f063ad97724 [CI38352565925](https://github.com/AmirMo10/Morphiume/actions/runs/38352565925/job/115148052652) passed all official downloads but failed the lexical guard at Firefox entry629,72 bytes/6 segments. Its exact name remains unproved. Public Playwright source establishes00-playwright-prefs.js,160 bytes, SHA2568c2d32801a924f2c2b133f1191d01213513c86e8d1e42e144e9cb1015ea71084; the checked public tree does not establish its binary copy destination. [The source review](FIREFOX_VENDOR_CACHE_REVIEW.md) records that limitation.
+
+Root chose a conditional acceptance rule: only the exact canonical leaf under the descriptor-bound default application preference directory, regular/nlink1, safe original mode, exactly160 bytes and that exact public-source SHA256. Name or geometry alone cannot pass. Both collector and manifest/imported tar body enforce the content identity. An unknown/mutated preference, wrong size, revision, case or symlink remains rejected. The failure envelope may emit only a closed known-candidate alias/content-match boolean, never an unknown filename or body. Successful actual export would prove its current downloaded presence and byte equality, not retroactively identify entry629.
+
+Final exporter canonical SHA256 bcc19352da25e8700885b48541f98a49f360337620d751707ed15166099b6eb0; dedicated test57cdbf0de0b4ec96360193097cac4a5233f2e22ca161adc3db81fbdefb6fe0a5. Linux combined137/137,0 skip/fail, wall1.478957177s comprises16 exporter+77 runtime+44 original. Importer independently passed40/40 Python3.12 tests,0.345s. Counts are not added across repeated runs. Public raw source is retained as the independently hashed test fixture; changing it alone triggers the producer workflow. Official artifact download/import and all local browser acceptance remain pending.
+
 ## Current preparation after the second diagnosed export
 
 Producer3e61dbbcfa8468d4facd0d313b6df160fd7fdc56 [CI38351141472](https://github.com/AmirMo10/Morphiume/actions/runs/38351141472/job/115143581818) passed official downloads and rejected a later Firefox entry628 with lexical code,49 bytes/5 segments. Its actual name remains unproved. The pinned Mozilla application PREF_DIR and package manifest independently justify the second exact vendor map described in [review](FIREFOX_VENDOR_CACHE_REVIEW.md): one lowercase default-preference directory and only debugger.js/firefox.js/firefox-branding.js. User prefs.js,user.js,other profiles,unknown/case aliases and links remain rejected. All bounds/type/mode/hash/stability checks remain.

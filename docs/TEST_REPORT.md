@@ -1,5 +1,13 @@
 # آزمون‌های واقعاً اجراشده
 
+## شاهد تازهٔ CI و قاعدهٔ فایل رسمی، ۰۵:۵۵ UTC
+
+- PostgreSQL واقعیِ CI e4bed69: initialize محدود، owner migration، DML readback و seed موفق؛ مرورگر هنوز در اجرا و تصویر پذیرفته نشده.
+- Linux همان source: frozen4.426s، readonlyDML13/53 در65.099ms، build39.488s،686فایل ثابت؛ شروع runtime/browser یا SQLmutation انجام نشد.
+- قاعدهٔ content-bound فایل رسمی:137/137خالصLinux درwall1.478957177s،0skip/fail (16exporter+77runtime+44original). importer40/40Python در0.345s. فایل رسمی160بایت/hashمستقل؛ تغییر یک بایت رد می‌شود.
+- cacheCI e4bed69 پس از downloadرسمی با lexicalguard شکست؛ نامentry629 و مقصدcopyعمومی ثابت نشده. officialartifact/import/nativeمحلی همچنان unrun.
+
+
 ## یکپارچه‌سازی اصلاح اعلان و حساب CI، ۰۵:۳۸ UTC
 
 - QA factory correction:43.082s، ششjobواقعی/replay0، مالی/read/صف/رزرو محفوظ، cleanup و audit53/13؛ nativeAuthenticationProved=false.14counterexampleخالص Root1153.2733ms موفق؛ nativeاصلاح هنوز unrun.

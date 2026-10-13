@@ -39,9 +39,12 @@ ICON_DIR = "firefox-1555/firefox/browser/chrome/icons/default"
 ICONS = {f"{ICON_DIR}/default{size}.png" for size in (16, 32, 48, 64, 128)}
 PREF_DIR = "firefox-1555/firefox/browser/defaults/preferences"
 PREFS = {f"{PREF_DIR}/{name}" for name in ("debugger.js", "firefox.js", "firefox-branding.js")}
+AUTOMATION_PREF = PREF_DIR + "/00-playwright-prefs.js"
+AUTOMATION_PREF_BYTES = 160
+AUTOMATION_PREF_SHA256 = "8c2d32801a924f2c2b133f1191d01213513c86e8d1e42e144e9cb1015ea71084"
 # Exact reviewed vendor paths only. New vendor members require source review and
 # a new published importer hash; no directory-prefix or case-folded exceptions.
-VENDOR_MEMBERS = {ICON_DIR: "directory", PREF_DIR: "directory", **{path: "file" for path in ICONS | PREFS}}
+VENDOR_MEMBERS = {ICON_DIR: "directory", PREF_DIR: "directory", AUTOMATION_PREF: "file", **{path: "file" for path in ICONS | PREFS}}
 VENDOR_SEGMENTS = {(5, "default"), (4, "preferences")}
 PRIVATE = re.compile(r"^(?:Default|Profile(?:\s+.*)?|User Data|user_data|user-data|Cookies(?:-journal)?|History(?:-journal)?|Login Data|Web Data|Preferences|Local State|Session Storage|Local Storage|IndexedDB|GPUCache|Crash Reports|Cache|Network|SingletonCookie|SingletonLock|SingletonSocket|GITHUB_TOKEN|tokens?\.json|auth\.json|storage-state\.json|\.env(?:\..*)?|\.local|\.git|\.ssh|node_modules|id_rsa|id_ed25519|credentials(?:\.json)?|.*\.(?:pem|p12))$", re.I)
 LICENSE = re.compile(r"^(?:ABOUT|LICENSE.*|LICENCE.*|COPYING.*|NOTICE.*|THIRD[-_ ]PARTY.*)$", re.I)
@@ -154,6 +157,8 @@ def validate_manifest(manifest, trusted, limits=LIMITS):
             need(entry["type"] == required_vendor_type, "vendor-type")
         if entry["type"] == "file":
             need(integer(entry["bytes"], limits["fileBytes"]) and type(entry["sha256"]) is str and DIGEST.fullmatch(entry["sha256"]), "file")
+            if name == AUTOMATION_PREF:
+                need(entry["bytes"] == AUTOMATION_PREF_BYTES and entry["sha256"] == AUTOMATION_PREF_SHA256, "vendor-content")
             total += entry["bytes"]
             need(total <= limits["bytes"], "byte-cap")
             files += 1
@@ -370,6 +375,7 @@ def extract_fresh(archive, mapping, parent, destination, stability, limits=LIMIT
             try:
                 fd = os.open(entry["path"].split("/")[-1], os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600, dir_fd=handle)
                 try:
+                    need(stat.S_ISREG(os.fstat(fd).st_mode) and os.fstat(fd).st_nlink == 1, "output-file")
                     os.fchmod(fd, entry["mode"])
                     return os.fdopen(fd, "wb")
                 except BaseException:

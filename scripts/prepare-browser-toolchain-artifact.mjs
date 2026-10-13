@@ -18,17 +18,21 @@ const forbiddenSegments = /^(?:Default|Profile(?:\s+.*)?|User Data|user_data|use
 // browser profile. See docs/qa/FIREFOX_VENDOR_CACHE_REVIEW.md for provenance.
 const firefoxIcons = "firefox-1555/firefox/browser/chrome/icons/default";
 const firefoxPreferences = "firefox-1555/firefox/browser/defaults/preferences";
+const playwrightPreferences = `${firefoxPreferences}/00-playwright-prefs.js`;
+const playwrightPreferenceBytes = 160;
+const playwrightPreferenceSha256 = "8c2d32801a924f2c2b133f1191d01213513c86e8d1e42e144e9cb1015ea71084";
 function vendorDistributionType(path, roots, descriptor) {
   if (!roots.includes("firefox-1555") || descriptor?.engine !== "firefox" || descriptor.directory !== "firefox-1555" || descriptor.revision !== "1555" || descriptor.browserVersion !== "157.0") return null;
   if (path === firefoxIcons) return "directory";
   if (path === firefoxPreferences) return "directory";
+  if (path === playwrightPreferences) return "file";
   if (/^firefox-1555\/firefox\/browser\/defaults\/preferences\/(?:debugger|firefox|firefox-branding)\.js$/u.test(path)) return "file";
   return /^firefox-1555\/firefox\/browser\/chrome\/icons\/default\/default(?:16|32|48|64|128)\.png$/u.test(path) ? "file" : null;
 }
 const digest = /^[a-f0-9]{64}$/u;
 const failureCodes = new Set([
   "contract-rejected", "runtime-identity", "source-identity", "cache-root-type", "cache-root-canonical", "cache-top-unexpected", "cache-links-type", "cache-required-engine",
-  "entry-path-format", "entry-path-private-or-traversal", "entry-path-root", "entry-parent", "entry-type", "entry-mode", "entry-special-mode", "entry-member-cap", "entry-file-cap", "entry-byte-cap", "entry-hardlink", "entry-mutated",
+  "entry-path-format", "entry-path-private-or-traversal", "entry-path-root", "entry-parent", "entry-type", "entry-mode", "entry-special-mode", "entry-member-cap", "entry-file-cap", "entry-byte-cap", "entry-hardlink", "entry-mutated", "entry-vendor-content",
   "entry-link-format", "entry-link-cross-root", "entry-link-cycle", "entry-link-missing", "cache-license-missing", "cache-io", "archive-command", "unexpected-operation",
 ]);
 const failureStages = new Set(["runtime", "identity", "cache-inspection", "archive-create", "archive-stability", "manifest-write", "unknown"]);
@@ -45,6 +49,8 @@ export function safeExportFailure(error, stage, metadata = {}) {
     const input = error.safeEntry, output = {};
     if (knownEngines.has(input.engine)) output.engine = input.engine;
     if (["file", "directory", "symlink", "unsupported", "unknown"].includes(input.type)) output.type = input.type;
+    if (input.reviewedVendorAlias === "firefox-playwright-default-preferences") output.reviewedVendorAlias = input.reviewedVendorAlias;
+    if (typeof input.vendorContentMatches === "boolean") output.vendorContentMatches = input.vendorContentMatches;
     for (const [key, max] of [["index", TOOLCHAIN_LIMITS.members], ["mode", 0o177777], ["pathBytes", TOOLCHAIN_LIMITS.pathBytes + 1], ["pathDepth", TOOLCHAIN_LIMITS.depth + 1]]) if (Number.isInteger(input[key]) && input[key] >= 0 && input[key] <= max) output[key] = input[key];
     record.entry = output;
   }
@@ -110,6 +116,7 @@ export function validateEntries(entries, roots, limits = TOOLCHAIN_LIMITS) {
     if (entry.type !== "symlink") requireSafe((entry.mode & 0o022) === 0 && (entry.mode & 0o400) !== 0, "entry-mode");
     if (entry.type === "file") {
       requireSafe(Number.isSafeInteger(entry.bytes) && entry.bytes >= 0 && entry.bytes <= limits.fileBytes && typeof entry.sha256 === "string" && digest.test(entry.sha256));
+      if (entry.path === playwrightPreferences) requireSafe(entry.bytes === playwrightPreferenceBytes && entry.sha256 === playwrightPreferenceSha256, "entry-vendor-content");
       bytes += entry.bytes; requireSafe(bytes <= limits.bytes, "entry-byte-cap");
     } else requireSafe(entry.bytes === 0);
     if (entry.type === "symlink") {
@@ -151,6 +158,7 @@ export async function inspectBrowserCache(cacheDir, metadata, limits = TOOLCHAIN
   const presentRoots = roots.filter(root => top.includes(root.directory));
   async function walk(path) {
     const context = { engine: roots.find(root => root.directory === path.split("/")[0])?.engine, index: entries.length, pathBytes: Math.min(Buffer.byteLength(path), TOOLCHAIN_LIMITS.pathBytes + 1), pathDepth: Math.min(path.split("/").length, TOOLCHAIN_LIMITS.depth + 1), type: "unknown" };
+    if (path === playwrightPreferences && vendorDistributionType(path, allowed, firefoxDescriptor)) context.reviewedVendorAlias = "firefox-playwright-default-preferences";
     try {
     validateEntryPath(path, allowed, limits, firefoxDescriptor); requireSafe(entries.length < limits.members, "entry-member-cap");
     const full = resolve(absolute, path); requireSafe(relative(absolute, full) !== ".." && !relative(absolute, full).startsWith(`..${sep}`));
@@ -165,8 +173,10 @@ export async function inspectBrowserCache(cacheDir, metadata, limits = TOOLCHAIN
     } else if (info.isSymbolicLink()) entries.push({ path, type: "symlink", mode, bytes: 0, target: await readlink(full) });
     else {
       requireSafe(info.isFile(), "entry-type"); requireSafe(info.nlink === 1, "entry-hardlink"); requireSafe(info.size <= limits.fileBytes, "entry-file-cap");
+      if (path === playwrightPreferences && info.size !== playwrightPreferenceBytes) { context.vendorContentMatches = false; throw new ToolchainContractError("entry-vendor-content"); }
       runningBytes += info.size; requireSafe(runningBytes <= limits.bytes, "entry-byte-cap");
       const sha256 = await fileHash(full), after = await lstat(full);
+      if (path === playwrightPreferences) { context.vendorContentMatches = info.size === playwrightPreferenceBytes && sha256 === playwrightPreferenceSha256; requireSafe(context.vendorContentMatches, "entry-vendor-content"); }
       requireSafe(info.size === after.size && info.mtimeMs === after.mtimeMs && info.ino === after.ino, "entry-mutated");
       entries.push({ path, type: "file", mode, bytes: info.size, sha256 });
     }

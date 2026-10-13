@@ -19,6 +19,7 @@ import zipfile
 
 sys.dont_write_bytecode = True
 SCRIPT = Path(__file__).resolve().parents[2] / "scripts/import-browser-toolchain.py"
+OFFICIAL_PREF_FIXTURE = Path(__file__).resolve().parents[1] / "fixtures/firefox-playwright-preferences-1.64.0.txt"
 spec = importlib.util.spec_from_file_location("browser_import", SCRIPT)
 m = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(m)
@@ -143,6 +144,35 @@ class ImportTests(unittest.TestCase):
 
     def test_exact_vendor_preferences_accepted(self):
         self.assertEqual(self.verify(items=preferences())["fileCount"], 6)
+
+    def test_exact_automation_preference_official_public_fixture(self):
+        data = OFFICIAL_PREF_FIXTURE.read_bytes()
+        self.assertEqual(len(data), 160)
+        self.assertEqual(m.sha(data), "8c2d32801a924f2c2b133f1191d01213513c86e8d1e42e144e9cb1015ea71084")
+        self.assertEqual(self.verify(items=preferences() + [file(m.AUTOMATION_PREF, data)])["fileCount"], 7)
+
+    def test_automation_preference_content_size_and_context_fail_closed(self):
+        data = OFFICIAL_PREF_FIXTURE.read_bytes()
+        for invalid in (bytes([data[0] ^ 1]) + data[1:], data[:-1], data + b"\n"):
+            with self.subTest(bytes=len(invalid)):
+                with self.assertRaisesRegex(m.Rejected, "vendor-content"):
+                    self.verify(items=preferences() + [file(m.AUTOMATION_PREF, invalid)])
+        for name in (m.AUTOMATION_PREF.replace("00-playwright", "00-Playwright"), m.PREF_DIR + "/prefs.js", m.PREF_DIR + "/user.js"):
+            self.rejected(items=preferences() + [file(name, data)])
+        for revision in ("1554", "1556"):
+            self.rejected(items=preferences() + [file(m.AUTOMATION_PREF, data)], mutate=lambda value, revision=revision: value["roots"][1].update(revision=revision))
+        self.rejected(items=preferences() + [link(m.AUTOMATION_PREF)])
+        self.rejected(items=preferences() + [file(m.AUTOMATION_PREF, data), link("firefox-1555/pref-alias", "firefox/browser/defaults/preferences/00-playwright-prefs.js")])
+        unsafe = file(m.AUTOMATION_PREF, data)
+        unsafe["mode"] = 0o666
+        self.rejected(items=preferences() + [unsafe])
+        items = preferences() + [file(m.AUTOMATION_PREF, data)]
+        changed = copy.deepcopy(items)
+        changed[-1]["_data"] = bytes([data[0] ^ 1]) + data[1:]
+        self.rejected(items=items, tar_items=changed)
+        changed = copy.deepcopy(items)
+        changed[-1]["_type"] = tarfile.LNKTYPE
+        self.rejected(items=items, tar_items=changed)
 
     def test_preferences_exception_rejects_user_files_casing_unknown_links(self):
         for name in (m.PREF_DIR + "/prefs.js", m.PREF_DIR + "/user.js", m.PREF_DIR + "/unknown.js",
