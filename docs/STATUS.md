@@ -1,5 +1,13 @@
 # وضعیت اجرا
 
+## وضعیت جاری، ۰۵:۲۱ UTC، ۱۳ اکتبر ۲۰۲۶
+
+QA در schema جدا علت تعارض اعلان را واقعاً ثابت کرد: کلید دستی متفاوت برای همانevent تعارض503 ایجاد می‌کند؛ دو رویداد قبلی نیز می‌توانند به مدیر تازه‌واجدشرایط برسند و همراه دو پیام فعلی، چهار ردیف معتبر بسازند. replaycanonical شناسه/read را حفظ کرد؛ وضعیت واقعی job، pending/running/completed است. پروف31.613s موفق، fingerprint مالی/صف/رزرو ثابت، cleanup و audit53table/13history قبول و پنجره آزاد شد. nativeAuthenticationProved=false؛ اصلاح helper/assertion مرورگر هنوز آماده‌سازی است.
+
+CIcache99bf دانلود رسمی سه موتور را گذراند و lexicalguard روی Firefox را طبقه‌بندی کرد؛ نام واقعی entry621 از diagnostic اثبات نمی‌شود. منابع رسمی دارایی GTK پوشهdefault و پنجPNG را تأیید کردند؛ اصلاح دقیق همان اعضا و descriptor1555/157.0 آماده است. regression خالص Linux واقعاً133/133 و صفرskip/fail شد، شامل12exporter+77runtime+44original؛ PG/browser/import اجرا نشد. ابزار preservationruntime با gatebackup/identity مستقل آماده و بهCI افزوده می‌شود؛ backup/migration/activation سرور اجرا نشده‌اند. [قرارداد cache](qa/BROWSER_TOOLCHAIN_CACHE.md)، [پروتکل preservation](ops/RUNTIME_ANALYTICS_NOTIFICATIONS_MIGRATION.md).
+
+عامل تجارت جداسازی حساب DML برنامهCI از migrationowner را آماده می‌کند. verify99bf از lint/typecheck/domain/build/install عبور کرده و مرحله مرورگر در حال اجراست؛ image جدید پذیرفته یا مستقر نشده. سلامت296 پذیرفته و app613/Ops591/schema11 سرور محفوظ‌اند.
+
 ## وضعیت جاری، ۰۵:۰۲ UTC، ۱۳ اکتبر ۲۰۲۶
 
 ابزارهای GC/cache باfb320c5 رویmain منتشر شدند. CI همینcommit در آزمون mock Python3.12 به محدودیت nesting رسید؛ baselineLinux34/35 و اصلاحExitStack35/35 واقعی قبول، driver/remote ثابت‌اند. Workflowcache هرسه مرورگر رسمی را واقعاً دانلود کرد ولی exportguard خروجی را رد کرد؛ علت هنوز طبقه‌بندی نشده و diagnosticsبسته با10/10Linux برایCIبعدی آماده‌اند؛ هیچartifact وارد یاbrowserمحلی اجرا نشده است.

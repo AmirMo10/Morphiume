@@ -35,6 +35,40 @@ test("path boundaries reject traversal, prefixes, controls and secret/profile ca
   for (const path of ["/chromium-1248/LICENSE", "chromium-1248/../private", "chromium-1248//LICENSE", "chromium-1248\\LICENSE", "chromium-1248/LICENSE\nprivate", "chromium-12480/LICENSE", "unlisted-1248/LICENSE", "chromium-1248/.env", "chromium-1248/.local/file", "chromium-1248/Default/Cookies", "chromium-1248/User Data/file", "chromium-1248/GITHUB_TOKEN", "chromium-1248/storage-state.json", "firefox-1555/Login Data"]) rejected(() => validateEntryPath(path, known));
 });
 
+test("only six exact pinned Firefox GTK branding members bypass the Default segment guard", () => {
+  const known = roots.map(root => root.directory), base = "firefox-1555/firefox/browser/chrome/icons/default", descriptor = roots.find(root => root.engine === "firefox");
+  const validate = path => validateEntryPath(path, known, TOOLCHAIN_LIMITS, descriptor);
+  assert.equal(validate(base), base);
+  for (const size of [16, 32, 48, 64, 128]) assert.equal(validate(`${base}/default${size}.png`), `${base}/default${size}.png`);
+  for (const path of [base.replace("1555", "1556"), base.replace("default", "Default"), `${base}/Cookies`, `${base}/default256.png`, `${base}/default16.png/child`, `${base}/.env`, "firefox-1555/Default/Cookies", "firefox-1555/firefox/browser/Default", "chromium-1248/browser/chrome/icons/default"]) rejected(() => validate(path));
+  rejected(() => validateEntryPath(base, known));
+  for (const patch of [{ engine: "chromium" }, { revision: "1556" }, { browserVersion: "158.0" }, { directory: "firefox-1556" }]) rejected(() => validateEntryPath(base, known, TOOLCHAIN_LIMITS, { ...descriptor, ...patch }));
+  rejected(() => validateEntryPath(base, known.filter(root => root !== "firefox-1555")));
+  const parents = ["firefox-1555/firefox", "firefox-1555/firefox/browser", "firefox-1555/firefox/browser/chrome", "firefox-1555/firefox/browser/chrome/icons", base].map(directory);
+  const valid = [...entries(), ...parents, file(`${base}/default16.png`)];
+  assert.equal(validateEntries(valid, roots).fileCount, 4);
+  for (const path of [base, `${base}/default16.png`]) rejected(() => validateEntries(valid.map(entry => entry.path === path ? { ...entry, type: "symlink", bytes: 0, target: "LICENSE" } : entry), roots));
+  rejected(() => validateEntries([...valid, { path: "firefox-1555/icon-alias", type: "symlink", mode: 0o777, bytes: 0, target: "firefox/browser/chrome/icons/default/default16.png" }], roots));
+  rejected(() => validateEntries(valid.map(entry => entry.path === base ? { ...entry, mode: 0o777 } : entry), roots));
+});
+
+test("real pinned Firefox branding files export without admitting profile data or icon symlinks", { skip: process.platform !== "linux" ? "Unix filesystem contract runs on Linux." : false }, async () => {
+  await fixture(async ({ cache, root }) => {
+    const base = join(cache, "firefox-1555/firefox/browser/chrome/icons/default");
+    await mkdir(base, { recursive: true, mode: 0o755 });
+    for (const size of [16, 32, 48, 64, 128]) await writeFile(join(base, `default${size}.png`), "official-branding-fixture", { mode: 0o644 });
+    const manifest = await exportBrowserToolchain({ cacheDir: cache, outputDir: join(root, "branding-export"), metadata, sourceCommit: "a".repeat(40), lockfileSha256: "b".repeat(64), exporterSha256: "c".repeat(64) });
+    assert.equal(manifest.entries.filter(entry => entry.path.includes("/icons/default/")).length, 5);
+    await writeFile(join(base, "Cookies"), "private-profile-canary");
+    await assert.rejects(inspectBrowserCache(cache, metadata), /contract rejected/u);
+  });
+  await fixture(async ({ cache }) => {
+    const parent = join(cache, "firefox-1555/firefox/browser/chrome/icons"); await mkdir(parent, { recursive: true, mode: 0o755 });
+    await symlink("../../../../LICENSE", join(parent, "default"));
+    await assert.rejects(inspectBrowserCache(cache, metadata), /contract rejected/u);
+  });
+});
+
 test("member identity, parent directories, types and permission modes are fail closed", () => {
   assert.deepEqual(validateEntries(entries(), roots), { memberCount: 6, totalBytes: 72, fileCount: 3, symlinkCount: 0 });
   rejected(() => validateEntries([...entries(), file("chromium-1248/LICENSE")], roots));
