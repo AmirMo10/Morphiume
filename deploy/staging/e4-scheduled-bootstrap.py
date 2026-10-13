@@ -217,9 +217,12 @@ def read_manager_properties(c, name):
         # even with --all. Prove typed emptiness; never infer it from absence.
         need(set(value) == set(PROPERTIES) - {'EnvironmentFiles'})
         object_path = '/org/freedesktop/systemd1/unit/' + name.replace('-', '_2d').replace('.', '_2e')
-        found = parse(c.run(['busctl', '--json=short', 'call', 'org.freedesktop.systemd1',
-            '/org/freedesktop/systemd1', 'org.freedesktop.systemd1.Manager', 'GetUnit', 's', name]))
-        need(type(found) is dict and set(found) == {'type', 'data'} and found['type'] == 'o' and found['data'] == [object_path])
+        # Properties.Get resolves this canonical unit object from disk. A
+        # separate Manager.GetUnit races garbage collection of inactive
+        # oneshots after systemctl's connection closes; it must not be used.
+        found = parse(c.run(['busctl', '--json=short', 'get-property', 'org.freedesktop.systemd1',
+            object_path, 'org.freedesktop.systemd1.Unit', 'Id']))
+        need(type(found) is dict and set(found) == {'type', 'data'} and found['type'] == 's' and found['data'] == name)
         empty = parse(c.run(['busctl', '--json=short', 'get-property', 'org.freedesktop.systemd1',
             object_path, 'org.freedesktop.systemd1.Service', 'EnvironmentFiles']))
         need(type(empty) is dict and set(empty) == {'type', 'data'} and empty['type'] == 'a(sb)' and empty['data'] == [])

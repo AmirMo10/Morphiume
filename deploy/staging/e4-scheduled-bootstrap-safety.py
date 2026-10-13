@@ -368,23 +368,42 @@ class PureChecks(unittest.TestCase):
     def test_missing_environmentfiles_requires_typed_empty_canonical_bus_reply(self):
         a=args();v=effective(a);v.pop('EnvironmentFiles');c=Mock()
         path='/org/freedesktop/systemd1/unit/morphiume_2druntime_2dhealth_2eservice'
-        c.run.side_effect=[text(v),json.dumps({'type':'o','data':[path]}),json.dumps({'type':'a(sb)','data':[]})]
+        c.run.side_effect=[text(v),json.dumps({'type':'s','data':a.unit}),json.dumps({'type':'a(sb)','data':[]})]
         self.assertEqual(m.read_manager_properties(c,a.unit),effective(a))
         self.assertEqual(c.run.call_args_list[0].args[0][3],'--all')
-        self.assertEqual(c.run.call_args_list[1].args[0][-2:],['s',a.unit])
+        self.assertEqual(c.run.call_args_list[1].args[0],['busctl','--json=short','get-property','org.freedesktop.systemd1',path,'org.freedesktop.systemd1.Unit','Id'])
         self.assertEqual(c.run.call_args_list[2].args[0][-3:],[path,'org.freedesktop.systemd1.Service','EnvironmentFiles'])
 
     def test_environmentfiles_bus_nonempty_wrong_type_object_extra_duplicate_rejected(self):
         a=args();v=effective(a);v.pop('EnvironmentFiles');path='/org/freedesktop/systemd1/unit/morphiume_2druntime_2dhealth_2eservice'
-        good={'type':'o','data':[path]};empty={'type':'a(sb)','data':[]}
+        good={'type':'s','data':a.unit};empty={'type':'a(sb)','data':[]}
         cases=[(good,{'type':'a(sb)','data':[['/known/file',False]]}), (good,{'type':'as','data':[]}),
-            ({'type':'o','data':['/wrong']},empty),({'type':'o','data':[path],'extra':True},empty),
+            ({'type':'s','data':'morphiume-runtime-backup.service'},empty),({'type':'o','data':a.unit},empty),
+            ({'type':'s','data':[a.unit]},empty),({'type':'s','data':a.unit,'extra':True},empty),
             (good,{'type':'a(sb)','data':[],'extra':True})]
         for found,reply in cases:
             c=Mock();c.run.side_effect=[text(v),json.dumps(found),json.dumps(reply)]
             with self.subTest(found=found,reply=reply),self.assertRaises(ValueError):m.read_manager_properties(c,a.unit)
-        c=Mock();c.run.side_effect=[text(v),' {"type":"o","type":"o","data":[]}']
+        c=Mock();c.run.side_effect=[text(v),' {"type":"s","type":"s","data":"morphiume-runtime-health.service"}']
         with self.assertRaises(ValueError):m.read_manager_properties(c,a.unit)
+
+    def test_inactive_gc_canonical_property_read_does_not_require_getunit(self):
+        a=args();v=effective(a);v.pop('EnvironmentFiles');v['ActiveState']='inactive';v['InvocationID']=''
+        path='/org/freedesktop/systemd1/unit/morphiume_2druntime_2dhealth_2eservice'
+        calls=[]
+        def observed(command):
+            calls.append(command)
+            if 'GetUnit' in command:
+                raise subprocess.SubprocessError('Unit not loaded after inactive garbage collection')
+            if command[:3]==['systemctl','show',a.unit]:return text(v)
+            if command[-3:]==[path,'org.freedesktop.systemd1.Unit','Id']:return json.dumps({'type':'s','data':a.unit})
+            if command[-3:]==[path,'org.freedesktop.systemd1.Service','EnvironmentFiles']:return json.dumps({'type':'a(sb)','data':[]})
+            raise AssertionError('Unexpected metadata operation')
+        c=Mock();c.run.side_effect=observed
+        value=m.read_manager_properties(c,a.unit)
+        m.validate_peer_effective(value,a,90)
+        self.assertEqual(value['EnvironmentFiles'],'');self.assertEqual(len(calls),3)
+        self.assertFalse(any('GetUnit' in command or 'LoadUnit' in command or 'RefUnit' in command for command in calls))
 
     def test_other_missing_property_cannot_receive_empty_fallback(self):
         v=effective();v.pop('EnvironmentFiles');v.pop('MemoryMax');c=Mock();c.run.return_value=text(v)
