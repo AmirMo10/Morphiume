@@ -6,6 +6,28 @@ import { archiveFixtureProducts, assertPrivateOrderCounts, controlledCheckout, e
 import type { AdminPresentationDto } from "../../src/contracts/presentation";
 
 type PresentationRow = { value: unknown; version: number; updated_by: string | null; updated_at: Date };
+type PresentationDiagnostic = {
+  stage: "put-response" | "public-read" | "database-read";
+  status: number | null; version: unknown; configured: unknown;
+  heroTitleMatchesRequested: boolean | null; maintenanceEnabled: unknown;
+  payloadHeroTitleMatchesRequested: boolean | null;
+  payloadVersionMatchesOriginal: boolean | null; ownedWriter: boolean | null;
+};
+function presentationDiagnostic(record: PresentationDiagnostic) {
+  // Construct the fixed envelope explicitly. Never emit the request/response,
+  // fixture title, reason, user ID, auth factor, cookie or provider reference.
+  console.info(`[presentation-status] ${JSON.stringify({
+    stage: record.stage,
+    status: record.status !== null && Number.isInteger(record.status) && record.status >= 100 && record.status <= 599 ? record.status : null,
+    version: typeof record.version === "number" && Number.isSafeInteger(record.version) && record.version > 0 && record.version <= 2147483647 ? record.version : null,
+    configured: typeof record.configured === "boolean" ? record.configured : null,
+    heroTitleMatchesRequested: record.heroTitleMatchesRequested,
+    maintenanceEnabled: typeof record.maintenanceEnabled === "boolean" ? record.maintenanceEnabled : null,
+    payloadHeroTitleMatchesRequested: record.payloadHeroTitleMatchesRequested,
+    payloadVersionMatchesOriginal: record.payloadVersionMatchesOriginal,
+    ownedWriter: record.ownedWriter,
+  })}`);
+}
 async function restorePresentation(pool: pg.Pool, prior: PresentationRow | undefined, ownerId: string) {
   const connection = await pool.connect();
   try {
@@ -39,17 +61,56 @@ test("T09/T12/T19/T25: native owner presentation pause refuses new checkout but 
     expect(stalePause.status()).toBe(403); expect((await stalePause.json()).error.code).toBe("MFA_REQUIRED");
     await page.goto("/admin/presentation");
     const title = `صفحهٔ اصلی مصنوعی QA ${marker}`, pauseMessage = `توقف کنترل‌شدهٔ QA ${marker}؛ سفارش واقعی ثبت نکنید.`;
-    await page.getByLabel("عنوان صفحهٔ اصلی", { exact: true }).fill(title);
+    const heroTitleField = page.getByLabel("عنوان صفحهٔ اصلی", { exact: true });
+    await heroTitleField.fill(title);
     await page.getByLabel("ثبت سفارش تازه متوقف شود.", { exact: true }).check();
     await page.getByLabel("پیام توقف سفارش‌گیری", { exact: true }).fill(pauseMessage);
     await page.getByLabel("دلیل تغییر نمایش فروشگاه", { exact: true }).fill(`QA native pause ${marker}`);
+    await expect(heroTitleField, "Requested hero title remains in the form before review").toHaveValue(title);
     await page.getByRole("button", { name: "بررسی و ذخیرهٔ نمایش فروشگاه", exact: true }).click();
     const dialog = page.getByRole("dialog", { name: "بررسی تغییر توقف سفارش‌گیری", exact: true });
     await expect(dialog.getByRole("button", { name: "تأیید و ثبت نمایش فروشگاه", exact: true })).toBeDisabled();
     await verifyAdminTotp(page, ownerUri, "کد رمزساز برای تغییر توقف سفارش‌گیری", "تأیید دوباره", dialog);
-    await dialog.getByRole("button", { name: "تأیید و ثبت نمایش فروشگاه", exact: true }).click();
+    await expect(heroTitleField, "Requested hero title survives native MFA renewal before submission").toHaveValue(title);
+    // Promise construction is left-to-right: arm the exact PUT observer before
+    // clicking. Keep the existing ten-second action budget; never retry a save.
+    const [saveResponse] = await Promise.all([
+      page.waitForResponse(response => {
+        const target = new URL(response.url());
+        return response.request().method() === "PUT" && target.origin === new URL(baseURL!).origin && target.pathname === "/api/admin/presentation";
+      }, { timeout: 10_000 }),
+      dialog.getByRole("button", { name: "تأیید و ثبت نمایش فروشگاه", exact: true }).click(),
+    ]);
+    const payload: unknown = saveResponse.request().postDataJSON();
+    const payloadRecord = payload && typeof payload === "object" && !Array.isArray(payload) ? payload as Record<string, unknown> : null;
+    const payloadTitleMatches = payloadRecord?.heroTitle === title;
+    const payloadVersionMatches = payloadRecord?.expectedVersion === original.version;
+    // Status is asserted before parsing an error body. Even on a rejected PUT,
+    // the safe envelope distinguishes input serialization from HTTP failure.
+    presentationDiagnostic({ stage: "put-response", status: saveResponse.status(), version: null, configured: null, heroTitleMatchesRequested: null, maintenanceEnabled: null, payloadHeroTitleMatchesRequested: payloadTitleMatches, payloadVersionMatchesOriginal: payloadVersionMatches, ownedWriter: null });
+    expect(saveResponse.status(), "Native owner presentation PUT HTTP status").toBe(200);
+    const saved = (await saveResponse.json()).data as AdminPresentationDto;
+    presentationDiagnostic({ stage: "put-response", status: saveResponse.status(), version: saved.version, configured: saved.configured, heroTitleMatchesRequested: saved.heroTitle === title, maintenanceEnabled: saved.maintenance?.enabled, payloadHeroTitleMatchesRequested: payloadTitleMatches, payloadVersionMatchesOriginal: payloadVersionMatches, ownedWriter: null });
     await expect(page.getByText("نمایش فروشگاه ذخیره شد.", { exact: true })).toBeVisible();
-    const published = (await (await customer.request.get("/api/presentation")).json()).data as AdminPresentationDto;
+    const publicResponse = await customer.request.get("/api/presentation");
+    presentationDiagnostic({ stage: "public-read", status: publicResponse.status(), version: null, configured: null, heroTitleMatchesRequested: null, maintenanceEnabled: null, payloadHeroTitleMatchesRequested: null, payloadVersionMatchesOriginal: null, ownedWriter: null });
+    expect(publicResponse.status(), "Public presentation GET HTTP status").toBe(200);
+    const published = (await publicResponse.json()).data as AdminPresentationDto;
+    presentationDiagnostic({ stage: "public-read", status: publicResponse.status(), version: published.version, configured: published.configured, heroTitleMatchesRequested: published.heroTitle === title, maintenanceEnabled: published.maintenance?.enabled, payloadHeroTitleMatchesRequested: null, payloadVersionMatchesOriginal: null, ownedWriter: null });
+    const stored = await pool.query<{ version: number; hero_title_matches: boolean | null; owned_writer: boolean }>("SELECT version, value->>'heroTitle'=$1 AS hero_title_matches, updated_by=$2 AS owned_writer FROM store_setting WHERE key='presentation'", [title, ownerId]);
+    const storedRow = stored.rows[0];
+    presentationDiagnostic({ stage: "database-read", status: null, version: storedRow?.version, configured: stored.rowCount === 1, heroTitleMatchesRequested: storedRow?.hero_title_matches === true, maintenanceEnabled: null, payloadHeroTitleMatchesRequested: null, payloadVersionMatchesOriginal: null, ownedWriter: storedRow?.owned_writer ?? null });
+    expect(payloadTitleMatches, "Submitted presentation PUT contains the exact requested hero title").toBe(true);
+    expect(payloadVersionMatches, "Submitted presentation PUT uses the captured original version").toBe(true);
+    expect(saved.heroTitle, "Presentation PUT response retains the requested hero title").toBe(title);
+    expect(saved.version).toBe(original.version + 1);
+    expect(saved.configured).toBe(true);
+    expect(stored.rowCount, "One owned presentation row exists after the save").toBe(1);
+    expect(storedRow?.hero_title_matches, "Stored presentation hero title equals the requested string").toBe(true);
+    expect(storedRow?.owned_writer, "The presentation row remains owned by this fixture writer").toBe(true);
+    expect(storedRow?.version).toBe(saved.version);
+    expect(published.version).toBe(saved.version);
+    expect(published.configured).toBe(true);
     expect(published.heroTitle).toBe(title); expect(published.maintenance).toEqual({ enabled: true, message: pauseMessage });
     const publicPage = await customer.newPage(); expect((await publicPage.goto("/"))?.status()).toBe(200);
     await expect(publicPage.getByRole("heading", { level: 1 })).toHaveText(title); await expect(publicPage.getByText(pauseMessage, { exact: true })).toBeVisible();
