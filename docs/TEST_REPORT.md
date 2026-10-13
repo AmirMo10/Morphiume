@@ -1,5 +1,11 @@
 # آزمون‌های واقعاً اجراشده
 
+## ابزار مرحله‌ای و preflight واقعی، ۰۷:۲۳ UTC
+
+- RootLinuxregression:24/24companion، reported0.294s/wall0.5202044s؛121/121original+runtimeobserver،0fail/skip/wall0.722171232s؛19sourcecanonicalhashبدونتغییر. CompanionSHA30d521ea… و suiteSHAf204475c… برابر freezeعامل؛ puremock/disposablefiles، بدونDB/Docker/browser.
+- آزمون واقعی image-only در07:12:09.571168Z،0.421130923s/exit0: stdinJSONattached وpg.Clientimportable، Node24.21/root/dropcaps/readOnly/networknone؛ هیچDB/app/workerشروع نشد. [منبع و gateها](ops/E4_RUNTIME_UPGRADE_DISPATCH.md).
+- مرحله‌های واقعی writerstop/freshbackup/before49/migration0012+13/after53/activate هنوزاجرا نشده‌اند؛ puretests جایگزین آن‌ها نیستند.
+
 ## انتقال/load و نتیجهٔ کامل nativeمحلی، ۰۶:۵۶ UTC
 
 - transferسهفایل/سرورwholeSHAدر06:52:25Z قبول؛ loadواقعی22.078s/exit0 باengine3b78… وproofv2/Ops68. Postloadفقط‌خواندنی06:56:52Z، app/worker613سالم و config/mount/limitsمحفوظ؛ هیچSQL/backup/migration/cutover انجام نشده. [هویت](ops/E4_ACCEPTED_IMAGE_EVIDENCE.md).

@@ -1,5 +1,11 @@
 # وضعیت اجرا
 
+## وضعیت جاری، ۰۷:۲۳ UTC، ۱۳ اکتبر ۲۰۲۶
+
+ابزار مرحله‌ای زیرساخت منجمد شد: prepareنسخهٔ پشتیبان613/591 را با writerمتوقف می‌گیرد، migrateبه before49 مستقل وابسته است، activateپس از recomputeواقعی after53 اجازهٔ شروعE4 می‌دهد. Root مستقل24/24آزمون ابزار درLinux با0.294s و121/121observer بدونfail/skip درwall0.722s را گذراند؛ هیچDB/Docker/browser در این آزمون‌ها اجرا نشد. آزمون بهCI افزوده شد. [دستور اجرای مرحله‌ای](ops/E4_RUNTIME_UPGRADE_DISPATCH.md).
+
+پیش‌بررسی واقعی تصویر07:12:09Z، stdinوpg.Client/Node24.21 را در0.421s تأیید کرد، networknone و بدونDB/app. Namespaceخصوصی و referenceمستقل15510بایتیec92… رویسرورrehash/root600 شد؛ هنوز writerstop/backup/before/migration/after/activation انجام نشده. [گزارش خوانای پروژه با زمان مشاهدهٔ مستقل](PROJECT_PROGRESS_20261013.md) قابلیت‌ها و پیش‌نیازها را جدا ثبت می‌کند.
+
 ## وضعیت جاری، ۰۶:۵۶ UTC، ۱۳ اکتبر ۲۰۲۶
 
 تصویرE4واقعاً به سرور منتقل، rehash و load شد:22.078s/exit0، proofv2 و immutableengine3b78dc30…؛ بستهٔ21فایلیOps68 مستقل ثابت است. checkoutباffدقیق بهE4رفت؛ مشاهدهٔ06:56:52Z نشان داد app/worker613قدیمی همچنانhealthy و config/mount/limitsمحفوظ‌اند. [جزئیات](ops/E4_ACCEPTED_IMAGE_EVIDENCE.md). هیچwriterstop/backupتازه/migration/cutover انجام نشده.
