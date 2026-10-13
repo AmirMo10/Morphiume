@@ -6,17 +6,20 @@ import { pathToFileURL } from "node:url";
 // Never derive an alias by retaining a raw request path or query.
 export const SERVER_ROUTE_ALIASES = Object.freeze([
   "auth", "health", "catalog", "products", "collections", "settings", "content",
-  "cart", "checkout", "orders", "account", "test.payment", "payment.callback",
+  "cart", "cart.claim", "checkout", "orders", "account", "analytics", "test.payment", "payment.callback",
   "admin.catalog", "admin.inventory", "admin.orders", "admin.returns",
-  "admin.settings", "admin.directory", "admin.csv", "admin.media", "api.other",
+  "admin.settings", "admin.directory", "admin.csv", "admin.media", "admin.analytics", "admin.notifications", "api.other",
 ]);
 export const SERVER_FAILURE_CATEGORIES = Object.freeze([
   "database_deadlock", "database_serialization", "database_constraint",
-  "database_connection", "database_schema", "database_timeout", "unexpected",
+  "database_connection", "database_schema", "database_timeout", "database_data",
+  "runtime_type", "runtime_reference", "unexpected",
 ]);
+export const SERVER_NATIVE_AUTH_STATUSES = Object.freeze([400, 401, 403, 404, 408, 429, 500, 502, 503]);
 export const SERVER_EVIDENCE_LIMITS = Object.freeze({ bytes: 8 * 1024 * 1024, lineBytes: 16384, lines: 50000, events: 1000, durationMs: 3600000 });
 const sources = new Set(["verify-runtime", "image-runtime"]);
 const routes = new Set(SERVER_ROUTE_ALIASES), categories = new Set(SERVER_FAILURE_CATEGORIES);
+const nativeStatuses = new Set(SERVER_NATIVE_AUTH_STATUSES);
 const serverUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const utcTime = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
 const dockerTimePrefix = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{1,9}Z /;
@@ -40,6 +43,8 @@ export function safeServerFailureRecord(line) {
   if (record.errorCode === "INTERNAL") {
     result.errorCode = "INTERNAL";
     if (categories.has(record.failureCategory)) result.failureCategory = record.failureCategory;
+    if (typeof record.requestAborted === "boolean") result.requestAborted = record.requestAborted;
+    if (Number.isInteger(record.nativeAuthStatus) && nativeStatuses.has(record.nativeAuthStatus)) result.nativeAuthStatus = record.nativeAuthStatus;
   }
   return result;
 }

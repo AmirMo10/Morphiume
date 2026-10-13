@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "source": "verify-runtime",
+  "state": "collected",
+  "linesScanned": 2579,
+  "eventCount": 0,
+  "byteLimitReached": false,
+  "lineLimitReached": false,
+  "eventLimitReached": false,
+  "events": [],
+  "scope": "dedicated-full-38-native-local",
+  "startedAt": "2026-10-13T01:33:20.090Z",
+  "endedAt": "2026-10-13T01:48:30.054Z"
+}

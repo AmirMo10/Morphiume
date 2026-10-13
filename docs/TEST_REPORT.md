@@ -1,5 +1,47 @@
 # آزمون‌های واقعاً اجراشده
 
+## پذیرش نهایی recovery در محیط جدا، ۰۱:۵۵ UTC، ۱۳ اکتبر ۲۰۲۶
+
+- build83681/server76753/targetqa7f59/canonical3004: **۳۸/۳۸909.964618s**،۱۹درهردوموتور، start01:33:20.090Z/end01:48:30.054Z؛0skip/flaky/testretry، observeroff/budgetsunchanged.۲۱۸native(۲۰۸200/۶429/۲wrongcode400/۲controlled503) باهمان boundedretryواقعی429. Capturedwrapper500=0،۲۵۷۹خط/no truncation/caps.۲۵۰sourcehashوprovider/HTTPثابت؛audit01:51:24.417Z چهارownedfixturecount0 وreleasedwindow. [گزارش](qa/DEDICATED_RECOVERY_QA.md)،[مرورگر](qa/browser-recovery-dedicated-whole.json)،[سرور](qa/server-recovery-dedicated-whole.json).
+- QAwhitelist38/0unknownfield/0authsecretpattern وvisualreview۸تصویر مصنوعی قبول؛ دوcatalogscreen حالتEMPTY هستند وproductbluePNGdecodeشده است. هیچtrace/rawlog/cookie/OTP/URIمحرمانه منتشر نمی‌شود.
+- اجرایoriginal34/38failed در906.599832s مستقل محفوظ؛ چهارCSV409علتtracebodyنامعلوم دارند. Countreadonlyبعدی10650/archived10647 guardاکنون را اثبات می‌کند، تاریخچهٔ چهار پاسخ را بازسازی نمی‌کند.
+- GuideNodehealthtool۳۳/۳۳827.6235ms،Nodeprovision۲۰/۲۰،HTTP/logger/exporter/gate۱۶۶/۱۶۶2.61s،QAguard۸۷/۸۷412ms؛ scopeها هم‌پوشان/جدا وبهwhole38 یاRoot592اضافه نشوند. Root592/31file17.87s/build37621/globallint76662exit0. نخستین copyhealthtest به‌علت نبود parentfolder شکست وبدون اجرای آزمون exit1 شد؛ folder مشخص ساخته، exactsource کپی واجرای واقعی۳۳قبول شد.
+
+Rootpublication/اسکن نهایی وCI همانcommit هنوز درحال آماده‌سازی است؛ published5cfCIfailed/image-skipped باقی است. B/Cnative،runtimecutover/fullscheduledhealth/manualbackup/timers/IP/load200 وASVS/realprovider پذیرش نشده‌اند.
+
+## نتیجهٔ جاری، ۰۱:۳۵ UTC، ۱۳ اکتبر ۲۰۲۶
+
+- Guidebuild83681/server25202 رویoriginalschema11: **۳۴/۳۸906.599832s**، start00:51:40.096Z/end01:06:46.695Z؛ هرengine۱۷pass/۲fail، هر۱۰Cart/۲T25 قبول، skip/flaky/testretry0. چهارCSV409باbodyناموجود؛۲۱۳native(۲۰۴200/۵429/۲wrongcode400/۲controlled503). server۲۵۴۱خط/صفرwrapper500/هیچcap؛ چهارownedcleanupcount0،Source205+trusted10hashunchanged، windowrelease01:08:34.369Z. این مجموعه قبول کامل نیست.
+- Rootreadonly مشاهدهٔcurrentoriginal: محصولات۱۰۶۵۰،archived۱۰۶۴۷،۱۱migration؛ countguard اکنون قطعاً فعال است. مشاهدهٔ پس از اجرا، bodyدریافت‌نشدهٔ چهارtrace را بازسازی نمی‌کند.
+- ابزارfreshQA:۲۰/۲۰ Node1.116903s،syntax/PowerShellASTقبول. RootlocalACL/credentialprepare واقعاً موفق؛ نخستینSSHexit255 هیچrole/db/privateRoot نساخت. readonlysamebootstrap باONLYProgramData موفق؛ اصلاحallowlist، حفظattempt وforwarddispatch همانplan/PythonSHA موفق. ورودowner/app وDML/noDDL/noOldDBaccess واقعاً بررسی شدند؛ newtarget/migrate11/seed/۴۹table/checksum/appfile-noOwnerCred واقعاً تأیید.
+- GuidefreshDB/server76753 رویsamebuild83681: Full۳۸اکنون جاری؛۶اولقبول/catalogCSV200، ولی نتیجهٔ کامل هنوزوجودندارد. prior34/38/rawtrace/HTML/screens محفوظ‌اند؛ timeout/retry/assertion/exportcaps تغییرنکردند.
+- RootcombinedB/Cbuild37621exit0، **۵۹۲/۵۹۲،۳۱فایل،17.87s** unit96298؛ شاملguard87وHTTP/gate تازه است وscopeهای قبلی به آن اضافه نشوند. Guide۴فایلHTTP/logger/exporter/gate **۱۶۶/۱۶۶2.61s** وguard۸۷/۸۷412ms جدا؛ Nodeprovision۲۰/۲۰Guideقبول. originalobserverNode۴۳/۴۳613.8935ms فقطmock/pure وازVitestdiscover نمی‌شود.
+
+published5cfCIfailed56/57 وچهار500نامعلوم، B/Cnative/worker تازه، packagedimageجدید، fullscheduledhealth/backupcycle/timers/privateIP/load۲۰۰ باقی‌اند. هیچ_ASVSقبولی یاproductionreadiness از این نتایج نتیجه نشود.
+
+## نتیجهٔ جاری، ۰۰:۴۹ UTC، ۱۳ اکتبر ۲۰۲۶
+
+- checkout جدا: اصلاح recovery روی build اولیه، ۴/۴ native Chrome/WebKit در164.702547s گذشت ولی یک cart500 نامعلوم داشت. بیلد تشخیصی بعدی، ۲/۲ generic-conflict در53.3s و صفر500 داشت. این‌ها پذیرش نهایی ۳۸ مورد یا علت قطعی خطای قبلی نیستند.
+- نسخهٔ نخست HTTP/recovery: build58736،۱۴۴/۱۴۴ سه فایل2.23s موفق. بازبینی مستقل bodylimit413→499 را یافت؛ baselineواقعی **۱ شکست/۸ قبول،917ms**. حفظ CommerceError و سه assertion تازه، Rootچهار فایل **۶۵/۶۵3.27s** و Guideسه فایل **۱۴۷/۱۴۷2.16s** شدند؛ build83681 وscopedlintexit0/server25202ready200. QA کامل۳۸ اکنون در جریان است؛ نتیجهٔ نهایی موجود نیست. نخستین build پیش از این به‌علت نوع RequestInit fixture شکست خورد؛ نوع دقیق NextRequest fixture اصلاح شد.
+- آزمون HTTP تازه۱۰ مورد دارد: هفت مورد قبلی، دو oversize-stream413 با و بدون signalلغوشده، و downstream500 پس از خواندن موفق با signalلغوشده. آزمایش socket-abort واقعی به wrapper نرسید؛ شاهد رفع خطای تاریخی معرفی نشود.
+- اجرای۳۸ جاری: هر پنج caseسبد Chromium قبول؛ catalog-paging و product-content CSVپس ازnativeعامل دوم۴۰۹ واقعی به‌جای۲۰۰ گرفته‌اند. guardمحصول>10000/guardCSV>32MiB sourceمعلوم است؛ علت پاسخ‌های واقعی هنوز اندازه‌گیری نشده. no retry/assertion/cap تغییر نکرده؛ شمار کلی پس از completion/cleanup ثبت می‌شود.
+- checkout اصلی B/C: build54769 و lint47617 exit0؛ تست واحد34760 **۵۳۱/۵۳۱،۳۰ فایل،15.45s**. شرط پذیرش safe-server-evidence تازه **۱۹/۱۹،294ms**؛ با۵۳۱ جمع نشود چون پس از آن اضافه شده است.
+- تجارت نهایی: **۶۸/۶۸ PostgreSQL، پنج فایل،290.72s** بدون skip/unhandled؛ schemaهای مستقل پاک و اثر انگشت ردیف/ساختار۴۹ جدول اصلی و تاریخچه۱۱ دقیقاً برابر. شکست‌های قبلی fixture pool/late promise assertion حفظ‌اند؛ اجرای نهایی پاک است. این شمار با رگرسیون‌های پیشین هم‌پوشان است.
+- کنترل‌شدهٔ رابط اعلان:۱۳ گروه SSR/Chrome/WebKit،320px/keyboard/axe و پاک‌شدن state خصوصی گذشت؛ HTTP این harness کنترل‌شده است. nativeC۱۲ اجرا و workerfixture مستقل۱ اجرا فقط آماده‌اند. nativeB۹ اجرا فقط آماده است.
+- CI منتشرشده5cf هنوز۵۶/۵۷ و چهار500 طبقه‌بندی‌نشده است؛ image اجرا نشد. این خطاها با نتایج جدید جایگزین یا intentional شمرده نمی‌شوند.
+
+publicDDL جدید، nativeB/C، packaged image تازه، fullscheduledsandbox/timer، privateIP و load200 اجرا نشده‌اند. نتیجهٔ کامل نهایی بعد از آزادشدن پنجرهٔ QA جدا ثبت می‌شود.
+
+## نتیجهٔ جاری، ۲۳:۴۳ UTC
+
+- منتشرشده5cf: Gitleaks855.52KB/zero findings؛ CI38320637761 دامنه/API۵۰۳/۵۰۳، مرورگر۵۶passed/۱failed در691.023547s، start23:12:27.287Z، retry/skip/flaky0؛ image skipped. ZIP7694bytes با دو عضو مجاز182466bytes مستقل بررسی شد؛ serverfailure3908lines/چهار500/no truncation. علت چهار خطا و ارتباط آن‌ها با timeout معلوم نیست.
+- Bbackend۱۵/۱۵ PG32.16s و Cdispatcher۱۶/۱۶ PG80.22s جدا درschemaمتعلق؛ public49جدول/۱۱migration ثابت. Bpure۳۰ و Cpure۲۰، با نتایج هم‌پوشان قبلی جمع نشوند.
+- RootreportPG نهایی **۸/۸28.58s**؛ پرداخت/تحویل حاصل جریان واقعیcommerce، سپس زمان‌های کنترل‌شده فقط درschemaمتعلق برای مرز تهران/cohort/receipt-dispositions. actorfixtureدامنه، nativeMFA نیست. قبل/بعد public49 row/DDL/history برابر و cleanupمتعلق انجام شد. تلاش اول poolmax8 قبل از آزمون شکست/۸skip؛ اصلاحmax2، تلاش دوم۷pass/۱fail ساعت میزبان؛ اصلاحclockهمانPG و اجرای نهایی۸pass. هر سه شاهد خصوصی حفظ‌اند.
+- Root۵فایل ingress/report/cart/observability **۸۴/۸۴4.07s**. schema readiness۸/۸ اصلاح‌شده286ms؛ readiness+childprocesslauncher **۱۷/۱۷1.63s**، globaltypesexit0. نتایج هم‌پوشان جمع نشوند. این بررسی‌های source جای build/native نیستند.
+- QAآماده Bسهcase/۹executionسه‌موتور list، **۰ اجرا**؛ exporter/HTTPevidence۱۱۳/۱۱۳1.23s، bounds/redaction محفوظ. FErecovery defect درChromium/WebKit بازتولید؛ اصلاح/آزمون نهایی در جریان. هیچ timeout/retry/assertion برای سبزشدن CI ضعیف نشده.
+
+nativeB/C رویsourceتازه، image جدید، fullscheduledhealth، protectedIP و load200 هنوز اجرا نشده‌اند. تاریخچهٔ پایین حفظ است.
+
 ## پذیرش ثبت‌شدهٔ ۲۲:۴۲ UTC
 
 تازه۲۳:۰۸: workerdrill591 واقعی **94.640045s**، start22:58:21.843Z/end22:59:56.483Z؛ baselinehealthy0alerts، workerstop0.801138s/Exit0/OOM0، duringexit2/critical/exact1workeralert، resumeهمانworker5.803562s/onefiniteattempt، afterhealthy0alerts/ready200/HB1.9792409668s. app وmetadataPG/mount/profile/image/21Opsbyte ثابت و cacheprefixغایب بودند؛ هیچqueue/financialcleanup انجام نشد. Gitleaksconfigurationbinarygate۷/۷ واقعی، سهpublicpin مجاز و چهارbadvalue/pathcanary کشف‌شده؛ types/lint/whitespacecandidateCartقبول، اسکن نهایی/push جدا ثبت می‌شوند.

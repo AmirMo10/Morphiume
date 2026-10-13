@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
-import { collectServerFailureEvidence, readServerFailureEvidence, safeServerFailureRecord, SERVER_EVIDENCE_LIMITS, SERVER_FAILURE_CATEGORIES, SERVER_ROUTE_ALIASES } from "../../e2e/sanitize-server-log.mjs";
+import { collectServerFailureEvidence, readServerFailureEvidence, safeServerFailureRecord, SERVER_EVIDENCE_LIMITS, SERVER_FAILURE_CATEGORIES, SERVER_NATIVE_AUTH_STATUSES, SERVER_ROUTE_ALIASES } from "../../e2e/sanitize-server-log.mjs";
 
 const event = { event: "request.completed", time: "2026-10-12T17:51:46.123Z", requestId: "F31D0302-438A-4C69-AC73-A558AAC07729", route: "admin.catalog", status: 500, durationMs: 17, errorCode: "INTERNAL", failureCategory: "database_constraint" };
 const line = (changes: Record<string, unknown> = {}) => JSON.stringify({ ...event, ...changes });
@@ -25,7 +25,7 @@ describe("private runtime log evidence has a fixed publication allowlist", () =>
   it.each(SERVER_ROUTE_ALIASES)("retains only the reviewed route alias %s", route => {
     expect(safeServerFailureRecord(line({ route }))?.route).toBe(route);
   });
-  it.each(["/api/admin/collections/private", "admin.catalog?token=PRIVATE", "admin.user@example.invalid", "unknown"])("does not publish raw or unknown route %s", route => {
+  it.each(["/api/admin/collections/private", "admin.catalog?token=PRIVATE", "admin.user@example.invalid", "unknown", "cart/claim", "/api/analytics/events", "analytics?query=PRIVATE", "admin.analytics/user", "admin.notifications?phone=PRIVATE"])("does not publish raw or unknown route %s", route => {
     expect(safeServerFailureRecord(line({ route }))).toBeNull();
   });
   it.each(SERVER_FAILURE_CATEGORIES)("retains the fixed failure category %s without raw PG identity", failureCategory => {
@@ -38,6 +38,37 @@ describe("private runtime log evidence has a fixed publication allowlist", () =>
     const foreignCode = safeServerFailureRecord(line({ errorCode: "PRIVATE_AUTH_ERROR" }));
     expect(foreignCode).not.toHaveProperty("errorCode");
     expect(foreignCode).not.toHaveProperty("failureCategory");
+  });
+  it.each(["22P02", "22007", "22008", "22003"])("does not infer or publish raw data exception %s", code => {
+    const result = safeServerFailureRecord(line({ failureCategory: undefined, code, sqlState: code, name: "TypeError", stack: "PRIVATE_TOKEN SQL phone", message: "PRIVATE_CONTACT" }));
+    expect(result).not.toHaveProperty("failureCategory");
+    expect(JSON.stringify(result)).not.toMatch(/22P02|22007|22008|22003|TypeError|PRIVATE/u);
+  });
+  it.each(["database_data", "runtime_type", "runtime_reference"])("accepts only the reviewed %s enum without exception detail", failureCategory => {
+    const result = safeServerFailureRecord(line({ route: "admin.analytics", failureCategory, name: "PRIVATE_EXCEPTION", stack: "PRIVATE_STACK", sqlState: "22P02", query: "PRIVATE_QUERY", message: "PRIVATE_CONTACT" }));
+    expect(result).toEqual({ ...event, route: "admin.analytics", failureCategory, requestId: event.requestId.toLowerCase() });
+    expect(JSON.stringify(result)).not.toMatch(/PRIVATE|22P02/u);
+  });
+  it.each([true, false])("preserves the observed request-aborted boolean %s without inferring a cause", requestAborted => {
+    const result = safeServerFailureRecord(line({ route: "cart.claim", requestAborted }));
+    expect(result).toEqual({ ...event, route: "cart.claim", requestId: event.requestId.toLowerCase(), requestAborted });
+  });
+  it.each(SERVER_NATIVE_AUTH_STATUSES)("preserves only the reviewed native status %s", nativeAuthStatus => {
+    const result = safeServerFailureRecord(line({ requestAborted: false, nativeAuthStatus, headers: { Authorization: "PRIVATE_TOKEN" }, body: "PRIVATE_BODY", message: "PRIVATE_CONTACT" }));
+    expect(result).toEqual({ ...event, requestId: event.requestId.toLowerCase(), requestAborted: false, nativeAuthStatus });
+    expect(JSON.stringify(result)).not.toContain("PRIVATE");
+  });
+  it.each([undefined, null, "true", "false", 0, 1, [], {}])("does not coerce a spoofed request-aborted value %#", requestAborted => {
+    expect(safeServerFailureRecord(line({ requestAborted }))).not.toHaveProperty("requestAborted");
+  });
+  it.each([undefined, null, "429", 429.5, 200, 201, 302, 422, -1, 600, [], {}])("drops a malformed or unreviewed native status %#", nativeAuthStatus => {
+    expect(safeServerFailureRecord(line({ nativeAuthStatus }))).not.toHaveProperty("nativeAuthStatus");
+  });
+  it("keeps old records compatible and attaches diagnostics only to known INTERNAL failures", () => {
+    expect(safeServerFailureRecord(line())).toEqual({ ...event, requestId: event.requestId.toLowerCase() });
+    const result = safeServerFailureRecord(line({ errorCode: "PRIVATE_ERROR", requestAborted: true, nativeAuthStatus: 429, cause: "PRIVATE_CONTACT", aborted: true, statusCode: 429 }));
+    expect(result).not.toHaveProperty("requestAborted"); expect(result).not.toHaveProperty("nativeAuthStatus");
+    expect(JSON.stringify(result)).not.toMatch(/PRIVATE|cause|aborted|statusCode/u);
   });
   it.each([undefined, null, 500, "", "not JSON", "null", "[]", "true", '"request.completed"', '{"event":'])("ignores malformed and non-record lines %#", value => {
     expect(safeServerFailureRecord(value)).toBeNull();

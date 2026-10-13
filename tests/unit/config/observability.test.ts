@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
+import { APIError } from "better-auth/api";
 import { CommerceError } from "../../../src/contracts/commerce";
 import { api, boundedAuthRequest, boundedBody, success } from "../../../src/server/http";
 import { finishRequest, recordCommerceResponse, recordJobEvent, requestContext, unexpectedFailureCategory, withRequestContext } from "../../../src/server/observability";
@@ -41,6 +42,21 @@ describe("request correlation and bounded private-data logging", () => {
     expect(records[1]).toMatchObject({ event: "job.dead", jobId, jobType: "domain.other", attemptNumber: 12 });
     expect(Object.keys(records[1]!).sort()).toEqual(["time", "event", "jobId", "jobType", "attemptNumber"].sort());
     expect(JSON.stringify(records)).not.toContain(canary);
+  });
+  it("classifies bounded runtime/data failures without leaking messages, names or SQL", async () => {
+    const records=capture(),canary="TEST-private-runtime-message-name-SQL-canary";
+    const cases=[{error:new TypeError(canary),category:"runtime_type"},{error:new ReferenceError(canary),category:"runtime_reference"},{error:Object.assign(new Error(canary),{code:"22P02",detail:canary,query:canary}),category:"database_data"}];
+    for(const {error,category} of cases) {
+      error.name=canary;
+      const response=await api(async()=>{throw error;})(new NextRequest("http://localhost:3000/api/cart/claim"));
+      expect(response.status).toBe(500);expect(records.at(-1)).toMatchObject({route:"cart.claim",failureCategory:category,requestAborted:false});
+    }
+    expect(JSON.stringify(records)).not.toContain(canary);expect(JSON.stringify(records)).not.toContain("22P02");
+    const spoofed={name:"TypeError",message:canary};expect(unexpectedFailureCategory(spoofed)).toBe("unexpected");
+  });
+  it.each([["analytics/config","analytics"],["analytics/events","analytics"],["admin/analytics/period","admin.analytics"],["admin/notifications/page","admin.notifications"],["cart/claim","cart.claim"]])("uses a fixed alias for%s without retaining query input",async(path,alias)=>{
+    const records=capture();await api(async()=>success({ok:true}))(new NextRequest(`http://localhost:3000/api/${path}?private=TEST-query-canary`));
+    expect(records[0]).toMatchObject({route:alias,status:200});expect(JSON.stringify(records)).not.toContain("TEST-query-canary");
   });
   it("isolates concurrent async operations and ignores client-supplied correlation IDs", async () => {
     const records = capture();
@@ -82,7 +98,7 @@ describe("request correlation and bounded private-data logging", () => {
     expect(records).toHaveLength(1);
     expect(records[0]).toMatchObject({ route: "api.other", method: "POST", status: 500, errorCode: "INTERNAL" });
     expect(JSON.stringify(records)).not.toContain(canary);
-    expect(Object.keys(records[0]!).sort()).toEqual(["durationMs", "errorCode", "failureCategory", "event", "method", "requestId", "route", "status", "time"].sort());
+    expect(Object.keys(records[0]!).sort()).toEqual(["durationMs", "errorCode", "failureCategory", "event", "method", "requestId", "route", "status", "time", "requestAborted"].sort());
   });
   it("retains redirects, cookie headers and private caching when responses are wrapped", async () => {
     capture();
@@ -100,6 +116,15 @@ describe("request correlation and bounded private-data logging", () => {
     expect(response.headers.getSetCookie()[0]).toContain("HttpOnly");
     expect(response.headers.get("Cache-Control")).toBe("private, no-store");
     expect(response.headers.get("X-Request-ID")).toMatch(/^[0-9a-f-]{36}$/);
+  });
+  it("records only observed cancellation and bounded maintained-library status, not a claimed cause",async()=>{
+    const records=capture(),controller=new AbortController();controller.abort();
+    const request=new NextRequest("http://localhost:3000/api/cart/claim",{signal:controller.signal});
+    await api(async()=>{throw new Error("TEST-private-abort-message");})(request);
+    expect(records.at(-1)).toMatchObject({status:500,requestAborted:true,failureCategory:"unexpected"});
+    await api(async()=>{throw new APIError("UNAUTHORIZED",{message:"TEST-private-auth-message"});})(new NextRequest("http://localhost:3000/api/cart/claim"));
+    expect(records.at(-1)).toMatchObject({status:401,errorCode:"UNAUTHENTICATED"});
+    expect(JSON.stringify(records)).not.toMatch(/TEST-private-abort-message|TEST-private-auth-message|UNAUTHORIZED/);
   });
   it("preserves domain, syntax and schema errors with safe status correlation", async () => {
     const records = capture();

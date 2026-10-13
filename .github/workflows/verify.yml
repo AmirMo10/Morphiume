@@ -41,6 +41,8 @@ jobs:
           python3 tests/ops/restore-business-remote.test.py
           node --test tests/ops/restore-business-contract.test.mjs
           node --test tests/e2e/cart-lifecycle-diagnostics.test.ts
+          node --test tests/unit/backend/native-qa-provision.test.mjs
+          node --test tests/unit/ops/scheduled-health-measurement.test.mjs
       - name: Scan committed history for exposed credentials
         run: |
           curl --fail --location --silent --show-error --output /tmp/gitleaks.tar.gz https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz
@@ -70,6 +72,9 @@ jobs:
       - name: Export only allowlisted server failure evidence
         if: always()
         run: node tests/e2e/sanitize-server-log.mjs verify-runtime
+      - name: Require complete server evidence without unexpected failures
+        if: always()
+        run: node scripts/accept-server-evidence.mjs verify-runtime
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
@@ -128,6 +133,10 @@ jobs:
           pnpm exec playwright install --with-deps chromium firefox webkit
       - name: Execute migration, app, media, auth and worker from the built image
         run: bash scripts/ci-image-smoke.sh
+      - name: Require clean server evidence before publishing the image
+        run: |
+          node tests/e2e/sanitize-server-log.mjs image-runtime
+          node scripts/accept-server-evidence.mjs image-runtime
       - name: Publish accepted image with provenance and SBOM
         run: |
           image="ghcr.io/${GITHUB_REPOSITORY,,}:${GITHUB_SHA}"

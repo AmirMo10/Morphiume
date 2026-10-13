@@ -17,6 +17,7 @@ export function assertSameOrigin(request: Request) {
   const site = request.headers.get("sec-fetch-site");
   if (site && !["same-origin", "none"].includes(site)) throw new CommerceError("FORBIDDEN", "درخواست بین‌سایتی مجاز نیست.", 403);
 }
+class InterruptedBodyError extends Error {}
 
 export async function boundedBody(request: Request, limit: number): Promise<Uint8Array> {
   if (Number(request.headers.get("content-length") ?? 0) > limit) throw new CommerceError("VALIDATION","حجم درخواست بیش از حد مجاز است.",413);
@@ -26,6 +27,14 @@ export async function boundedBody(request: Request, limit: number): Promise<Uint
   let length = 0;
   try {
     for (;;) { const next = await reader.read(); if (next.done) break; length += next.value.byteLength; if (length > limit) { await reader.cancel(); throw new CommerceError("VALIDATION","حجم درخواست بیش از حد مجاز است.",413); } chunks.push(next.value); }
+  } catch (error) {
+    // The explicit body-limit rejection above is a valid413 even when the
+    // signal was aborted; successful read/cancel must not become interruption.
+    if (error instanceof CommerceError) throw error;
+    // This is a failed stream read/cancel, not a blanket test of an aborted
+    // signal. Fully buffered requests may still be read normally after abort.
+    if (request.signal.aborted) throw new InterruptedBodyError();
+    throw error;
   } finally { reader.releaseLock(); }
   const result = new Uint8Array(length); let offset = 0;
   for (const chunk of chunks) { result.set(chunk,offset); offset += chunk.byteLength; }
@@ -52,6 +61,7 @@ export function api(handler: (request: NextRequest) => Promise<Response>, mutati
       if (mutation) assertSameOrigin(request);
       return finishRequest(await handler(request));
     } catch (error) {
+      if (error instanceof InterruptedBodyError) return finishRequest(NextResponse.json({ error: { code: "REQUEST_INTERRUPTED", message: "درخواست کامل دریافت نشد. دوباره تلاش کنید." } }, { status: 499, headers: { "Cache-Control": "no-store" } }), "REQUEST_INTERRUPTED");
       if (error instanceof SyntaxError) return finishRequest(NextResponse.json({ error: { code: "VALIDATION", message: "قالب درخواست معتبر نیست." } }, { status: 400, headers: { "Cache-Control": "no-store" } }), "VALIDATION");
       if (error instanceof CommerceError) return finishRequest(NextResponse.json({ error: { code: error.code, message: error.message } }, { status: error.status, headers: { "Cache-Control": "no-store" } }), error.code);
       if (error instanceof ZodError) return finishRequest(NextResponse.json({ error: { code: "VALIDATION", message: "اطلاعات فرم را بررسی کنید.", fields: error.issues.map((issue) => ({ path: issue.path.join("."), message: validationMessage(issue) })) } }, { status: 400, headers: { "Cache-Control": "no-store" } }), "VALIDATION");
@@ -61,7 +71,12 @@ export function api(handler: (request: NextRequest) => Promise<Response>, mutati
         if (retry && /^\d{1,4}$/.test(retry) && Number(retry) > 0 && Number(retry) <= 3600) headers.set("Retry-After", retry);
         return finishRequest(NextResponse.json({ error: { code: "RATE_LIMITED", message: "تعداد درخواست‌ها زیاد است. کمی بعد دوباره تلاش کنید." } }, { status: 429, headers }), "RATE_LIMITED");
       }
-      return finishRequest(NextResponse.json({ error: { code: "INTERNAL", message: "درخواست انجام نشد. دوباره تلاش کنید." } }, { status: 500, headers: { "Cache-Control": "no-store" } }), "INTERNAL", unexpectedFailureCategory(error));
+      if (isAPIError(error) && [401,403].includes(error.statusCode)) {
+        const denied = error.statusCode === 403;
+        const code = denied ? "FORBIDDEN" : "UNAUTHENTICATED";
+        return finishRequest(NextResponse.json({ error: { code, message: denied ? "این حساب اجازهٔ دسترسی ندارد." : "برای ادامه دوباره وارد حساب شوید." } }, { status: error.statusCode, headers: { "Cache-Control": "no-store" } }), code);
+      }
+      return finishRequest(NextResponse.json({ error: { code: "INTERNAL", message: "درخواست انجام نشد. دوباره تلاش کنید." } }, { status: 500, headers: { "Cache-Control": "no-store" } }), "INTERNAL", unexpectedFailureCategory(error), { requestAborted: request.signal.aborted, ...(isAPIError(error) ? { nativeAuthStatus: error.statusCode } : {}) });
     }
     });
   };

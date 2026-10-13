@@ -1,4 +1,7 @@
 const databases = new Set(["morphiume_staging", "morphiume_staging_runtime"]);
+// Coordinator-created, dedicated QA databases use exactly sixteen lowercase
+// hexadecimal characters; no arbitrary suffix, substring or wildcard is allowed.
+const dedicatedQaDatabase = /^morphiume_staging_qa_[0-9a-f]{16}$/u;
 
 // Pure, fail-closed target check shared by QA tools. Never log a connection URL.
 // Environment loading belongs to the caller and precedes this check/any I/O.
@@ -17,6 +20,6 @@ export function controlledQaDatabase(configuration) {
   } catch { throw new Error("QA database target is malformed"); }
   // pg-connection-string honors query host/options/user overrides. Approved
   // SSH tunnel URLs require no parameters, including empty query/fragment marks.
-  if (!["postgres:", "postgresql:"].includes(target.protocol) || !["localhost", "127.0.0.1"].includes(target.hostname) || target.search || target.hash || /[?#]/u.test(value) || !databases.has(database)) throw new Error("QA refuses a nonisolated database target");
+  if (!["postgres:", "postgresql:"].includes(target.protocol) || !["localhost", "127.0.0.1"].includes(target.hostname) || target.search || target.hash || /[?#]/u.test(value) || !(databases.has(database) || dedicatedQaDatabase.test(database))) throw new Error("QA refuses a nonisolated database target");
   return target;
 }

@@ -1,5 +1,49 @@
 # وضعیت اجرا
 
+## پذیرش محلی و آماده‌سازی انتشار، ۰۱:۵۵ UTC، ۱۳ اکتبر ۲۰۲۶
+
+Guide/build83681 روی پایگاهQAجدا واقعاً **۳۸/۳۸ در909.964618s** قبول شد؛۱۹caseدرهرموتور، start01:33:20.090Z/end01:48:30.054Z، skip/flaky/testretry0.۲۱۸native status(۲۰۸200/۶429/۲wrongcode400/۲controlled503)، server۲۵۷۹خط/zero captured500/no cap.۲۵۰sourcehash ثابت؛ audit01:51:24.417Z چهارownedcleanupcount0، تاریخچه/limiter محفوظ و پنجره صریحاً آزاد شد. گزارش[DEDICATED_RECOVERY_QA.md](qa/DEDICATED_RECOVERY_QA.md) وbrowser/server JSON مستقل‌اند؛ تصاویرcatalog حالت خالی را نشان می‌دهند و شاهد کاتالوگ پُر نیستند.
+
+اجرایoriginal۳۴/۳۸ وچهارCSV409 باtracebodyناموجود حفظ است؛ freshقبولی آن‌ها را بازنویسی نمی‌کند. Rootreadonly currentoriginal۱۰۶۵۰محصول/۱۰۶۴۷archived/history11 دارد. Rootprovision/role readback/noOldDBaccess/canonicalfresh11/seed/env-noOwnerCredential واقعی‌اند؛ [گزارش اجرا](NATIVE_QA_DATABASE_EXECUTION.md). app613/Ops591/runtime schema11 وprivateIP503 تغییر نکرده‌اند.
+
+RootcombinedB/C آخرینbuild و۵۹۲unit/۳۱file17.87s وgloballint76662exit0 موفق‌اند؛ B/Cnative/worker/تصویرجدید هنوزنداریم. Recoverypublication درcheckoutجدا آماده می‌شود؛ مرجع منتشرشده پیش از این اقدام هنوز5cf باCIfailed56/57/چهار500نامعلوم است. Gitleaks/commit/push/Linux+image پس از این checkpoint جدا ثبت خواهند شد. fullscheduledhealth ابزار۳۳pure/۱۸embeddedPython دارد ولی اجرای واقعی/timer/backupcycle/ظرفیت۲۰۰ انجام نشده‌اند. هیچproductionready/ASVSقبولی ادعا نمی‌شود.
+
+## وضعیت جاری، ۰۱:۳۵ UTC، ۱۳ اکتبر ۲۰۲۶
+
+GitHub/main هنوز5cf است و CI آن۵۶/۵۷ وچهار500نامعلوم دارد؛ اصلاحrecovery/HTTP/gate هنوز push نشده. اجرای واقعی نهایی روی پایگاه اصلی **۳۴/۳۸ در906.599832s** شد: هر۱۰caseCart وهر دوT25 قبول؛ دوassertionCSV درهردوموتور409به‌جای200.۲۱۳native action،۵429 واقعی باانتظارمحدود،skip/flaky/testretry0؛۲۵۴۱خطserver/zerocaptured500/no cap. audit01:08:34.369Z چهارownedfixturecategory0 و۲۰۵hash منبع اجرای اصلی ثابت بود؛ پنجره آزاد شد. شاهد مستقل GuideRECOVERY_FINAL_QA.md وbrowser/server-recovery-final-whole محفوظ‌اند. بررسی فقط‌خواندنی پس از اجرا۱۰۶۵۰محصول/۱۰۶۴۷archived/history11 یافت؛ guardتعداد اکنون رد می‌کند، بدنهٔ چهار پاسخ تاریخی موجود نیست و علت آن‌ها قطعی معرفی نمی‌شود.
+
+Root پایگاه جدا `morphiume_staging_qa_7f59c3b1d560aeac` را با نقش‌های owner/app جدا واقعاً آماده کرد؛ appDML/noDDL ونداشتن دسترسی به دوDBقبلی با ورود واقعی نقش‌ها بررسی شد. شکست اول فقطSSH255 به‌سبب حذفProgramData ازenvویندوز بود؛ همانbootstrap فقط‌خواندنی باافزودن تنهاProgramData موفق،roles/db/privateRoot0 ثابت،attempt محفوظ وforwarddispatch همانcredentials/PythonSHA انجام شد. بیلد83681 تغییر نکرد؛ محیط برنامه فقطDML/freshauth/mock وبدونmigrationcredential است، oldenv محفوظ.۱۱migrationcanonical/۴۹table/۱seedproduct با appreadonly تأیید، server76753/origin3004ready200. QA مجموعهٔ کامل۳۸ رویtargetتازه را باsource250hash منجمد اجرا می‌کند؛ تااین checkpoint۶/۶قبول وcatalogCSV200 است، نتیجهٔ نهایی هنوز موجود نیست.
+
+RootsourceB/C آخرینbuild37621 و **۵۹۲/۵۹۲unit،۳۱فایل،17.87s** موفق؛ Nodeprovision۲۰/۲۰، originalobserver۴۳/۴۳ جدا وبه این شمار اضافه نشوند. سرویس اصلی سرور هنوزapp613/Ops591/schema11، restoreمتوقف/داده محفوظ است. پایگاهQAتازه استقرارفروشگاه رویIP یاpublicDDL اصلی نیست. B/Cnative، تصویرجدید، fullscheduledhealth وcapacity۲۰۰ هنوز اجرا نشده‌اند؛ کار مستقل ادامه دارد.
+
+این بخش بر وضعیت‌های تاریخی پایین مقدم است.
+
+## وضعیت جاری، ۰۰:۴۹ UTC، ۱۳ اکتبر ۲۰۲۶
+
+مرجع منتشرشده هنوز `5cf694c5ed97272851ad32685fed3abd5634f005` است و CI آن ۵۶/۵۷ مرورگر و چهار خطای ۵۰۰ نامعلوم دارد. اصلاح بازیابی در checkout جدا با پایهٔ خصوصی `462b24c` و تغییرات بعدی آماده است؛ هنوز push نشده. پس از بازبینی مستقل، body-limit۴۱۳ با signalلغوشده واقعاً یک شکست در۹ آزمون ایجاد کرد؛ حفظ CommerceError پیش از تشخیص interruption اصلاح شد. بیلد نهایی83681، lint و۱۴۷/۱۴۷ تست سه فایل در2.16s موفق‌اند؛ آمادگی localhost:3004 پاسخ۲۰۰ و server25202 دارد. QA اجرای کامل تازه۳۸ را آغاز کرده و هنوز نهایی نیست.
+
+به‌روزرسانی اجرای جاری: پنج case سبد Chromium قبول شدند؛ دو case خروجی CSV به‌جای۲۰۰،۴۰۹ واقعی گرفتند. کد guard۱۰هزار محصول شامل archived و guard۳۲MiB دارد، اما count/بدنهٔ همان پاسخ هنوز معلوم نیست و علت قطعی ادعا نمی‌شود. اجرای کامل بدون تغییر ادامه دارد. پایگاه منطقی QA تازه با نقش‌های جدا فقط آماده‌سازی می‌شود؛ تاریخچهٔ اصلی حذف و سقف خروجی افزایش داده نمی‌شود.
+
+دو نقص مستقل HTTP اصلاح و آزموده‌اند: شکست خواندن body همراه با لغو مشاهده‌شده به ۴۹۹ می‌رود؛ انکار بومی احراز هویت ۴۰۱/۴۰۳ وضعیت خود را حفظ می‌کند. خطای stream بدون لغو و خطای داخلی احراز هویت همچنان ۵۰۰ هستند. این شواهد علت خطاهای تاریخی CI را ثابت نمی‌کنند. آزمون واقعی socket-abort هیچ رکورد wrapper ایجاد نکرد و بازتولید آن خطا محسوب نمی‌شود.
+
+source یکپارچهٔ B/C روی checkout اصلی با build54769 و lint موفق، و **۵۳۱/۵۳۱ تست واحد در ۳۰ فایل، 15.45s** آماده است. تجارت رگرسیون واقعی مستقل PostgreSQL را **۶۸/۶۸ در 290.72s** گذراند: commerce، dispatcher، feed، producer/worker و job observation؛ داده/ساختار ۴۹ جدول اصلی و تاریخچهٔ ۱۱ مهاجرت ثابت و schemaهای متعلق پاک شده‌اند. این نتیجه با شمارهای قبلی هم‌پوشان است و پذیرش مرورگر یا استقرار B/C نیست.
+
+شرط تازهٔ CI برای رد گزارش مفقود/ناقص/دارای ۵۰۰ در source آماده و **۱۹/۱۹ تست مستقل در 294ms** موفق است؛ هنوز منتشر نشده. nativeB سه مورد در سه موتور و nativeC چهار مورد در سه موتور فقط فهرست شده‌اند؛ هیچ‌یک روی B/C تازه اجرا نشده. DDL عمومی0012/0013، تصویر تازه، fullscheduledhealth، دسترسی خصوصی IP و آزمون ظرفیت۲۰۰ همچنان انجام نشده‌اند. سرور همان app613/Ops591/schema11 است؛ داده و restore متوقف‌شده محفوظ‌اند.
+
+این بخش بر بندهای تاریخی پایین مقدم است. ورودی درگاه/پیامک/دامنه فقط کار وابسته به همان سرویس را متوقف می‌کند؛ آماده‌سازی مستقل ادامه دارد.
+
+## وضعیت جاری، ۲۳:۴۳ UTC، ۱۲ اکتبر ۲۰۲۶
+
+GitHub و main محلی واقعاً `5cf694c5ed97272851ad32685fed3abd5634f005` هستند؛ انتشار۱۱۲فایل در۲۳:۰۹:۲۸ انجام شد و Gitleaks855.52KB یافته‌ای نداشت. CI38320637761 دامنه/API۵۰۳/۵۰۳ را گذراند، ولی مرورگر **۵۶/۵۷** شد: بازیابی conflict پس از reload درChromium پاسخ POST را نگرفت. artifact مستقل چهار INTERNAL500 طبقه‌بندی‌نشده هم دارد؛ خطای تزریق‌شده یا قبولی تلقی نمی‌شوند. imagejob اجرا نشد. موفقیت محلی۳۸/۳۸ جای پذیرش Linux این نسخه نیست.
+
+اصلاح بازیابی workingtree است: FE در دو موتور لغو درخواست بر اثر remount ناشی از loading→cartId را کنترل‌شده بازتولید کرد؛ سازوکار مستقل ثابت است، علت قطعی trace اصلی CI ادعا نمی‌شود. جداسازی عمر بازیابی از فرم سبد، آزمون کنترل‌شده و nativeنهایی لازم دارند.
+
+B: backend۱۵/۱۵ PostgreSQL در32.16s؛ Rootreport۸/۸ PostgreSQL در28.58s، شمار/اثر انگشت ردیف و ساختار۴۹ جدول public و تاریخچه۱۱مهاجرت ثابت. شکست‌های fixturePool و مقایسه ساعت دو میزبان حفظ‌اند. API، analytics.read، poolحداکثر۲، گزارشRR با احراز جاری قبل/بعد و cleanupمحدودWorker اکنون sourceیکپارچه‌اند. پیش‌فرضcapturefalse/liveخاموش؛ ingress/report/cart/اعلان/مشاهده‌پذیری۸۴ آزمون کنترل‌شده گذشتند، با شمارهای قبلی جمع نشوند. nativeB فقط آماده است و رویbuildتازه اجرا نشده.
+
+C: dispatcher۱۶/۱۶ PostgreSQL مستقل در80.22s گذشت؛ producerاتمیک/event+outbox، feedمشتری/مدیر، unreadCountرشته‌ای، پردازشگر اجباری و API/Worker sourceآماده‌اند؛ پذیرش مستقل در جریان. purefeed/jobs۲۲/۲۲ گذشت؛ نبود پردازشگر ابتدا واقعاً شکست تولید کرد و اصلاح شد. publicDDL0012/0013 و استقرارsourceتازه انجام نشده‌اند. backendبه‌تنهایی پذیرش nativeصفحه/Worker مستقر نیست.
+
+سرور همچنان app613/Ops591/schema11 است؛ writerها healthy، محیطrestoreمتوقف و داده محفوظ. fullscheduledhealth/approval/timers، دسترسی واقعیIP، ظرفیت۲۰۰ و سرویس‌های واقعی هنوز پذیرفته نشده‌اند. FULL_SCHEDULED_HEALTH_PROBE صرفاً دستور آماده است. بندهای پایین تاریخچه‌اند و در تعارض با این بخش وضعیت جاری نیستند.
+
 ## وضعیت معتبر ۲۲:۴۲ UTC، ۱۲ اکتبر ۲۰۲۶
 
 به‌روزرسانی۲۳:۰۸: تمرین واقعی worker در94.640045s قبول شد؛ فقطworker باExit0/OOMfalse متوقف، healthcritical باexact1workeralert و پس از resumeهمانcontainer healthy/alerts0/ready200/HB1.979s شد. app/containerPG/مؤلفه‌های mount/profile/image/21Opsbyte ثابت بودند. safeWORKER_ALERT_DRILL_591.json شاهد واقعی است؛ fullscheduledsandbox/approval/timers/privateIP/load همچنان اجرا نشده‌اند. candidateCartpublication۱۱۲فایل درcheckoutجدا، types/lint0/whitespace0؛ اسکن اولیه فقط publicprofileSHA را falsepositive یافت. defaultGitleaksrules محفوظ و exception همان مقدار/سه فایل/AND با۷canaryواقعی قبول شد؛ push و اسکن نهایی هنوز در همین checkpoint آماده می‌شوند.

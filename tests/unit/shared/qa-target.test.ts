@@ -4,6 +4,7 @@ import { controlledQaDatabase } from "../../helpers/qa-target.mjs";
 
 const controlled = { DEPLOYMENT_ENV: "staging", PAYMENT_PROVIDER: "mock", SMS_PROVIDER: "mock" };
 const connection = (database: string, host = "127.0.0.1") => `postgresql://synthetic:fixture@${host}:15433/${database}`;
+const dedicatedDatabase = "morphiume_staging_qa_0123456789abcdef";
 describe("controlled QA target prevents accidental live or ambiguous database use", () => {
   it.each([
     ["morphiume_staging", "localhost", "test"],
@@ -44,5 +45,38 @@ describe("controlled QA target prevents accidental live or ambiguous database us
     expect(() => controlledQaDatabase({ ...controlled, DATABASE_URL })).toThrow(/^QA /u);
     try { controlledQaDatabase({ ...controlled, DATABASE_URL }); }
     catch (error) { expect(error).toBeInstanceOf(Error); expect((error as Error).message).not.toContain("synthetic:fixture"); expect((error as Error).message).not.toContain("postgresql://"); }
+  });
+
+  it.each([
+    ["morphiume_staging_qa_0000000000000000", "127.0.0.1", "test", "morphiume_staging_qa_0000000000000000"],
+    ["morphiume_staging_qa_ffffffffffffffff", "localhost", "staging", "morphiume_staging_qa_ffffffffffffffff"],
+    ["%6dorphiume_staging_qa_0123456789abcdef", "127.0.0.1", "test", dedicatedDatabase],
+  ])("permits the exact decoded dedicated QA identity %s through %s in %s", (database, host, environment, expectedDatabase) => {
+    const target = controlledQaDatabase({ ...controlled, DEPLOYMENT_ENV: environment, DATABASE_URL: connection(database, host) });
+    expect(decodeURIComponent(target.pathname.slice(1))).toBe(expectedDatabase);
+    expect(target.hostname).toBe(host);
+    expect(target.search).toBe("");
+  });
+  it.each([
+    "morphiume_staging_qa_", "morphiume_staging_qa_0123456789abcde", "morphiume_staging_qa_0123456789abcdef0",
+    "morphiume_staging_qa_0123456789abcdeF", "morphiume_staging_qa_0123456789abcdeg", "morphiume_staging_qa_live",
+    "morphiume_staging_qa_0123456789abcdef_backup", "morphiume_staging_qa_0123456789abcdef_live", "live_morphiume_staging_qa_0123456789abcdef",
+    "morphiume_test_qa_0123456789abcdef", "morphiume_staging_qa_0123456789abcdef/", "extra/../morphiume_staging_qa_0123456789abcdef",
+    "morphiume_staging_qa_0123456789abcdef%2Fextra", "morphiume_staging_qa_0123456789abcdef%00",
+    "%256dorphiume_staging_qa_0123456789abcdef", "%2Fmorphiume_staging_qa_0123456789abcdef",
+  ])("rejects a lookalike, ambiguous or incorrectly sized dedicated QA identity %s", database => {
+    expect(() => controlledQaDatabase({ ...controlled, DATABASE_URL: connection(database) })).toThrow();
+  });
+  it.each(["?host=192.168.240.51", "?database=morphiume_live", "?options=-c%20search_path%3Dlive", "?user=owner", "?port=5432", "?sslmode=require", "?", "#"])("does not let a dedicated QA identity bypass query/fragment rejection %s", suffix => {
+    expect(() => controlledQaDatabase({ ...controlled, DATABASE_URL: connection(dedicatedDatabase) + suffix })).toThrow();
+  });
+  it.each(["192.168.240.51", "db", "remote.invalid", "localhost.remote.invalid", "[::1]"])("does not let a dedicated QA identity bypass the existing loopback restriction %s", host => {
+    expect(() => controlledQaDatabase({ ...controlled, DATABASE_URL: connection(dedicatedDatabase, host) })).toThrow();
+  });
+  it.each([
+    { DEPLOYMENT_ENV: "live" }, { DEPLOYMENT_ENV: "production" }, { DEPLOYMENT_ENV: undefined },
+    { PAYMENT_PROVIDER: "real" }, { PAYMENT_PROVIDER: undefined }, { SMS_PROVIDER: "real" }, { SMS_PROVIDER: undefined },
+  ])("does not let a dedicated QA identity bypass mock/non-live gates %j", override => {
+    expect(() => controlledQaDatabase({ ...controlled, ...override, DATABASE_URL: connection(dedicatedDatabase) })).toThrow();
   });
 });
