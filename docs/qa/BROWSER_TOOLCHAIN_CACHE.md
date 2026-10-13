@@ -1,5 +1,11 @@
 # Pinned Linux browser cache — preparation contract
 
+## Actual successful producer, import and launch
+
+Producer c749f796d62b9680a26dd7ee5a84f38f2fd43da6 completed [CI38353949717](https://github.com/AmirMo10/Morphiume/actions/runs/38353949717/job/115152409404). Artifact11791724128 is525885995bytes; ZIP SHA256 `484775ced3e5d753c8ee33e376f6acdf188f9b9c13a85ea9f24cab7b8a6645ef`. Export:733members/676files/15symlinks/1342380914regular bytes across five reviewed roots. Inner archive525714411bytes SHA256 `976d997960e8b328cc7b6343014efb5225b534511fd602b0b4e29e118782304f`; manifestSHA `f8965f364a91eed031b9289417e646fbe06ee17c62e7ebd39f19ea27fb401114`.
+
+Root actually verified download, strict Linux import and three-engine launch/RTL smoke. [Import execution](BROWSER_TOOLCHAIN_IMPORT.md) records retained failures. Success establishes current distribution/preference bytes, not historical rejected entry621/628/629 names. Subsequent localE4native12notifications/9analytics passed; finalauditpending06:47UTC. FullE4CI/image has [separate evidence](../ops/E4_ACCEPTED_IMAGE_EVIDENCE.md).
+
 ## Content-bound preparation after E4 export failure
 
 Producer e4bed691dc938a9c0f79022696d24f063ad97724 [CI38352565925](https://github.com/AmirMo10/Morphiume/actions/runs/38352565925/job/115148052652) passed all official downloads but failed the lexical guard at Firefox entry629,72 bytes/6 segments. Its exact name remains unproved. Public Playwright source establishes00-playwright-prefs.js,160 bytes, SHA2568c2d32801a924f2c2b133f1191d01213513c86e8d1e42e144e9cb1015ea71084; the checked public tree does not establish its binary copy destination. [The source review](FIREFOX_VENDOR_CACHE_REVIEW.md) records that limitation.

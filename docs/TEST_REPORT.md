@@ -1,5 +1,18 @@
 # آزمون‌های واقعاً اجراشده
 
+## انتقال/load و نتیجهٔ کامل nativeمحلی، ۰۶:۵۶ UTC
+
+- transferسهفایل/سرورwholeSHAدر06:52:25Z قبول؛ loadواقعی22.078s/exit0 باengine3b78… وproofv2/Ops68. Postloadفقط‌خواندنی06:56:52Z، app/worker613سالم و config/mount/limitsمحفوظ؛ هیچSQL/backup/migration/cutover انجام نشده. [هویت](ops/E4_ACCEPTED_IMAGE_EVIDENCE.md).
+- notifications12/12،212972.323ms؛ analytics9/9،104808.029ms، هرengine4+3case،0skip/flaky/retry.182authPOST=174200+8429 باsinglewait/retryموفق؛1414خطserver/0wrapper500/capهاfalse،686فایل/envبدونتغییر. Auditفقط‌خواندنی13history/53table/generated0/DMLonly، چهارcleanupcategory0؛ window06:53:32Zآزاد. Globalunrelatedrowequality=unmeasured؛ [شاهد](qa/LINUX_E4_FOCUSED_NATIVE_EXECUTION.md).
+
+## پذیرش واقعی تصویر و cache، ۰۶:۴۷ UTC
+
+- E4CI:837/837دامنه و78/78verify و78/78packagednative، هرrun26caseبرای سهengine، صفرskip/flaky/retry. auth540/539responseشامل429/negative400/503؛ server5403/5414خط،0wrapper500، capهاfalse. [هویت و artifactها](ops/E4_ACCEPTED_IMAGE_EVIDENCE.md).
+- سهZIP باwholeSHAمستقل دریافت؛ تصویر86184814بایت/15لایه/230841344uncompressed در verifierexit0پذیرفته، بدونDocker/transfer/load. GrypeسهMedium، هیچHigh/Critical؛ امنیت کامل/ASVS ادعا نمی‌شود.
+- c749officialcache:ZIP525885995بایت/SHAمستقل؛ importerواقعی34.516875824s/exit0،733member/676file/15link. smokeسهengine/RTLقبول بدونappDB/nativeauth. [import](qa/BROWSER_TOOLCHAIN_IMPORT.md).
+- LinuxnativeE4:notifications12/12 وanalytics9/9واقعاًpass؛ audit/cleanup/windowreleasepending. fingerprintسراسری قبل ثبت نشده و برابری ردیف‌های نامرتبط ادعا نمی‌شود.
+- Serverupgrade/backup/preservation/migration/restore/privateIPpreview/200VU/RPS هنوزunrun؛ app613/Ops591/schema11محفوظ است.
+
 ## شاهد تازهٔ CI و قاعدهٔ فایل رسمی، ۰۵:۵۵ UTC
 
 - PostgreSQL واقعیِ CI e4bed69: initialize محدود، owner migration، DML readback و seed موفق؛ مرورگر هنوز در اجرا و تصویر پذیرفته نشده.

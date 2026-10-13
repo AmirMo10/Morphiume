@@ -1,0 +1,3218 @@
+{
+  "schemaVersion": 1,
+  "scope": "linux-e4-focused-native",
+  "sourceCommit": "e4bed691dc938a9c0f79022696d24f063ad97724",
+  "sourceFreeze": {
+    "trackedFiles": 686,
+    "postBuildBaselineChanges": 0,
+    "postRunSourceChanges": 0,
+    "privateRuntimeConfigChanged": false,
+    "gitBlobNewlineOnlyDifferences": 214,
+    "otherGitBlobContentDifferences": 0,
+    "stoppedPrefreezeCaptures": 2
+  },
+  "tools": {
+    "node": "24.21.0",
+    "pnpm": "11.25.0",
+    "playwright": "1.64.0",
+    "chromium": "156.0.8078.4",
+    "firefox": "157.0",
+    "webkit": "27.2",
+    "versionEvidence": "coordinator-verified launch smoke on the same immutable cache used by native cases"
+  },
+  "cacheBinding": {
+    "producerCommit": "c749f796d62b9680a26dd7ee5a84f38f2fd43da6",
+    "runId": "38353949717",
+    "jobId": "115152409404",
+    "artifactId": "11791724128",
+    "zipSha256": "484775ced3e5d753c8ee33e376f6acdf188f9b9c13a85ea9f24cab7b8a6645ef",
+    "manifestSha256": "f8965f364a91eed031b9289417e646fbe06ee17c62e7ebd39f19ea27fb401114",
+    "archiveSha256": "976d997960e8b328cc7b6343014efb5225b534511fd602b0b4e29e118782304f",
+    "importerCanonicalLfSha256": "0091785338dd15f0838db386cda0360233a490ef33aa81b2d62faee9dc3a99fc",
+    "importEvidence": "coordinator-verified identities and bounded import; QA did not repeat download/import"
+  },
+  "canonicalOrigin": "http://localhost:3004",
+  "notifications": {
+    "generatedAt": "2026-10-13T06:48:37.876Z",
+    "startedAt": "2026-10-13T06:37:12.997Z",
+    "durationMs": 212972.323,
+    "expected": 12,
+    "unexpected": 0,
+    "skipped": 0,
+    "flaky": 0,
+    "tests": [
+      {
+        "title": "T05/T18/T19: native customer notification paging and idempotent read never expose another actor or operator inbox",
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 3914,
+        "retry": 0,
+        "errorCount": 0,
+        "nativeAuthStatuses": [
+          {
+            "stage": "customer-otp-send",
+            "category": "customer-phone-send-otp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "customer-otp-verify",
+            "category": "customer-phone-verify",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "customer-otp-send",
+            "category": "customer-phone-send-otp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "customer-otp-verify",
+            "category": "customer-phone-verify",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          }
+        ],
+        "publicMetadataStatuses": [],
+        "adminReadiness": [],
+        "httpResponses": [],
+        "guideReflow": []
+      },
+      {
+        "title": "T05/T18/T19/T20: genuine customer inbox UI pages105 rows, preserves reads and removes private data after logout and account change",
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 8187,
+        "retry": 0,
+        "errorCount": 0,
+        "nativeAuthStatuses": [
+          {
+            "stage": "customer-otp-send",
+            "category": "customer-phone-send-otp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "customer-otp-verify",
+            "category": "customer-phone-verify",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "customer-otp-send",
+            "category": "customer-phone-send-otp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "customer-otp-verify",
+            "category": "customer-phone-verify",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          }
+        ],
+        "publicMetadataStatuses": [],
+        "adminReadiness": [],
+        "httpResponses": [],
+        "guideReflow": []
+      },
+      {
+        "title": "T04/T06/T18/T20/T21: genuine operator inbox UI uses permission-scoped rows and masks data on factor and role withdrawal",
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 11048,
+        "retry": 0,
+        "errorCount": 0,
+        "nativeAuthStatuses": [
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "mfa-enable",
+            "category": "admin-two-factor-enable",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "totp-enrollment",
+            "category": "admin-two-factor-verify-totp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "mfa-enable",
+            "category": "admin-two-factor-enable",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "totp-enrollment",
+            "category": "admin-two-factor-verify-totp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "mfa-enable",
+            "category": "admin-two-factor-enable",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "totp-enrollment",
+            "category": "admin-two-factor-verify-totp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "customer-otp-send",
+            "category": "customer-phone-send-otp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "customer-otp-verify",
+            "category": "customer-phone-verify",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          }
+        ],
+        "publicMetadataStatuses": [],
+        "adminReadiness": [
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "observed"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "ready"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "observed"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "ready"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "observed"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "ready"
+          }
+        ],
+        "httpResponses": [],
+        "guideReflow": []
+      },
+      {
+        "title": "T04/T06/T18/T21: genuine operator MFA scopes notification reads by current permission and preserves financial history",
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 22229,
+        "retry": 0,
+        "errorCount": 0,
+        "nativeAuthStatuses": [
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 1,
+            "status": 429,
+            "retryAfterSeconds": 1,
+            "retryAfterHeader": "x-retry-after"
+          },
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 2,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "mfa-enable",
+            "category": "admin-two-factor-enable",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "totp-enrollment",
+            "category": "admin-two-factor-verify-totp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "mfa-enable",
+            "category": "admin-two-factor-enable",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "totp-enrollment",
+            "category": "admin-two-factor-verify-totp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "mfa-enable",
+            "category": "admin-two-factor-enable",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "totp-enrollment",
+            "category": "admin-two-factor-verify-totp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 1,
+            "status": 429,
+            "retryAfterSeconds": 9,
+            "retryAfterHeader": "x-retry-after"
+          },
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 2,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "mfa-enable",
+            "category": "admin-two-factor-enable",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "totp-enrollment",
+            "category": "admin-two-factor-verify-totp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "mfa-enable",
+            "category": "admin-two-factor-enable",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "totp-enrollment",
+            "category": "admin-two-factor-verify-totp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "customer-otp-send",
+            "category": "customer-phone-send-otp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "customer-otp-verify",
+            "category": "customer-phone-verify",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          }
+        ],
+        "publicMetadataStatuses": [],
+        "adminReadiness": [
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "observed"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "ready"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "observed"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "ready"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "observed"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "ready"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "observed"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "ready"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "observed"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "ready"
+          }
+        ],
+        "httpResponses": [],
+        "guideReflow": []
+      },
+      {
+        "title": "T05/T18/T19: native customer notification paging and idempotent read never expose another actor or operator inbox",
+        "project": "firefox",
+        "status": "passed",
+        "durationMs": 3919,
+        "retry": 0,
+        "errorCount": 0,
+        "nativeAuthStatuses": [
+          {
+            "stage": "customer-otp-send",
+            "category": "customer-phone-send-otp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "customer-otp-verify",
+            "category": "customer-phone-verify",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "customer-otp-send",
+            "category": "customer-phone-send-otp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "customer-otp-verify",
+            "category": "customer-phone-verify",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          }
+        ],
+        "publicMetadataStatuses": [],
+        "adminReadiness": [],
+        "httpResponses": [],
+        "guideReflow": []
+      },
+      {
+        "title": "T05/T18/T19/T20: genuine customer inbox UI pages105 rows, preserves reads and removes private data after logout and account change",
+        "project": "firefox",
+        "status": "passed",
+        "durationMs": 11139,
+        "retry": 0,
+        "errorCount": 0,
+        "nativeAuthStatuses": [
+          {
+            "stage": "customer-otp-send",
+            "category": "customer-phone-send-otp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "customer-otp-verify",
+            "category": "customer-phone-verify",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "customer-otp-send",
+            "category": "customer-phone-send-otp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "customer-otp-verify",
+            "category": "customer-phone-verify",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          }
+        ],
+        "publicMetadataStatuses": [],
+        "adminReadiness": [],
+        "httpResponses": [],
+        "guideReflow": []
+      },
+      {
+        "title": "T04/T06/T18/T20/T21: genuine operator inbox UI uses permission-scoped rows and masks data on factor and role withdrawal",
+        "project": "firefox",
+        "status": "passed",
+        "durationMs": 68149,
+        "retry": 0,
+        "errorCount": 0,
+        "nativeAuthStatuses": [
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "mfa-enable",
+            "category": "admin-two-factor-enable",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "totp-enrollment",
+            "category": "admin-two-factor-verify-totp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "mfa-enable",
+            "category": "admin-two-factor-enable",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "totp-enrollment",
+            "category": "admin-two-factor-verify-totp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "mfa-enable",
+            "category": "admin-two-factor-enable",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "totp-enrollment",
+            "category": "admin-two-factor-verify-totp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "customer-otp-send",
+            "category": "customer-phone-send-otp",
+            "attempt": 1,
+            "status": 429,
+            "retryAfterSeconds": 54,
+            "retryAfterHeader": "x-retry-after"
+          },
+          {
+            "stage": "customer-otp-send",
+            "category": "customer-phone-send-otp",
+            "attempt": 2,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "customer-otp-verify",
+            "category": "customer-phone-verify",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          }
+        ],
+        "publicMetadataStatuses": [],
+        "adminReadiness": [
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "observed"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "ready"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "observed"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "ready"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "observed"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "ready"
+          }
+        ],
+        "httpResponses": [],
+        "guideReflow": []
+      },
+      {
+        "title": "T04/T06/T18/T21: genuine operator MFA scopes notification reads by current permission and preserves financial history",
+        "project": "firefox",
+        "status": "passed",
+        "durationMs": 22987,
+        "retry": 0,
+        "errorCount": 0,
+        "nativeAuthStatuses": [
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "mfa-enable",
+            "category": "admin-two-factor-enable",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "totp-enrollment",
+            "category": "admin-two-factor-verify-totp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "mfa-enable",
+            "category": "admin-two-factor-enable",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "totp-enrollment",
+            "category": "admin-two-factor-verify-totp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "mfa-enable",
+            "category": "admin-two-factor-enable",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "totp-enrollment",
+            "category": "admin-two-factor-verify-totp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 1,
+            "status": 429,
+            "retryAfterSeconds": 9,
+            "retryAfterHeader": "x-retry-after"
+          },
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 2,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "mfa-enable",
+            "category": "admin-two-factor-enable",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "totp-enrollment",
+            "category": "admin-two-factor-verify-totp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "mfa-enable",
+            "category": "admin-two-factor-enable",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "totp-enrollment",
+            "category": "admin-two-factor-verify-totp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "customer-otp-send",
+            "category": "customer-phone-send-otp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "customer-otp-verify",
+            "category": "customer-phone-verify",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          }
+        ],
+        "publicMetadataStatuses": [],
+        "adminReadiness": [
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "observed"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "ready"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "observed"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "ready"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "observed"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "ready"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "observed"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "ready"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "observed"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "ready"
+          }
+        ],
+        "httpResponses": [],
+        "guideReflow": []
+      },
+      {
+        "title": "T05/T18/T19: native customer notification paging and idempotent read never expose another actor or operator inbox",
+        "project": "webkit",
+        "status": "passed",
+        "durationMs": 3453,
+        "retry": 0,
+        "errorCount": 0,
+        "nativeAuthStatuses": [
+          {
+            "stage": "customer-otp-send",
+            "category": "customer-phone-send-otp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "customer-otp-verify",
+            "category": "customer-phone-verify",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "customer-otp-send",
+            "category": "customer-phone-send-otp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "customer-otp-verify",
+            "category": "customer-phone-verify",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          }
+        ],
+        "publicMetadataStatuses": [],
+        "adminReadiness": [],
+        "httpResponses": [],
+        "guideReflow": []
+      },
+      {
+        "title": "T05/T18/T19/T20: genuine customer inbox UI pages105 rows, preserves reads and removes private data after logout and account change",
+        "project": "webkit",
+        "status": "passed",
+        "durationMs": 10018,
+        "retry": 0,
+        "errorCount": 0,
+        "nativeAuthStatuses": [
+          {
+            "stage": "customer-otp-send",
+            "category": "customer-phone-send-otp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "customer-otp-verify",
+            "category": "customer-phone-verify",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "customer-otp-send",
+            "category": "customer-phone-send-otp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "customer-otp-verify",
+            "category": "customer-phone-verify",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          }
+        ],
+        "publicMetadataStatuses": [],
+        "adminReadiness": [],
+        "httpResponses": [],
+        "guideReflow": []
+      },
+      {
+        "title": "T04/T06/T18/T20/T21: genuine operator inbox UI uses permission-scoped rows and masks data on factor and role withdrawal",
+        "project": "webkit",
+        "status": "passed",
+        "durationMs": 14267,
+        "retry": 0,
+        "errorCount": 0,
+        "nativeAuthStatuses": [
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "mfa-enable",
+            "category": "admin-two-factor-enable",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "totp-enrollment",
+            "category": "admin-two-factor-verify-totp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "mfa-enable",
+            "category": "admin-two-factor-enable",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "totp-enrollment",
+            "category": "admin-two-factor-verify-totp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "mfa-enable",
+            "category": "admin-two-factor-enable",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "totp-enrollment",
+            "category": "admin-two-factor-verify-totp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "customer-otp-send",
+            "category": "customer-phone-send-otp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "customer-otp-verify",
+            "category": "customer-phone-verify",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          }
+        ],
+        "publicMetadataStatuses": [],
+        "adminReadiness": [
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "observed"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "ready"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "observed"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "ready"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "observed"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "ready"
+          }
+        ],
+        "httpResponses": [],
+        "guideReflow": []
+      },
+      {
+        "title": "T04/T06/T18/T21: genuine operator MFA scopes notification reads by current permission and preserves financial history",
+        "project": "webkit",
+        "status": "passed",
+        "durationMs": 24367,
+        "retry": 0,
+        "errorCount": 0,
+        "nativeAuthStatuses": [
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "mfa-enable",
+            "category": "admin-two-factor-enable",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "totp-enrollment",
+            "category": "admin-two-factor-verify-totp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "mfa-enable",
+            "category": "admin-two-factor-enable",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "totp-enrollment",
+            "category": "admin-two-factor-verify-totp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "mfa-enable",
+            "category": "admin-two-factor-enable",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "totp-enrollment",
+            "category": "admin-two-factor-verify-totp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 1,
+            "status": 429,
+            "retryAfterSeconds": 8,
+            "retryAfterHeader": "x-retry-after"
+          },
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 2,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "mfa-enable",
+            "category": "admin-two-factor-enable",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "totp-enrollment",
+            "category": "admin-two-factor-verify-totp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "mfa-enable",
+            "category": "admin-two-factor-enable",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "totp-enrollment",
+            "category": "admin-two-factor-verify-totp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "customer-otp-send",
+            "category": "customer-phone-send-otp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "customer-otp-verify",
+            "category": "customer-phone-verify",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          }
+        ],
+        "publicMetadataStatuses": [],
+        "adminReadiness": [
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "observed"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "ready"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "observed"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "ready"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "observed"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "ready"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "observed"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "ready"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "observed"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "ready"
+          }
+        ],
+        "httpResponses": [],
+        "guideReflow": []
+      }
+    ]
+  },
+  "analytics": {
+    "generatedAt": "2026-10-13T06:48:37.986Z",
+    "startedAt": "2026-10-13T06:41:43.675Z",
+    "durationMs": 104808.02900000001,
+    "expected": 9,
+    "unexpected": 0,
+    "skipped": 0,
+    "flaky": 0,
+    "tests": [
+      {
+        "title": "T04/T06/T18: native analytics permissions return aggregate-only no-store reports and reject revoked access",
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 19183,
+        "retry": 0,
+        "errorCount": 0,
+        "nativeAuthStatuses": [
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "mfa-enable",
+            "category": "admin-two-factor-enable",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "totp-enrollment",
+            "category": "admin-two-factor-verify-totp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "mfa-enable",
+            "category": "admin-two-factor-enable",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "totp-enrollment",
+            "category": "admin-two-factor-verify-totp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "mfa-enable",
+            "category": "admin-two-factor-enable",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "totp-enrollment",
+            "category": "admin-two-factor-verify-totp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 1,
+            "status": 429,
+            "retryAfterSeconds": 9,
+            "retryAfterHeader": "x-retry-after"
+          },
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 2,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "mfa-enable",
+            "category": "admin-two-factor-enable",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "totp-enrollment",
+            "category": "admin-two-factor-verify-totp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "customer-otp-send",
+            "category": "customer-phone-send-otp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "customer-otp-verify",
+            "category": "customer-phone-verify",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          }
+        ],
+        "publicMetadataStatuses": [],
+        "adminReadiness": [
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "observed"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "ready"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "observed"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "ready"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "observed"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "ready"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "observed"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "ready"
+          }
+        ],
+        "httpResponses": [
+          {
+            "stage": "analytics-config",
+            "status": 200,
+            "serverRequestId": "97df8183-98de-4552-998d-211c7cfb75e5"
+          },
+          {
+            "stage": "analytics-period",
+            "status": 200,
+            "serverRequestId": "d718358e-1a61-4d01-a503-04cdec1951a0"
+          },
+          {
+            "stage": "analytics-period",
+            "status": 200,
+            "serverRequestId": "7f0cb706-f9b5-4d72-aded-3b07c524b37d"
+          },
+          {
+            "stage": "analytics-period",
+            "status": 200,
+            "serverRequestId": "7ca69ec3-14f7-45a3-8d0d-d6ecbc55e419"
+          },
+          {
+            "stage": "analytics-denied",
+            "status": 403,
+            "serverRequestId": "b5b052aa-cf23-4869-a3c1-6b00b69b4b12"
+          },
+          {
+            "stage": "analytics-denied",
+            "status": 401,
+            "serverRequestId": "5ac57717-d649-403b-87d2-995f1fc51747"
+          },
+          {
+            "stage": "analytics-denied",
+            "status": 401,
+            "serverRequestId": "b4f514ee-d434-4ad0-97dc-4adc279b8ad5"
+          },
+          {
+            "stage": "analytics-period",
+            "status": 200,
+            "serverRequestId": "bef26b6f-2f4d-425c-a1b8-6fcc2a418570"
+          },
+          {
+            "stage": "role-revoke",
+            "status": 200,
+            "serverRequestId": "077f3490-5201-41d7-9b06-6ab207a077c6"
+          },
+          {
+            "stage": "analytics-denied",
+            "status": 401,
+            "serverRequestId": "a4832609-026d-413f-a302-14a6544122d8"
+          }
+        ],
+        "guideReflow": []
+      },
+      {
+        "title": "T07/T18/T21: anonymous analytics rejects metadata and CSRF; replay never changes server financial counts",
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 2234,
+        "retry": 0,
+        "errorCount": 0,
+        "nativeAuthStatuses": [
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "mfa-enable",
+            "category": "admin-two-factor-enable",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "totp-enrollment",
+            "category": "admin-two-factor-verify-totp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          }
+        ],
+        "publicMetadataStatuses": [],
+        "adminReadiness": [
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "observed"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "ready"
+          }
+        ],
+        "httpResponses": [
+          {
+            "stage": "analytics-config",
+            "status": 200,
+            "serverRequestId": "75550115-3eb3-4bed-924f-fcd180ccee14"
+          },
+          {
+            "stage": "analytics-period",
+            "status": 200,
+            "serverRequestId": "5c8f13f7-524a-42fc-aa69-aef4251897ac"
+          },
+          {
+            "stage": "analytics-capture",
+            "status": 202,
+            "serverRequestId": "2c5bc697-9f6e-4608-9c7f-7eb8d7754edb"
+          },
+          {
+            "stage": "analytics-capture",
+            "status": 202,
+            "serverRequestId": "5d978108-2300-4118-86f6-ee878abb7e48"
+          },
+          {
+            "stage": "analytics-capture",
+            "status": 202,
+            "serverRequestId": "02d7eb59-3ff7-4da4-b917-d56be4ad6164"
+          },
+          {
+            "stage": "analytics-capture",
+            "status": 202,
+            "serverRequestId": "e72eab4a-5a79-4bf0-b997-7664f9c03411"
+          },
+          {
+            "stage": "analytics-capture",
+            "status": 202,
+            "serverRequestId": "ec83021a-1ef6-4630-bd43-9a9bb90bb9ad"
+          },
+          {
+            "stage": "analytics-capture",
+            "status": 202,
+            "serverRequestId": "5c0dcef9-c661-417d-b7dd-6acd36ec6f85"
+          },
+          {
+            "stage": "analytics-period",
+            "status": 200,
+            "serverRequestId": "a50ef624-02cb-432a-b205-10f55b3aa89c"
+          }
+        ],
+        "guideReflow": []
+      },
+      {
+        "title": "T12/T19/T21/T25: genuine product/search/cart capture omits private context and collector outage cannot block a paid purchase",
+        "project": "chromium",
+        "status": "passed",
+        "durationMs": 7151,
+        "retry": 0,
+        "errorCount": 0,
+        "nativeAuthStatuses": [
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "mfa-enable",
+            "category": "admin-two-factor-enable",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "totp-enrollment",
+            "category": "admin-two-factor-verify-totp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "customer-otp-send",
+            "category": "customer-phone-send-otp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "customer-otp-verify",
+            "category": "customer-phone-verify",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          }
+        ],
+        "publicMetadataStatuses": [],
+        "adminReadiness": [
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "observed"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "ready"
+          }
+        ],
+        "httpResponses": [
+          {
+            "stage": "analytics-config",
+            "status": 200,
+            "serverRequestId": "cc5f83e5-553c-414a-b6f6-13868295c3ca"
+          },
+          {
+            "stage": "analytics-period",
+            "status": 200,
+            "serverRequestId": "0d04df02-0554-4fb9-8ac9-21648c00b753"
+          },
+          {
+            "stage": "analytics-period",
+            "status": 200,
+            "serverRequestId": "c8c970d0-57c3-4318-8331-c436504a6f49"
+          },
+          {
+            "stage": "analytics-period",
+            "status": 200,
+            "serverRequestId": "0cfc1fb2-acb2-43f5-9536-5a0522800f10"
+          }
+        ],
+        "guideReflow": []
+      },
+      {
+        "title": "T04/T06/T18: native analytics permissions return aggregate-only no-store reports and reject revoked access",
+        "project": "firefox",
+        "status": "passed",
+        "durationMs": 22269,
+        "retry": 0,
+        "errorCount": 0,
+        "nativeAuthStatuses": [
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "mfa-enable",
+            "category": "admin-two-factor-enable",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "totp-enrollment",
+            "category": "admin-two-factor-verify-totp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "mfa-enable",
+            "category": "admin-two-factor-enable",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "totp-enrollment",
+            "category": "admin-two-factor-verify-totp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "mfa-enable",
+            "category": "admin-two-factor-enable",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "totp-enrollment",
+            "category": "admin-two-factor-verify-totp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 1,
+            "status": 429,
+            "retryAfterSeconds": 9,
+            "retryAfterHeader": "x-retry-after"
+          },
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 2,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "mfa-enable",
+            "category": "admin-two-factor-enable",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "totp-enrollment",
+            "category": "admin-two-factor-verify-totp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "customer-otp-send",
+            "category": "customer-phone-send-otp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "customer-otp-verify",
+            "category": "customer-phone-verify",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          }
+        ],
+        "publicMetadataStatuses": [],
+        "adminReadiness": [
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "observed"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "ready"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "observed"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "ready"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "observed"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "ready"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "observed"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "ready"
+          }
+        ],
+        "httpResponses": [
+          {
+            "stage": "analytics-config",
+            "status": 200,
+            "serverRequestId": "1f3ca136-9de7-47ce-bba4-2c72ea9ee48c"
+          },
+          {
+            "stage": "analytics-period",
+            "status": 200,
+            "serverRequestId": "dc09f32d-a32f-406f-92ea-cc47e765f13a"
+          },
+          {
+            "stage": "analytics-period",
+            "status": 200,
+            "serverRequestId": "c0d4ed88-eccc-4671-bd3d-5da0e12c2238"
+          },
+          {
+            "stage": "analytics-period",
+            "status": 200,
+            "serverRequestId": "e4997d4c-4751-4918-8507-a91fd450efc1"
+          },
+          {
+            "stage": "analytics-denied",
+            "status": 403,
+            "serverRequestId": "140fee71-9573-49bd-bae1-1b72528d4d66"
+          },
+          {
+            "stage": "analytics-denied",
+            "status": 401,
+            "serverRequestId": "7f36f9d1-1c0e-49aa-a8b7-3e5049ea757a"
+          },
+          {
+            "stage": "analytics-denied",
+            "status": 401,
+            "serverRequestId": "0eb3a080-c00f-45e3-8f90-61dd1ada9ff2"
+          },
+          {
+            "stage": "analytics-period",
+            "status": 200,
+            "serverRequestId": "48e3370a-7ed1-4a56-9f3a-c8f3a5d51bd9"
+          },
+          {
+            "stage": "role-revoke",
+            "status": 200,
+            "serverRequestId": "86f32273-ef58-4f83-ace0-c6b4f001305f"
+          },
+          {
+            "stage": "analytics-denied",
+            "status": 401,
+            "serverRequestId": "27e3448f-6122-4c96-94e1-454788d9db49"
+          }
+        ],
+        "guideReflow": []
+      },
+      {
+        "title": "T07/T18/T21: anonymous analytics rejects metadata and CSRF; replay never changes server financial counts",
+        "project": "firefox",
+        "status": "passed",
+        "durationMs": 2485,
+        "retry": 0,
+        "errorCount": 0,
+        "nativeAuthStatuses": [
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "mfa-enable",
+            "category": "admin-two-factor-enable",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "totp-enrollment",
+            "category": "admin-two-factor-verify-totp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          }
+        ],
+        "publicMetadataStatuses": [],
+        "adminReadiness": [
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "observed"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "ready"
+          }
+        ],
+        "httpResponses": [
+          {
+            "stage": "analytics-config",
+            "status": 200,
+            "serverRequestId": "16b4d108-8ef3-4932-9875-8de02c7de19c"
+          },
+          {
+            "stage": "analytics-period",
+            "status": 200,
+            "serverRequestId": "f84fd501-560e-4eed-8a34-7d5a386adfc8"
+          },
+          {
+            "stage": "analytics-capture",
+            "status": 202,
+            "serverRequestId": "a0ec8e2b-3ee7-488e-97b4-8ce697fa5b8e"
+          },
+          {
+            "stage": "analytics-capture",
+            "status": 202,
+            "serverRequestId": "5c2860d6-9064-418c-b8a8-bcda2dcfc5b3"
+          },
+          {
+            "stage": "analytics-capture",
+            "status": 202,
+            "serverRequestId": "c68133ad-25d9-4527-a563-d6ca922b3d62"
+          },
+          {
+            "stage": "analytics-capture",
+            "status": 202,
+            "serverRequestId": "f3f335bd-27b5-4147-ab0b-1938c0e7ad28"
+          },
+          {
+            "stage": "analytics-capture",
+            "status": 202,
+            "serverRequestId": "26a5f636-2cf2-454e-afa4-a4fb561fb179"
+          },
+          {
+            "stage": "analytics-capture",
+            "status": 202,
+            "serverRequestId": "761f00f1-20b7-4b78-9785-ddf47f6257dc"
+          },
+          {
+            "stage": "analytics-period",
+            "status": 200,
+            "serverRequestId": "686d85d5-d7ba-42ec-8af1-3fcd42008b87"
+          }
+        ],
+        "guideReflow": []
+      },
+      {
+        "title": "T12/T19/T21/T25: genuine product/search/cart capture omits private context and collector outage cannot block a paid purchase",
+        "project": "firefox",
+        "status": "passed",
+        "durationMs": 8977,
+        "retry": 0,
+        "errorCount": 0,
+        "nativeAuthStatuses": [
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "mfa-enable",
+            "category": "admin-two-factor-enable",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "totp-enrollment",
+            "category": "admin-two-factor-verify-totp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "customer-otp-send",
+            "category": "customer-phone-send-otp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "customer-otp-verify",
+            "category": "customer-phone-verify",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          }
+        ],
+        "publicMetadataStatuses": [],
+        "adminReadiness": [
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "observed"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "ready"
+          }
+        ],
+        "httpResponses": [
+          {
+            "stage": "analytics-config",
+            "status": 200,
+            "serverRequestId": "4736ce58-01b5-4cc7-b05e-8218df933f46"
+          },
+          {
+            "stage": "analytics-period",
+            "status": 200,
+            "serverRequestId": "d926fcd2-a52f-4057-a54d-519742bd7a59"
+          },
+          {
+            "stage": "analytics-period",
+            "status": 200,
+            "serverRequestId": "0f56a04b-eb8e-4b3e-b8e0-daecbad3541f"
+          },
+          {
+            "stage": "analytics-period",
+            "status": 200,
+            "serverRequestId": "9780ff31-3f51-4aae-b2e0-0d95daa1275c"
+          }
+        ],
+        "guideReflow": []
+      },
+      {
+        "title": "T04/T06/T18: native analytics permissions return aggregate-only no-store reports and reject revoked access",
+        "project": "webkit",
+        "status": "passed",
+        "durationMs": 22221,
+        "retry": 0,
+        "errorCount": 0,
+        "nativeAuthStatuses": [
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "mfa-enable",
+            "category": "admin-two-factor-enable",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "totp-enrollment",
+            "category": "admin-two-factor-verify-totp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "mfa-enable",
+            "category": "admin-two-factor-enable",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "totp-enrollment",
+            "category": "admin-two-factor-verify-totp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "mfa-enable",
+            "category": "admin-two-factor-enable",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "totp-enrollment",
+            "category": "admin-two-factor-verify-totp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 1,
+            "status": 429,
+            "retryAfterSeconds": 8,
+            "retryAfterHeader": "x-retry-after"
+          },
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 2,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "mfa-enable",
+            "category": "admin-two-factor-enable",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "totp-enrollment",
+            "category": "admin-two-factor-verify-totp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "customer-otp-send",
+            "category": "customer-phone-send-otp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "customer-otp-verify",
+            "category": "customer-phone-verify",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          }
+        ],
+        "publicMetadataStatuses": [],
+        "adminReadiness": [
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "observed"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "ready"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-login",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "observed"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "ready"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "observed"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "ready"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "observed"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "ready"
+          }
+        ],
+        "httpResponses": [
+          {
+            "stage": "analytics-config",
+            "status": 200,
+            "serverRequestId": "7783da1c-6d80-4c6b-89dd-3dd27cb1d9d9"
+          },
+          {
+            "stage": "analytics-period",
+            "status": 200,
+            "serverRequestId": "3f53daab-389b-419d-bf53-f988014ecedd"
+          },
+          {
+            "stage": "analytics-period",
+            "status": 200,
+            "serverRequestId": "66e33315-8cbc-41ca-b93d-ac5874328ecd"
+          },
+          {
+            "stage": "analytics-period",
+            "status": 200,
+            "serverRequestId": "2fe0b375-8a09-4b06-b786-110587ade75c"
+          },
+          {
+            "stage": "analytics-denied",
+            "status": 403,
+            "serverRequestId": "a104d7ee-379b-495e-82e5-aaf91ca26243"
+          },
+          {
+            "stage": "analytics-denied",
+            "status": 401,
+            "serverRequestId": "e3497958-56c2-442e-a990-846f49b5cec8"
+          },
+          {
+            "stage": "analytics-denied",
+            "status": 401,
+            "serverRequestId": "b77af865-0fa6-476f-a77b-babf96db32c1"
+          },
+          {
+            "stage": "analytics-period",
+            "status": 200,
+            "serverRequestId": "6e111050-e0a2-43b2-adeb-2586fb9445d7"
+          },
+          {
+            "stage": "role-revoke",
+            "status": 200,
+            "serverRequestId": "e9789f1b-e19b-4f27-bd60-67860342d48b"
+          },
+          {
+            "stage": "analytics-denied",
+            "status": 401,
+            "serverRequestId": "53a46e13-9d1b-4aa1-9596-13a77a022e5c"
+          }
+        ],
+        "guideReflow": []
+      },
+      {
+        "title": "T07/T18/T21: anonymous analytics rejects metadata and CSRF; replay never changes server financial counts",
+        "project": "webkit",
+        "status": "passed",
+        "durationMs": 3338,
+        "retry": 0,
+        "errorCount": 0,
+        "nativeAuthStatuses": [
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "mfa-enable",
+            "category": "admin-two-factor-enable",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "totp-enrollment",
+            "category": "admin-two-factor-verify-totp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          }
+        ],
+        "publicMetadataStatuses": [],
+        "adminReadiness": [
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "observed"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "ready"
+          }
+        ],
+        "httpResponses": [
+          {
+            "stage": "analytics-config",
+            "status": 200,
+            "serverRequestId": "9dbaa7ed-fe8c-42c9-a088-71fa7f7b68d0"
+          },
+          {
+            "stage": "analytics-period",
+            "status": 200,
+            "serverRequestId": "6a9a956a-89e2-4d85-a396-39a069e6c675"
+          },
+          {
+            "stage": "analytics-capture",
+            "status": 202,
+            "serverRequestId": "9a0df7b1-a435-4b7c-b0ab-a48ef797d253"
+          },
+          {
+            "stage": "analytics-capture",
+            "status": 202,
+            "serverRequestId": "5f33782d-4446-4f80-b740-43be0cdd7877"
+          },
+          {
+            "stage": "analytics-capture",
+            "status": 202,
+            "serverRequestId": "b7593d25-dbef-4701-9cbf-fecd12b15e7a"
+          },
+          {
+            "stage": "analytics-capture",
+            "status": 202,
+            "serverRequestId": "6795af71-782e-4280-983c-ce98a349d8fe"
+          },
+          {
+            "stage": "analytics-capture",
+            "status": 202,
+            "serverRequestId": "1544be20-d7c2-451d-aaad-2891afbab88d"
+          },
+          {
+            "stage": "analytics-capture",
+            "status": 202,
+            "serverRequestId": "b0e556e1-c7bd-4844-8e39-947aa52da7d5"
+          },
+          {
+            "stage": "analytics-period",
+            "status": 200,
+            "serverRequestId": "45585874-ec2a-4af1-90cc-fe446984ef88"
+          }
+        ],
+        "guideReflow": []
+      },
+      {
+        "title": "T12/T19/T21/T25: genuine product/search/cart capture omits private context and collector outage cannot block a paid purchase",
+        "project": "webkit",
+        "status": "passed",
+        "durationMs": 10589,
+        "retry": 0,
+        "errorCount": 0,
+        "nativeAuthStatuses": [
+          {
+            "stage": "password-sign-in",
+            "category": "admin-sign-in-email",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "mfa-enable",
+            "category": "admin-two-factor-enable",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "totp-enrollment",
+            "category": "admin-two-factor-verify-totp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "customer-otp-send",
+            "category": "customer-phone-send-otp",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          },
+          {
+            "stage": "customer-otp-verify",
+            "category": "customer-phone-verify",
+            "attempt": 1,
+            "status": 200,
+            "retryAfterSeconds": null,
+            "retryAfterHeader": "absent"
+          }
+        ],
+        "publicMetadataStatuses": [],
+        "adminReadiness": [
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-login",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "observed"
+          },
+          {
+            "expectedAlias": "admin-home",
+            "actualAlias": "admin-home",
+            "documentHttpStatus": null,
+            "sessionHttpStatus": 200,
+            "mfaVerified": true,
+            "roleAllowed": true,
+            "formPresent": null,
+            "readiness": "ready"
+          }
+        ],
+        "httpResponses": [
+          {
+            "stage": "analytics-config",
+            "status": 200,
+            "serverRequestId": "fa636862-8236-4d79-b717-fb1238a5b62f"
+          },
+          {
+            "stage": "analytics-period",
+            "status": 200,
+            "serverRequestId": "21086ccb-8dbb-4ccb-84f5-7bc48bcd3125"
+          },
+          {
+            "stage": "analytics-period",
+            "status": 200,
+            "serverRequestId": "7da1881c-748c-417b-aeb8-25a5a568a184"
+          },
+          {
+            "stage": "analytics-period",
+            "status": 200,
+            "serverRequestId": "bfa22773-9b3d-458e-a729-e544e5058cf9"
+          }
+        ],
+        "guideReflow": []
+      }
+    ]
+  },
+  "aggregates": {
+    "notifications": {
+      "scope": "linux-native-notifications",
+      "startedAt": "2026-10-13T06:37:12.997Z",
+      "durationMs": 212972.323,
+      "expected": 12,
+      "unexpected": 0,
+      "skipped": 0,
+      "flaky": 0,
+      "nativeStatusCounts": {
+        "200": 108,
+        "429": 5
+      },
+      "nativeAttemptCounts": {
+        "1": 108,
+        "2": 5
+      },
+      "nativeStageCounts": {
+        "customer-otp-send": 19,
+        "customer-otp-verify": 18,
+        "password-sign-in": 28,
+        "mfa-enable": 24,
+        "totp-enrollment": 24
+      },
+      "rate429Intervals": [
+        {
+          "stage": "password-sign-in",
+          "seconds": 1,
+          "header": "x-retry-after"
+        },
+        {
+          "stage": "password-sign-in",
+          "seconds": 9,
+          "header": "x-retry-after"
+        },
+        {
+          "stage": "customer-otp-send",
+          "seconds": 54,
+          "header": "x-retry-after"
+        },
+        {
+          "stage": "password-sign-in",
+          "seconds": 9,
+          "header": "x-retry-after"
+        },
+        {
+          "stage": "password-sign-in",
+          "seconds": 8,
+          "header": "x-retry-after"
+        }
+      ],
+      "engines": {
+        "chromium": 4,
+        "firefox": 4,
+        "webkit": 4
+      }
+    },
+    "analytics": {
+      "scope": "linux-native-analytics",
+      "startedAt": "2026-10-13T06:41:43.675Z",
+      "durationMs": 104808.02900000001,
+      "expected": 9,
+      "unexpected": 0,
+      "skipped": 0,
+      "flaky": 0,
+      "nativeStatusCounts": {
+        "200": 66,
+        "429": 3
+      },
+      "nativeAttemptCounts": {
+        "1": 66,
+        "2": 3
+      },
+      "nativeStageCounts": {
+        "password-sign-in": 21,
+        "mfa-enable": 18,
+        "totp-enrollment": 18,
+        "customer-otp-send": 6,
+        "customer-otp-verify": 6
+      },
+      "rate429Intervals": [
+        {
+          "stage": "password-sign-in",
+          "seconds": 9,
+          "header": "x-retry-after"
+        },
+        {
+          "stage": "password-sign-in",
+          "seconds": 9,
+          "header": "x-retry-after"
+        },
+        {
+          "stage": "password-sign-in",
+          "seconds": 8,
+          "header": "x-retry-after"
+        }
+      ],
+      "engines": {
+        "chromium": 3,
+        "firefox": 3,
+        "webkit": 3
+      }
+    }
+  },
+  "processTimings": {
+    "notifications": {
+      "scope": "linux-native-notifications",
+      "exitCode": 0,
+      "startUtc": "2026-10-13T06:37:08.079135+00:00",
+      "endUtc": "2026-10-13T06:40:56.597811+00:00",
+      "elapsedMs": 218999,
+      "privateJsonExists": true
+    },
+    "analytics": {
+      "scope": "linux-native-analytics",
+      "exitCode": 0,
+      "startUtc": "2026-10-13T06:41:42.224386+00:00",
+      "endUtc": "2026-10-13T06:43:33.536158+00:00",
+      "elapsedMs": 106514,
+      "privateJsonExists": true
+    }
+  },
+  "serverEvidence": {
+    "schemaVersion": 1,
+    "source": "verify-runtime",
+    "state": "collected",
+    "linesScanned": 1414,
+    "eventCount": 0,
+    "byteLimitReached": false,
+    "lineLimitReached": false,
+    "eventLimitReached": false,
+    "events": []
+  },
+  "cleanup": {
+    "scope": "linux-native-bc-cleanup",
+    "capturedUtc": "2026-10-13T06:52:23.847Z",
+    "migrations": 13,
+    "canonicalChecksumsMatch": true,
+    "publicTables": 53,
+    "generatedSchemas": 0,
+    "runtimeDmlOnly": true,
+    "ownerCredentialPresent": false,
+    "active_owned_admins": 0,
+    "unarchived_owned_products": 0,
+    "active_owned_customers": 0,
+    "retained_owned_sessions": 0,
+    "globalUnrelatedRowEqualityMeasured": false
+  },
+  "windowRelease": {
+    "declaredAfterAuditUtc": "2026-10-13T06:52:23.847Z",
+    "recordedReleaseHandoffUtc": "2026-10-13T06:53:32.000Z",
+    "coordinatorAcknowledged": true
+  },
+  "limits": {
+    "testRetries": 0,
+    "actionTimeoutMs": 10000,
+    "testTimeoutMs": 120000,
+    "globalTimeoutMs": 1500000,
+    "nativeLibraryLimitsUnchanged": true,
+    "limiterClockIpReset": false,
+    "customBrowserFlags": false,
+    "globalWorkerStarted": false,
+    "ownerCredentialUsed": false,
+    "sourceSanitizerWrites": false,
+    "globalUnrelatedRowEqualityMeasured": false,
+    "wholeGeneratorSuiteExecuted": false,
+    "capacityRunExecuted": false
+  },
+  "testedSourceHashes": [
+    {
+      "file": "tests/e2e/notifications.spec.ts",
+      "sha256": "d7b6c237ff385ced4f0a487bf3ab589fe6baa6d46c3be5d26b69a2ecb1e62c41"
+    },
+    {
+      "file": "tests/e2e/notification-fixtures.ts",
+      "sha256": "fc4628a1670d965af4876ef869bc7b16be121368f89c1c0286b21b9cd27c7151"
+    },
+    {
+      "file": "tests/e2e/notification-delivery-core.ts",
+      "sha256": "680ccfff7dfb325609e7abc4696559a339aaaed139158a203db1d9eac9c0956e"
+    },
+    {
+      "file": "tests/e2e/notification-owned-delivery.ts",
+      "sha256": "73950d4efb7b680c67408649f65f45844c49035fb76cc5f5cfeb6d1f532f51cf"
+    },
+    {
+      "file": "tests/e2e/analytics.spec.ts",
+      "sha256": "f4f13d602b6485e4a4b52f32ddf092416f207ed2ec25de614e4935f6bae9b60f"
+    },
+    {
+      "file": "tests/e2e/analytics-fixtures.ts",
+      "sha256": "e2bba5f1c1f3ce787a07fd5cad079dbf1ac64210467f1bf707738bb92b6e342a"
+    },
+    {
+      "file": "tests/e2e/native-auth-actions.ts",
+      "sha256": "19ddd4606b23a2ea66c64f8a9c138feaf444005ac55ff83b066d7d7b69f5289c"
+    },
+    {
+      "file": "tests/helpers/qa-target.mjs",
+      "sha256": "7029252a6903995ff1992633475d0b660e63e8d2aa1fad625664bea94683b772"
+    }
+  ]
+}

@@ -1,5 +1,15 @@
 # Controlled offline browser-toolchain importer
 
+## Actual official-artifact execution, 2026-10-13
+
+Producer c749f796d62b9680a26dd7ee5a84f38f2fd43da6/run38353949717/job115152409404 and authenticated artifact11791724128 bind the [actual export](BROWSER_TOOLCHAIN_CACHE.md). Root finished525885995-byte ZIP withwhole SHA256 `484775ced3e5d753c8ee33e376f6acdf188f9b9c13a85ea9f24cab7b8a6645ef` at06:18:43.686Z. ExporterLF SHA256 `bcc19352da25e8700885b48541f98a49f360337620d751707ed15166099b6eb0`, importerLF `0091785338dd15f0838db386cda0360233a490ef33aa81b2d62faee9dc3a99fc`, lockSHA `36e3b10b709b0f61e2a99831ca79b3d87c296b316a37363e5c02f63aed21566f`; manifest/archive identities are in the export report.
+
+Actual strict importer on Ubuntu24.04/Python3.12 completed34.516875824s, exit0/stateimported:733members/676files/15symlinks/1342380914regular bytes matched. Fresh cache0700; tool/ZIP/log/result0600. No bounds, vendor/link/body-hash/fresh-destination rules relaxed. Import started no browser/DB. A separate actual smoke launched Chromium156.0.8078.4, Firefox157.0 and WebKit27.2 with the explicit imported cache, no channel/extra flags; static title/RTL passed, no app/DB/nativeauth.
+
+Failures remain separate: initial download timed out at242059003bytes; bounded206ranges/refreshed references recovered it. One actual403 and pre-request expiry/closure guards stopped stale use. Final whole-ZIP equality accepted all bytes including initial prefix; nine verified range parts remain private. First import preparation stopped before entry because WindowsGitarchive exported PythonCRLF, retaining its empty area. Only published tool line endings were restored to independently verifiedLF; binary ZIP/browser bytes and DBhistory untouched. Corrected second preparation/import is separately captured. No raw signed URL/credential/profile is public.
+
+The preparation text below is historical. Local focused21 and fullCI78 are distinct native runs; import/launch smoke alone proves neither auth/privacy nor capacity.
+
 Prepared source only. The coordinator owns artifact download/transfer, authenticated GitHub run/job/artifact provenance, publication and actual import authorization. No official cache has been imported or browser launched by this task. Synthetic archive extraction is a contract test, not official binary acceptance or a native/browser result. The latest exporter failure's actual rejected Firefox entry is still unproved from byte/depth geometry alone.
 
 The new stdlib-only [importer](../../scripts/import-browser-toolchain.py) accepts the current reviewed [exporter](../../scripts/prepare-browser-toolchain-artifact.mjs) schema. Its [dedicated tests](../../tests/ops/browser-toolchain-import.test.py) have no database, service, SSH, downloader or browser behavior. One test invokes local GNU tar only on a tiny synthetic distribution fixture using the producer's exact normalization arguments. No QA/exporter/workflow or application source was edited.

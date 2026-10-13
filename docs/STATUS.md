@@ -1,5 +1,19 @@
 # وضعیت اجرا
 
+## وضعیت جاری، ۰۶:۵۶ UTC، ۱۳ اکتبر ۲۰۲۶
+
+تصویرE4واقعاً به سرور منتقل، rehash و load شد:22.078s/exit0، proofv2 و immutableengine3b78dc30…؛ بستهٔ21فایلیOps68 مستقل ثابت است. checkoutباffدقیق بهE4رفت؛ مشاهدهٔ06:56:52Z نشان داد app/worker613قدیمی همچنانhealthy و config/mount/limitsمحفوظ‌اند. [جزئیات](ops/E4_ACCEPTED_IMAGE_EVIDENCE.md). هیچwriterstop/backupتازه/migration/cutover انجام نشده.
+
+nativeLinux21/21پایان یافت:182authPOST=174status200+8status429؛ هشتwaitطبقheader و تلاش دوم موفق،0retry/skip/flaky، server1414خط/0wrapper500/capfalse. source686/envثابت، audit13/53/generated0/DMLonly، چهارcategorycleanupصفر؛ windowدر06:53:32Zآزاد شد. برابری سراسری ردیف‌های نامرتبط اندازه‌گیری نشده؛ [گزارش مستقل](qa/LINUX_E4_FOCUSED_NATIVE_EXECUTION.md).
+
+## وضعیت جاری، ۰۶:۴۷ UTC، ۱۳ اکتبر ۲۰۲۶
+
+CI نسخهٔ e4bed691dc938a9c0f79022696d24f063ad97724 در دوjobموفق است:837دامنه،78مرورگر verify و78مرورگر تصویر؛ هرrun26برای هر موتور و صفرfail/skip/flaky/retry. تصویر و دو بستهٔ شواهد واقعاً دریافت و با digestGitHub تطبیق داده شدند؛ verifier هر15لایه را پذیرفت، بدونDocker. actualscanner سهMedium و صفرHigh/Critical دارد. [هویت و شواهد](ops/E4_ACCEPTED_IMAGE_EVIDENCE.md).
+
+cache رسمی c749 با525885995بایت واقعاً دریافت/هش/وارد شد:733عضو،676فایل،15symlink. هر سه موتورLinuxواقعاً launch/RTL شدند. nativeمحلی جدا رویE4،12اعلان و9تحلیل را موفق گذراند؛ auditنهایی و windowrelease هنوزpending، برابری سراسری ردیف‌های نامرتبط اندازه‌گیری نشده. شکست‌های Windows و download/expiry/CRLF قبلی محفوظ‌اند.
+
+سرور app613/Ops591/schema11 حفظ است؛ transfer/load، backupتازه، preservation49→53، migration0012/0013، E4runtime/restore، previewمحافظت‌شده و200VU/RPS اجرا نشده. upgradeفعلی قبل از observerpost برنامه/worker را شروع می‌کند؛ عامل زیرساخت مسیر مرحله‌ای با gateمستقل را آماده می‌کند.
+
 ## وضعیت جاری، ۰۵:۵۵ UTC، ۱۳ اکتبر ۲۰۲۶
 
 نسخهٔ e4bed69 روی main منتشر شده است. نسخهٔ دقیق آن در محیط جداگانهٔ لینوکس با نصب frozen و بیلد واقعی در39.488ثانیه موفق شد؛ هر686فایل مخزن ثابت ماند. بررسی فقط‌خواندنی65.099ms، نقش DML و13مهاجرت canonical را تأیید کرد. برنامه یا مرورگر محلی هنوز شروع نشده‌اند. [شواهد لینوکس](qa/LINUX_RUNTIME_EXECUTION.md).
