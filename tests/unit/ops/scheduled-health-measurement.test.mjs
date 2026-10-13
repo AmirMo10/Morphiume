@@ -249,6 +249,7 @@ import importlib.util,json,sys,unittest,copy
 from pathlib import PurePosixPath
 from unittest.mock import patch
 spec=importlib.util.spec_from_file_location('gc_test',sys.argv[1]);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+from contextlib import ExitStack
 for name in ('ROOT','CONFIG','OPS_ROOT','CACHE','RESTORE','BACKUP'):setattr(m,name,PurePosixPath(getattr(m,name).as_posix()))
 m.TARGETS={name:PurePosixPath(path.as_posix()) for name,path in m.TARGETS.items()}
 INV='a'*32;BOOT='b'*32;IDENTITY={'runtimeImageId':'sha256:'+'a'*64,'testedPlatformConfig':'sha256:'+'a'*64}
@@ -345,7 +346,26 @@ class GC(unittest.TestCase):
   for phase in ('measured-failure','postproof-failure'):
    written=[]
    def measure(runner,*args):runner.starts+=1;return {'accepted':phase=='postproof-failure'}
-   with self.subTest(phase=phase),patch.multiple(m,**constants,Path=MockPath,BASE_SHA=fixed,RECOVERY_TOOL=fixed,DROPINS={name:fixed for name in m.DROPINS}),patch.object(m.sys,'platform','linux'),patch.object(m.os,'getuid',return_value=0,create=True),patch.object(m,'validate_request'),patch.object(m,'protected_path'),patch.object(m,'read_protected',side_effect=read),patch.object(m,'sha',return_value=fixed),patch.object(m,'bootstrap_old',return_value=contract),patch.object(m,'validate_marker'),patch.object(m,'Runner',FailureRunner),patch.object(m,'runtime_state',return_value=observed) as captured,patch.object(m.os,'mkdir') as mkdir,patch.object(m,'write_exclusive',side_effect=lambda path,body,*args,**kwargs:written.append((path,json.loads(body)))),patch.object(m,'install_public'),patch.object(m,'validate_effective'),patch.object(m,'measure_once',side_effect=measure),patch.object(m,'verify_bundle',side_effect=ValueError('mock postproof rejection')),patch.object(m.subprocess,'run') as command,patch.object(m.subprocess,'Popen') as start:
+   with self.subTest(phase=phase),ExitStack() as stack:
+    stack.enter_context(patch.multiple(m,**constants,Path=MockPath,BASE_SHA=fixed,RECOVERY_TOOL=fixed,DROPINS={name:fixed for name in m.DROPINS}))
+    stack.enter_context(patch.object(m.sys,'platform','linux'))
+    stack.enter_context(patch.object(m.os,'getuid',return_value=0,create=True))
+    stack.enter_context(patch.object(m,'validate_request'))
+    stack.enter_context(patch.object(m,'protected_path'))
+    stack.enter_context(patch.object(m,'read_protected',side_effect=read))
+    stack.enter_context(patch.object(m,'sha',return_value=fixed))
+    stack.enter_context(patch.object(m,'bootstrap_old',return_value=contract))
+    stack.enter_context(patch.object(m,'validate_marker'))
+    stack.enter_context(patch.object(m,'Runner',FailureRunner))
+    captured=stack.enter_context(patch.object(m,'runtime_state',return_value=observed))
+    mkdir=stack.enter_context(patch.object(m.os,'mkdir'))
+    stack.enter_context(patch.object(m,'write_exclusive',side_effect=lambda path,body,*args,**kwargs:written.append((path,json.loads(body)))))
+    stack.enter_context(patch.object(m,'install_public'))
+    stack.enter_context(patch.object(m,'validate_effective'))
+    stack.enter_context(patch.object(m,'measure_once',side_effect=measure))
+    stack.enter_context(patch.object(m,'verify_bundle',side_effect=ValueError('mock postproof rejection')))
+    command=stack.enter_context(patch.object(m.subprocess,'run'))
+    start=stack.enter_context(patch.object(m.subprocess,'Popen'))
     summary=m.run_locked(request)
     private=[body for path,body in written if path.name=='private-evidence.json'];self.assertEqual(len(private),1)
     self.assertEqual(private[0]['before'],observed);self.assertFalse(private[0]['accepted']);self.assertFalse(private[0]['originalTableEqualityMeasured']);self.assertFalse(private[0]['automaticRetry'])

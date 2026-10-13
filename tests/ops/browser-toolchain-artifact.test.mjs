@@ -7,7 +7,7 @@ import { tmpdir } from "node:os";
 import { join, resolve, dirname, basename } from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import { browserRoots, validateEntryPath, validateEntries, inspectBrowserCache, exportBrowserToolchain, TOOLCHAIN_LIMITS } from "../../scripts/prepare-browser-toolchain-artifact.mjs";
+import { browserRoots, validateEntryPath, validateEntries, inspectBrowserCache, exportBrowserToolchain, safeExportFailure, TOOLCHAIN_LIMITS } from "../../scripts/prepare-browser-toolchain-artifact.mjs";
 
 const run = promisify(execFile);
 const metadata = { browsers: [{ name: "chromium", revision: "1248", browserVersion: "156.0.8078.4" }, { name: "firefox", revision: "1555", browserVersion: "157.0" }, { name: "webkit", revision: "2370", browserVersion: "27.2" }, { name: "ffmpeg", revision: "1011" }, { name: "chromium-headless-shell", revision: "1248", browserVersion: "156.0.8078.4" }] };
@@ -73,6 +73,30 @@ async function fixture(callback) {
   }
 }
 const linuxOnly = { skip: process.platform !== "linux" ? "Real Unix mode/link/tar contract runs on the Linux generator/CI." : false };
+
+test("failure evidence retains only closed stages/codes and bounded metadata, never canary error or fields", () => {
+  const canary = "PRIVATE-AUTH-BODY-CANARY";
+  const ordinary = new Error(canary); ordinary.path = canary;
+  assert.deepEqual(safeExportFailure(ordinary, canary, null), { event: "browser-toolchain.export.failed", stage: "unknown", code: "unexpected-operation", cache: { state: "unavailable" } });
+  let rejectedPath;
+  try { validateEntryPath("chromium-1248/Cookies", roots.map(root => root.directory)); } catch (error) { rejectedPath = error; }
+  rejectedPath.safeEntry = { engine: "chromium", type: "file", mode: 0o100644, index: 3, pathBytes: 21, pathDepth: 2, path: canary, target: canary, body: canary };
+  const result = safeExportFailure(rejectedPath, "cache-inspection", { state: "collected", topEntryCount: 6, topEntryLimitReached: false, registryLinksPresent: true, knownRoots: [{ engine: "chromium", present: true, path: canary }, { engine: canary, present: true }], environment: canary });
+  assert.equal(result.code, "entry-path-private-or-traversal"); assert.equal(result.entry.engine, "chromium"); assert.deepEqual(result.cache.knownRoots, [{ engine: "chromium", present: true }]);
+  assert.equal(JSON.stringify(result).includes(canary), false);
+  rejectedPath.safeCode = canary; rejectedPath.safeEntry.index = -1; rejectedPath.safeEntry.mode = 1e9;
+  const tampered = safeExportFailure(rejectedPath, "identity", []); assert.equal(tampered.code, "unexpected-operation"); assert.equal(Object.hasOwn(tampered.entry, "index"), false); assert.equal(Object.hasOwn(tampered.entry, "mode"), false);
+});
+
+test("real rejected vendor-shaped mode fixture emits exact guard/engine/metrics without a filename", linuxOnly, async () => {
+  await fixture(async ({ cache }) => {
+    await chmod(join(cache, "chromium-1248", "LICENSE"), 0o666);
+    await assert.rejects(inspectBrowserCache(cache, metadata), error => {
+      const result = safeExportFailure(error, "cache-inspection"); assert.equal(result.code, "entry-mode"); assert.equal(result.entry.engine, "chromium"); assert.equal(result.entry.type, "file"); assert.equal(result.entry.mode & 0o777, 0o666);
+      assert.equal(JSON.stringify(result).includes("LICENSE"), false); assert.equal(JSON.stringify(result).includes(cache), false); return true;
+    });
+  });
+});
 
 test("real filesystem collector excludes only registry links and rejects unknown/profile members", linuxOnly, async () => {
   await fixture(async ({ cache }) => {

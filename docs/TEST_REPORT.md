@@ -1,5 +1,7 @@
 # آزمون‌های واقعاً اجراشده
 
+به‌روزرسانی۰۵:۰۲ UTC: سلامت296c01bd واقعاًexit0/accepted=true،cycle34.145704s ازjournal،127نمونه،صفرهشدار وready200 باپروف کامل metadata/identity؛ executionSeconds=null/tableEqualityfalse، timer/backup/SQLnone. CIimage db92877/78 با5369خط/صفر500/no cap شد، artifact چهارعضوی23711bytes hash-verified؛ علتownerfeed۴به‌جای۲pending. CItoolfb Pythonmock34/35Linux راExitStack35/35 واقعی اصلاحکرد؛ runtimehelperثابت. Cachedownload رسمی سه‌موتورموفق/exportناموفقunclassified؛ diagnostic10/10Linux قبول، artifact/import/nativeمحلیصفر. [گزارش CI](CI_ANALYTICS_NOTIFICATIONS_EXECUTION.md) و [سلامت](ops/HEALTH_SCHEDULED_591_EXECUTION.md) جزئیاتscope مستقل دارند.
+
 به‌روزرسانی۰۴:۳۸ UTC: verify واقعی commitdb928f4/run38344901833 موفق:837/837دامنه،55فایل،91.77s؛78/78مرورگر Linux،26هرموتور و1084253.761ms، صفرskip/flaky/retry. شواهد کامل سرور5375خط/صفرwrapper500/no cap؛ ZIP artifact10922bytes واقعاً دانلود/hash-verify و فقط دوJSON مجاز privately استخراج شد. [گزارش CI B/C](CI_ANALYTICS_NOTIFICATIONS_EXECUTION.md) هویت‌ها را ثبت می‌کند. Image job جدید هنوزجاری وپذیرشسرورجدیدunrun است. Build مستقل Linux sourceهمینcommit در37.678430s پس از چهار توقف پیش ازNext موفق؛ guarddeps حفظ، migration/native/browser محلی اجرا نشد. GCاصلاح‌شده35Node باsuiteهای توکار جدا18/16/13 قبول؛ reconciliation اصلoverallfailed را تغییر نداده است.
 
 ## اجرای تازهٔ main و سلامت، ۰۳:۵۸ UTC، ۱۳ اکتبر ۲۰۲۶

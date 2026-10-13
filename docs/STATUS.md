@@ -1,5 +1,13 @@
 # وضعیت اجرا
 
+## وضعیت جاری، ۰۵:۰۲ UTC، ۱۳ اکتبر ۲۰۲۶
+
+ابزارهای GC/cache باfb320c5 رویmain منتشر شدند. CI همینcommit در آزمون mock Python3.12 به محدودیت nesting رسید؛ baselineLinux34/35 و اصلاحExitStack35/35 واقعی قبول، driver/remote ثابت‌اند. Workflowcache هرسه مرورگر رسمی را واقعاً دانلود کرد ولی exportguard خروجی را رد کرد؛ علت هنوز طبقه‌بندی نشده و diagnosticsبسته با10/10Linux برایCIبعدی آماده‌اند؛ هیچartifact وارد یاbrowserمحلی اجرا نشده است.
+
+اقدام تازهٔ مستقل سلامت296c01bd باsourceمنتشرشدهٔfb وrequestخصوصی دقیق واقعاًexit0/accepted=true شد: یکstart، چرخه34.145704s ازjournalمعتبر،127نمونه، صفرهشدار وready200، before/aftermetadata وbindingهای کامل موفق. executionSeconds=null وoriginalTableEqualityMeasured=false حفظ‌اند؛ timer/backup/stopwriter/SQL اجرا نشدند. [گزارش سلامت](ops/HEALTH_SCHEDULED_591_EXECUTION.md) هویت وscope را ثبت می‌کند؛ شکست‌های قبلی تغییر نکردند.
+
+verify فروشگاهdb928 همان837/78قبول است، اما image مستقل77/78 در1100036.297ms شد: Chrome25قبول/یک‌شکست،Firefox/WebKit26هرکدام؛ صفرskip/flaky/retry، سرور5369خط/صفرwrapper500/no cap. آزمون operator inbox درChrome به‌جای۲،۴پیام گرفت؛ علت قطعی هنوز بررسی می‌شود. Schema مانع duplicateِ همانevent/recipient است؛ تولیدcanonical برای eventهای قبلی و فرضpending-only fixture نیاز بررسی دارند. QA پنجرهٔ فقطfactory/schemaمتعلق b625 را دارد؛ nativeapp/browser وworkerجهانی اجرا نمی‌شوند. image پذیرفته/منتقل نشده و app613/Ops591/schema11 سرور حفظ‌اند. Backend ابزارpreservationمخصوصruntime را صرفاً آماده می‌کند؛ DDL/backup/cutover ندارد.
+
 ## وضعیت جاری، ۰۴:۳۳ UTC، ۱۳ اکتبر ۲۰۲۶
 
 اصلاح آزمون سبد و scanner با `db928f4b5a84f65ac24be5257f43ca5b90c8bddd` روی main منتشر شد؛ [CI38344901833](https://github.com/AmirMo10/Morphiume/actions/runs/38344901833) verify را واقعاً با837/837دامنه و78/78مرورگر Linux،26درهرموتور، صفرskip/flaky/retry و5375خط/صفرwrapper500/no cap گذراند. شواهد دوJSON واقعاً دانلود وSHA ZIP باGitHub تطبیق داده شد؛ شرط حذف کوکی درLinux موفق بود و نقصWebKitWindows به قبولی تبدیل نمی‌شود. [گزارش CI](CI_ANALYTICS_NOTIFICATIONS_EXECUTION.md) scope وhashها را ثبت می‌کند. Imagejob115129510651 هنوز مستقل در حال اجراست؛ تصویر جدید پذیرفته یا مستقر نشده است.
