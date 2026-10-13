@@ -168,6 +168,22 @@ PROPERTIES = ('Id', 'Names', 'LoadState', 'FragmentPath', 'DropInPaths', 'Type',
               'UMask', 'TimeoutStartUSec', 'Restart', 'EnvironmentFiles', 'ExecStart', 'InvocationID', 'ActiveState')
 
 
+def manager_properties(c, name):
+    need(UNIT.fullmatch(name))
+    value = properties(c.run(['systemctl', 'show', name, '--all', *['--property=' + key for key in PROPERTIES]]))
+    if 'EnvironmentFiles' not in value:
+        # systemd255's special array formatter omits this empty array even with
+        # --all. Prove its typed D-Bus value; missing never means empty by itself.
+        service = 'org.freedesktop.systemd1'
+        expected = '/org/freedesktop/systemd1/unit/' + ''.join(char if char.isascii() and char.isalnum() else '_' + format(ord(char), '02x') for char in name)
+        object_reply = parse(c.run(['busctl', '--json=short', 'call', service, '/org/freedesktop/systemd1', service + '.Manager', 'GetUnit', 's', name]))
+        need(object_reply == {'type': 'o', 'data': [expected]})
+        reply = parse(c.run(['busctl', '--json=short', 'get-property', service, expected, service + '.Service', 'EnvironmentFiles']))
+        need(reply == {'type': 'a(sb)', 'data': []})
+        value['EnvironmentFiles'] = ''
+    return value
+
+
 def validate_effective(value, args, invocation):
     need(set(value) == set(PROPERTIES))
     need(value['Id'] == args.unit and value['Names'] == args.unit and value['LoadState'] == 'loaded')
@@ -214,8 +230,7 @@ def validate_state(c, state, unit, now):
 def dispatch(args, c, p, invocation, now):
     need(UNIT.fullmatch(args.unit))
     need(os.getppid() == 1 and Path('/proc/1/comm').read_text().strip() == 'systemd')
-    text = c.run(['systemctl', 'show', args.unit, '--all', *['--property=' + name for name in PROPERTIES]])
-    validate_effective(properties(text), args, invocation)
+    validate_effective(manager_properties(c, args.unit), args, invocation)
     print(json.dumps({'event': 'E4-lease-manager-source-verified', 'unit': args.unit,
         'sourceVerifiedBeforeImports': True}), flush=True)
     path = metadata(c.CONFIG / 'preview-transition.json', 0o600)

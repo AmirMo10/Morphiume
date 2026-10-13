@@ -209,6 +209,25 @@ def properties(text):
     return result
 
 
+def read_manager_properties(c, name):
+    need(name in (unit('health'), unit('backup')))
+    value = properties(c.run(['systemctl', 'show', name, '--all', *['--property=' + key for key in PROPERTIES]]))
+    if 'EnvironmentFiles' not in value:
+        # systemd255's special a(sb) formatter omits empty EnvironmentFiles
+        # even with --all. Prove typed emptiness; never infer it from absence.
+        need(set(value) == set(PROPERTIES) - {'EnvironmentFiles'})
+        object_path = '/org/freedesktop/systemd1/unit/' + name.replace('-', '_2d').replace('.', '_2e')
+        found = parse(c.run(['busctl', '--json=short', 'call', 'org.freedesktop.systemd1',
+            '/org/freedesktop/systemd1', 'org.freedesktop.systemd1.Manager', 'GetUnit', 's', name]))
+        need(type(found) is dict and set(found) == {'type', 'data'} and found['type'] == 'o' and found['data'] == [object_path])
+        empty = parse(c.run(['busctl', '--json=short', 'get-property', 'org.freedesktop.systemd1',
+            object_path, 'org.freedesktop.systemd1.Service', 'EnvironmentFiles']))
+        need(type(empty) is dict and set(empty) == {'type', 'data'} and empty['type'] == 'a(sb)' and empty['data'] == [])
+        value['EnvironmentFiles'] = ''
+    need(set(value) == set(PROPERTIES))
+    return value
+
+
 def validate_effective(value, args, invocation, stop_seconds):
     need(set(value) == set(PROPERTIES))
     name = unit(args.action)
@@ -400,12 +419,12 @@ def safe_result(action, value, args):
 def dispatch(args, c, scheduled, invocation):
     need(args.unit == unit(args.action) and os.getppid() == 1 and Path('/proc/1/comm').read_text().strip() == 'systemd')
     approval, before = guarded_records(args, c)
-    values = c.run(['systemctl', 'show', args.unit, '--all', *['--property=' + name for name in PROPERTIES]])
-    validate_effective(properties(values), args, invocation, approval['backupTimeoutStopSeconds'])
+    values = read_manager_properties(c, args.unit)
+    validate_effective(values, args, invocation, approval['backupTimeoutStopSeconds'])
     peer = argparse.Namespace(**vars(args)); peer.action = 'backup' if args.action == 'health' else 'health'
     peer.unit = unit(peer.action)
-    values = c.run(['systemctl', 'show', peer.unit, '--all', *['--property=' + name for name in PROPERTIES]])
-    validate_peer_effective(properties(values), peer, approval['backupTimeoutStopSeconds'])
+    values = read_manager_properties(c, peer.unit)
+    validate_peer_effective(values, peer, approval['backupTimeoutStopSeconds'])
     for name in ('morphiume-runtime-health.timer', 'morphiume-runtime-backup.timer'):
         text = c.run(['systemctl', 'show', name, '--all', *['--property=' + key for key in TIMER_PROPERTIES]])
         timer = properties(text); need(timer.get('Id') == name); validate_timer_state(timer, approval['scope'])

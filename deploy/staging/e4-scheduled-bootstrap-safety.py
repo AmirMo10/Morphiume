@@ -365,6 +365,34 @@ class PureChecks(unittest.TestCase):
         with self.assertRaises(ValueError):m.validate_effective(value,args(),INVOCATION,90)
         self.assertEqual(self.dispatch_fake()['actionCount'],1)
 
+    def test_missing_environmentfiles_requires_typed_empty_canonical_bus_reply(self):
+        a=args();v=effective(a);v.pop('EnvironmentFiles');c=Mock()
+        path='/org/freedesktop/systemd1/unit/morphiume_2druntime_2dhealth_2eservice'
+        c.run.side_effect=[text(v),json.dumps({'type':'o','data':[path]}),json.dumps({'type':'a(sb)','data':[]})]
+        self.assertEqual(m.read_manager_properties(c,a.unit),effective(a))
+        self.assertEqual(c.run.call_args_list[0].args[0][3],'--all')
+        self.assertEqual(c.run.call_args_list[1].args[0][-2:],['s',a.unit])
+        self.assertEqual(c.run.call_args_list[2].args[0][-3:],[path,'org.freedesktop.systemd1.Service','EnvironmentFiles'])
+
+    def test_environmentfiles_bus_nonempty_wrong_type_object_extra_duplicate_rejected(self):
+        a=args();v=effective(a);v.pop('EnvironmentFiles');path='/org/freedesktop/systemd1/unit/morphiume_2druntime_2dhealth_2eservice'
+        good={'type':'o','data':[path]};empty={'type':'a(sb)','data':[]}
+        cases=[(good,{'type':'a(sb)','data':[['/known/file',False]]}), (good,{'type':'as','data':[]}),
+            ({'type':'o','data':['/wrong']},empty),({'type':'o','data':[path],'extra':True},empty),
+            (good,{'type':'a(sb)','data':[],'extra':True})]
+        for found,reply in cases:
+            c=Mock();c.run.side_effect=[text(v),json.dumps(found),json.dumps(reply)]
+            with self.subTest(found=found,reply=reply),self.assertRaises(ValueError):m.read_manager_properties(c,a.unit)
+        c=Mock();c.run.side_effect=[text(v),' {"type":"o","type":"o","data":[]}']
+        with self.assertRaises(ValueError):m.read_manager_properties(c,a.unit)
+
+    def test_other_missing_property_cannot_receive_empty_fallback(self):
+        v=effective();v.pop('EnvironmentFiles');v.pop('MemoryMax');c=Mock();c.run.return_value=text(v)
+        with self.assertRaises(ValueError):m.read_manager_properties(c,args().unit)
+        self.assertEqual(c.run.call_count,1)
+        c=Mock();c.run.return_value=text(effective());self.assertEqual(m.read_manager_properties(c,args().unit),effective())
+        self.assertEqual(c.run.call_count,1)
+
     def test_action_failure_preserved_no_retry(self):
         self.dispatch_fake(subprocess.SubprocessError('private-error'))
 

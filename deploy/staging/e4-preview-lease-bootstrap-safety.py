@@ -59,6 +59,26 @@ class C:
 
 
 class Safety(unittest.TestCase):
+    def test_missing_empty_array_requires_exact_typed_manager_proof(self):
+        values = effective(args()); values.pop('EnvironmentFiles')
+        output = '\n'.join(key + '=' + value for key, value in values.items())
+        path = '/org/freedesktop/systemd1/unit/morphiume_2druntime_2dpreview_2d012345abcdef_2eservice'
+        replies = [output, json.dumps({'type': 'o', 'data': [path]}), json.dumps({'type': 'a(sb)', 'data': []})]
+        with patch.object(C, 'run', side_effect=replies) as run:
+            observed = m.manager_properties(C(), UNIT)
+            m.validate_effective(observed, args(), INVOCATION)
+            self.assertEqual(run.call_count, 3)
+
+    def test_missing_array_cannot_hide_nonempty_or_wrong_manager_object(self):
+        values = effective(args()); values.pop('EnvironmentFiles')
+        output = '\n'.join(key + '=' + value for key, value in values.items())
+        path = '/org/freedesktop/systemd1/unit/morphiume_2druntime_2dpreview_2d012345abcdef_2eservice'
+        for obj, reply in [({'type': 'o', 'data': ['/another']}, {'type': 'a(sb)', 'data': []}),
+                           ({'type': 'o', 'data': [path]}, {'type': 'a(sb)', 'data': [['/etc/unknown', True]]}),
+                           ({'type': 'o', 'data': [path]}, {'type': 'as', 'data': []})]:
+            with patch.object(C, 'run', side_effect=[output, json.dumps(obj), json.dumps(reply)]), self.assertRaises(ValueError):
+                m.manager_properties(C(), UNIT)
+
     def test_default_plan_has_no_import_or_commands(self):
         with patch.object(m, 'verified_sources', side_effect=AssertionError('must not import')):
             self.assertFalse(m.main(args())['serverMutation'])
