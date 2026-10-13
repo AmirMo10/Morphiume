@@ -1,0 +1,189 @@
+{
+  "formatVersion": 1,
+  "mode": "e4-schedules-executed",
+  "finalObservationUtc": "2026-10-13T11:51:40.949152+00:00",
+  "serverWindowReleased": true,
+  "identity": {
+    "sourceCommit": "e4bed691dc938a9c0f79022696d24f063ad97724",
+    "opsSha256": "68bc527a9c34ccefef72bb4427288da47c75c3a584e7cb140ecfc3c3fbdad6a3",
+    "bootstrapSha256": "2aba55c27ce52b6dfacd6dc02c0bb8f47f2bd7f6f75c697ee7d1605c7153a1ce",
+    "bootstrapSourceCommit": "5d7ff8ab62fa59fc1ecc88457227c8b82d0cdc14",
+    "accessProfile": {
+      "algorithm": "sha256",
+      "digest": "a6988f3f27309c198e378e307ca856643686ae1c3fb49617bed9a770634e50ed"
+    }
+  },
+  "initialInstall": {
+    "operationId": "0de00b3d-94a0-4b64-a0f9-7ccc55033025",
+    "accepted": false,
+    "failureStage": "syntax-reload-post-install-metadata",
+    "failureReason": "inactive-unit-GC-between-CLI-connections",
+    "directServiceStarts": 0,
+    "timersEnabled": false,
+    "failedHistoryPreserved": true
+  },
+  "boundedReconciliation": {
+    "operationId": "bdf0c900-1eda-4a78-8849-6c7954694d9a",
+    "completed": true,
+    "oldFailurePreserved": true,
+    "directServiceStarts": 0,
+    "timersEnabled": false
+  },
+  "oneTimeMeasurements": {
+    "health": {
+      "accepted": true,
+      "measurementId": "b3bff492-cf90-46fc-a6d8-cf868e572731",
+      "systemctlStartCount": 1,
+      "startedAtUtc": "2026-10-13T11:42:53.351909+00:00",
+      "completedAtUtc": "2026-10-13T11:43:38.650475+00:00",
+      "waitingClientWallSeconds": 31.163001206994522,
+      "unitCycleSeconds": 30.915804,
+      "executionSeconds": null,
+      "timingSource": "unit-lifecycle-journal",
+      "cgroupSampleCount": 117,
+      "observedCgroupPeakMemoryBytes": 45883392,
+      "observedCgroupCpuSeconds": 28.746306,
+      "oomCount": 0,
+      "oomKillCount": 0,
+      "postImageProofPassed": true,
+      "whitelistedMetadataBeforeAfterEqual": true,
+      "originalTableEqualityMeasured": false,
+      "privateEvidence": {
+        "algorithm": "sha256",
+        "digest": "a0bc2fb57324c81535233b61f6c0e6ea8f82ab9e1c0d79911a21bdbe95d98cc7"
+      },
+      "healthStatus": "healthy",
+      "alertCount": 0,
+      "appReadiness": 200
+    },
+    "backup": {
+      "accepted": true,
+      "measurementId": "50b66e7c-44b2-4c8a-bfe4-57a4f3313ba3",
+      "systemctlStartCount": 1,
+      "startedAtUtc": "2026-10-13T11:44:16.939493+00:00",
+      "completedAtUtc": "2026-10-13T11:47:04.057853+00:00",
+      "waitingClientWallSeconds": 152.9837505179894,
+      "unitCycleSeconds": 152.779184,
+      "executionSeconds": null,
+      "timingSource": "unit-lifecycle-journal",
+      "cgroupSampleCount": 573,
+      "observedCgroupPeakMemoryBytes": 46436352,
+      "observedCgroupCpuSeconds": 72.941237,
+      "oomCount": 0,
+      "oomKillCount": 0,
+      "postImageProofPassed": true,
+      "whitelistedMetadataBeforeAfterEqual": true,
+      "originalTableEqualityMeasured": false,
+      "privateEvidence": {
+        "algorithm": "sha256",
+        "digest": "c4e6054f0dccd13260c83585e477e89a7ea893d86d347bfc67316f28c7eb573a"
+      },
+      "runtimeWritersResumed": true
+    }
+  },
+  "encryptedBackup": {
+    "directory": "/srv/morphiume/staging/runtime/backups/20261013T114642Z-e939c8f3",
+    "manifest": {
+      "algorithm": "sha256",
+      "digest": "7259612e004d1e9fffc1522c16286dc44f0abd660d65210f542e69fa206d881a"
+    },
+    "migrationCount": 13,
+    "ciphertext": {
+      "database.dump.age": {
+        "bytes": 915035,
+        "sha256": "10f4755f3a22666aba5cc513054484d04fc1b36b57d495f3cd60bdc6f9bccff7"
+      },
+      "media.tar.gz.age": {
+        "bytes": 1248,
+        "sha256": "638d5f4a26f866b9fa1f305e67ae98923b2d758e643e7acd2ac555e732e04db9"
+      }
+    },
+    "ciphertextHashesMatched": true,
+    "restoreAcceptance": "pending",
+    "offsiteEstablished": false,
+    "pitrEstablished": false
+  },
+  "recurringPromotion": {
+    "operationId": "a31bad3f-ad22-4b7d-a809-499a8e67617b",
+    "completed": true,
+    "serviceMeasurementEvidenceBound": true
+  },
+  "timerEnablement": {
+    "operationId": "f8084acb-6df9-4f47-9570-11460ba5ebaa",
+    "completed": true,
+    "additionalDirectServiceStarts": 0,
+    "automaticUnitCompletionClaimed": false
+  },
+  "enableTimeObservation": {
+    "timers": {
+      "health": {
+        "activeState": "active",
+        "unitFileState": "enabled",
+        "monotonic": [
+          "{ OnUnitActiveUSec=5min ; next_elapse=1d 3h 12min 42.440241s }",
+          "{ OnBootUSec=5min ; next_elapse=5min }"
+        ],
+        "calendar": [],
+        "randomizedDelay": "5s",
+        "persistent": "no",
+        "timestamps": {
+          "NextElapseUSecRealtime": "",
+          "NextElapseUSecMonotonic": "1d 3h 12min 45.863136s",
+          "LastTriggerUSec": "Tue 2026-10-13 11:49:36 UTC"
+        }
+      },
+      "backup": {
+        "activeState": "active",
+        "unitFileState": "enabled",
+        "monotonic": [],
+        "calendar": [
+          "{ OnCalendar=*-*-* 03:00:00 UTC ; next_elapse=Wed 2026-10-14 03:00:00 UTC }"
+        ],
+        "randomizedDelay": "15min",
+        "persistent": "yes",
+        "timestamps": {
+          "NextElapseUSecRealtime": "Wed 2026-10-14 03:04:29 UTC",
+          "NextElapseUSecMonotonic": "0",
+          "LastTriggerUSec": ""
+        }
+      }
+    },
+    "services": {
+      "health": {
+        "activeState": "inactive",
+        "effectiveGuardPassed": true,
+        "cpuQuotaPerSecond": "1s",
+        "memoryMaxBytes": 268435456,
+        "timeoutStart": "50s",
+        "timeoutStop": "5s"
+      },
+      "backup": {
+        "activeState": "inactive",
+        "effectiveGuardPassed": true,
+        "cpuQuotaPerSecond": "500ms",
+        "memoryMaxBytes": 536870912,
+        "timeoutStart": "20min",
+        "timeoutStop": "1min 30s"
+      }
+    },
+    "appReadiness": 200,
+    "runtimeContainersHealthy": true,
+    "runtimeImmutableImageUidReadonlyCapsPassed": true,
+    "all21OpsHashesPassed": true,
+    "reservedMountGuardPassed": true,
+    "lockFilesystem": "ext4",
+    "privateCapture": {
+      "algorithm": "sha256",
+      "digest": "17ea1321311ba1a07e4b3da825300b5b7e1b3c3985e38e90016b5d0fb640b7a6"
+    }
+  },
+  "scope": {
+    "runtimeDatabase": "morphiume_staging_runtime",
+    "originalDatabaseTableEqualityMeasured": false,
+    "schemaMutationExecuted": false,
+    "liveProvidersActivated": false,
+    "capacityClaimed": false,
+    "externalAlertDeliveryTested": false,
+    "temporaryLaterTimerSuspensionBelongsToCoordinator": true
+  }
+}
