@@ -215,6 +215,7 @@ class Safety(unittest.TestCase):
                     with self.assertRaises(FileExistsError):m.dispatch(a,c,p,INVOCATION,m.timestamp('2026-10-13T10:20:02Z'))
         self.assertEqual(len(calls),0 if drift else 1)
         self.assertTrue(all(command[:2]==['systemctl','show'] for command in c.calls))
+        self.assertTrue(all('--all' in command for command in c.calls))
         if fail or withdrawal_failure:
             self.assertTrue(any(path.endswith('-failed.json') for path in c.files))
         if withdrawal_failure:

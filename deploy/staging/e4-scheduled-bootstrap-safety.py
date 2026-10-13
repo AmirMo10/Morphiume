@@ -332,7 +332,10 @@ class PureChecks(unittest.TestCase):
         a=args();a.execute=True;c=Mock();s=Mock();s.main.return_value=healthy()
         if failure:s.main.side_effect=failure
         def run(command):
-            if command[2]==a.unit:return text(effective(a))
+            if command[2]==a.unit:
+                v=effective(a)
+                if '--all' not in command:v.pop('EnvironmentFiles')
+                return text(v)
             if command[2].endswith('.timer'):return text(timer(command[2]))
             peer=copy.copy(a);peer.action='backup';peer.unit=m.unit('backup')
             return text(effective(peer)|{'ActiveState':'inactive','InvocationID':''})
@@ -347,10 +350,19 @@ class PureChecks(unittest.TestCase):
                 result=None
             else:result=m.dispatch(a,c,s,INVOCATION)
         s.main.assert_called_once_with('health',apply=True)
-        for command in c.run.call_args_list:self.assertIn(command.args[0][0],('systemctl','findmnt'))
+        for command in c.run.call_args_list:
+            self.assertIn(command.args[0][0],('systemctl','findmnt'))
+            if command.args[0][0]=='systemctl':self.assertEqual(command.args[0][3],'--all')
         return result
 
     def test_dispatch_one_action_and_only_readonly_manager_metadata(self):
+        self.assertEqual(self.dispatch_fake()['actionCount'],1)
+
+    def test_empty_environmentfiles_requires_all_query_and_exact_field_presence(self):
+        value=effective();self.assertEqual(value['EnvironmentFiles'],'')
+        m.validate_effective(value,args(),INVOCATION,90)
+        value.pop('EnvironmentFiles')
+        with self.assertRaises(ValueError):m.validate_effective(value,args(),INVOCATION,90)
         self.assertEqual(self.dispatch_fake()['actionCount'],1)
 
     def test_action_failure_preserved_no_retry(self):

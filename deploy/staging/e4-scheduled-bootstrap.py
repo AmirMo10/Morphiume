@@ -400,14 +400,14 @@ def safe_result(action, value, args):
 def dispatch(args, c, scheduled, invocation):
     need(args.unit == unit(args.action) and os.getppid() == 1 and Path('/proc/1/comm').read_text().strip() == 'systemd')
     approval, before = guarded_records(args, c)
-    values = c.run(['systemctl', 'show', args.unit, *['--property=' + name for name in PROPERTIES]])
+    values = c.run(['systemctl', 'show', args.unit, '--all', *['--property=' + name for name in PROPERTIES]])
     validate_effective(properties(values), args, invocation, approval['backupTimeoutStopSeconds'])
     peer = argparse.Namespace(**vars(args)); peer.action = 'backup' if args.action == 'health' else 'health'
     peer.unit = unit(peer.action)
-    values = c.run(['systemctl', 'show', peer.unit, *['--property=' + name for name in PROPERTIES]])
+    values = c.run(['systemctl', 'show', peer.unit, '--all', *['--property=' + name for name in PROPERTIES]])
     validate_peer_effective(properties(values), peer, approval['backupTimeoutStopSeconds'])
     for name in ('morphiume-runtime-health.timer', 'morphiume-runtime-backup.timer'):
-        text = c.run(['systemctl', 'show', name, *['--property=' + key for key in TIMER_PROPERTIES]])
+        text = c.run(['systemctl', 'show', name, '--all', *['--property=' + key for key in TIMER_PROPERTIES]])
         timer = properties(text); need(timer.get('Id') == name); validate_timer_state(timer, approval['scope'])
     need(c.run(['findmnt', '--target', str(CONFIG), '--noheadings', '--output', 'FSTYPE']).strip() == approval['dispatchLock']['filesystem'])
     with dispatch_lock(approval) as acquired:

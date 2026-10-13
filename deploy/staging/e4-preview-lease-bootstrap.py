@@ -214,7 +214,7 @@ def validate_state(c, state, unit, now):
 def dispatch(args, c, p, invocation, now):
     need(UNIT.fullmatch(args.unit))
     need(os.getppid() == 1 and Path('/proc/1/comm').read_text().strip() == 'systemd')
-    text = c.run(['systemctl', 'show', args.unit, *['--property=' + name for name in PROPERTIES]])
+    text = c.run(['systemctl', 'show', args.unit, '--all', *['--property=' + name for name in PROPERTIES]])
     validate_effective(properties(text), args, invocation)
     print(json.dumps({'event': 'E4-lease-manager-source-verified', 'unit': args.unit,
         'sourceVerifiedBeforeImports': True}), flush=True)
