@@ -41,6 +41,7 @@ jobs:
           python3 -B deploy/staging/e4-preview-lease-bootstrap-safety.py
           python3 -B deploy/staging/e4-preview-perimeter-safety.py
           python3 -B deploy/staging/e4-scheduled-bootstrap-safety.py
+          python3 -B tests/ops/redesign-guards.py
           python3 deploy/staging/extract-ci-artifact-safety.py
           python3 deploy/staging/recover-pre-service-restore-safety.py
           python3 tests/ops/restore-business-remote.test.py

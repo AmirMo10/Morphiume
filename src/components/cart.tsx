@@ -5,6 +5,7 @@ import type { CartDto } from "@/contracts/commerce";
 import { api, ApiError, Empty, errorMessage, faNumber, Loading, money, Notice, useCommerce } from "./commerce-client";
 import { useStorePresentation } from "./presentation-context";
 import { useCustomerSession } from "./customer-session";
+import { PurchaseProgress } from "./storefront-purchase-progress";
 
 export function CartItems({ cart, editable = false, onChange, onConflict }: { cart: CartDto; editable?: boolean; onChange?: () => void; onConflict?: () => void }) {
   const [busy, setBusy] = useState("");
@@ -15,7 +16,7 @@ export function CartItems({ cart, editable = false, onChange, onConflict }: { ca
 }
 export function CartPageContent() {
   const identity = useCustomerSession();
-  return <CartPageForActor key={identity.scopeKey} />;
+  return <><PurchaseProgress current="cart" /><CartPageForActor key={identity.scopeKey} /></>;
 }
 function CartPageForActor() {
   const presentation = useStorePresentation();

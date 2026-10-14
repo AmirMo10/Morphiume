@@ -2,6 +2,8 @@
 
 Decision date: 2026-10-12. This is an implementation contract for the single-brand, Persian fragrance store. Brand spelling is **Morphiume**. The official Persian spelling, brand story, product facts and service promises remain owner inputs.
 
+2026-10-14 implementation extension: [redesign direction and editable boards](MORPHIUME_REDESIGN.md), [actual Figma state](FIGMA_REDESIGN.md). Public layout is scoped to `.storefront-root`; management has its own scoped stylesheet. Public product cards use one column below 360px, two on phones from 360px, and a narrower grid beside the desktop filter sidebar. The full wordmark remains at least 160px; at 320px the menu moves into the compact navigation row while search/cart remain in the masthead. Hover styling is capability-gated; controls use 16px input text, visible focus and reduced-motion rules. Native modal search/filter dialogs supply background inertness, Escape and focus restoration. Final execution evidence belongs in `docs/qa/REDESIGN_EXECUTION.md`.
+
 ## Direction
 
 Quiet editorial commerce: a warm canvas, precise charcoal typography, wine actions, generous image space and visible purchase facts. Use real product photography when supplied. Use the brand's custom vector wordmark; do not use another fragrance house's assets or layout. A product tile is an image, title, scent family, selected volume and server price, separated by space rather than a decorative rounded card.

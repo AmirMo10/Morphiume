@@ -2,6 +2,8 @@
 
 Design decision: 2026-10-12. Routes below are names for the coordinator to map into the application. Availability follows real backend capabilities.
 
+2026-10-14 redesign: header search opens a native modal with a distinct accessible name; catalog submission preserves existing filters. Desktop filters live beside results; on phones the native drawer's primary result action submits the actual search/price form and keeps invalid values/errors visible. Selected filters can be removed individually. Product galleries add previous/next controls; guest/authenticated favorites share the existing actor rules, with one scoped authenticated reader across cards. The admin workspace groups permitted destinations, shows real server counts/status queues, separates payment from shipping, and links drafts to a preliminary publication checklist. The server still determines publication, money, inventory and payment outcomes.
+
 ## Information architecture
 
 | Area | Persian label | Destinations and behavior |

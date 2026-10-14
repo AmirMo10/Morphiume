@@ -1,0 +1,39 @@
+{
+  "generatedAt": "2026-10-14T10:08:23.280391+00:00",
+  "scope": "isolated-local-redesign-qa",
+  "initialBrowserRun": {
+    "expected": 69,
+    "unexpected": 15,
+    "flaky": 0,
+    "skipped": 0,
+    "duration": 1221323.835
+  },
+  "correctedStandaloneBrowserRun": {
+    "expected": 18,
+    "unexpected": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "duration": 209842.353
+  },
+  "correctedCasesPerEngine": {
+    "chromium": 6,
+    "firefox": 6,
+    "webkit": 6
+  },
+  "testRetries": 0,
+  "unitTests": {
+    "passed": 641,
+    "files": 32,
+    "databaseBacked886Claimed": false
+  },
+  "offlineDeploymentGuards": {
+    "passed": 37
+  },
+  "finalFullBuild": {
+    "completed": true,
+    "durationSeconds": 24.34,
+    "standaloneReadyHttpStatus": 200
+  },
+  "serverRedesignDeployed": false,
+  "figmaScreenFramesCompleted": false
+}
