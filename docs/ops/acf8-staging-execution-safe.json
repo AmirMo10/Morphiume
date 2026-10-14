@@ -1,0 +1,375 @@
+{
+  "schemaVersion": 1,
+  "mode": "actual-acf8-staging-deployment-and-recovery-accepted",
+  "observedUtc": "2026-10-14T07:53:23.596075+00:00",
+  "identity": {
+    "accessProfileSha256": "22d97cc5fa1f80a11fd87f5db0ac4316765651f0aafb2ed79e516a773396916f",
+    "archiveSha256": "202151aeab7cc6e8e55a1b95d52f411119135c70eceba034d4039d0e79d28606",
+    "candidateManifestDigest": "sha256:54dd109de5f64912d376693114031a91dd9c6f4934d93bca05d7193d4b546308",
+    "engineProofSha256": "6a19a424730c629febab18ebaffafbb5722e6cc0b23ac1d8c279fae09949f239",
+    "opsSha256": "68bc527a9c34ccefef72bb4427288da47c75c3a584e7cb140ecfc3c3fbdad6a3",
+    "runtimeImageId": "sha256:5bf00e2bc40523dd9eaf85d7ef50eecc320bd2c40baf6d10cc38e65e66e2b482",
+    "sourceCommit": "acf8e96ee348c487df0fcefe89d568f2bf93367a",
+    "testedPlatformConfig": "sha256:15e209e3dd9057c3a391a07488437fb44af52b9d552322649b719c2a3c8a157f"
+  },
+  "acceptedImageCi": {
+    "runId": 38412817440,
+    "attempt": 1,
+    "conclusion": "success",
+    "source": "acf8e96ee348c487df0fcefe89d568f2bf93367a",
+    "vitest": 886,
+    "sourceBrowserCases": 78,
+    "imageBrowserCases": 78,
+    "artifactId": 11826455952,
+    "artifactZipSha256": "a9732ad7d8ed17a7c55edeea8db699c5cfb3614b25d9cf327865f345cb1f8bf8"
+  },
+  "publishedOpsSourceCommit": "c7b1f0ee210fb0a6a6eeb57462bf2ad6c5c51022",
+  "publishedOpsCi": {
+    "runId": 38525159078,
+    "verify": "success",
+    "image": "success",
+    "newImageDeployed": false
+  },
+  "cutover": {
+    "completedUtc": "2026-10-14T06:34:40.271836+00:00",
+    "seconds": 51.5637314869964,
+    "seedInvoked": false,
+    "migrations": 13,
+    "tables": 53,
+    "stoppedWriterRowsMatched": true,
+    "privateConfigurationsPreserved": true,
+    "source": "acf8e96ee348c487df0fcefe89d568f2bf93367a",
+    "previousSource": "e4bed691dc938a9c0f79022696d24f063ad97724"
+  },
+  "nativeT25": {
+    "engines": 3,
+    "caseCount": 3,
+    "checksPerCase": 20,
+    "suiteRetry": 0,
+    "unexpected": 0,
+    "skipped": 0,
+    "flaky": 0,
+    "finalAuditUtc": "2026-10-14T07:00:07.972Z",
+    "createdOrders": 3,
+    "primaryReceipts": 3,
+    "shipments": 3,
+    "singleStockCommits": 3,
+    "onHandPerFixture": 2,
+    "reservedPerFixture": 0,
+    "fixtureUsers": 9,
+    "disabledFixtureUsers": 8,
+    "remainingDisabledFixtureSessions": 0,
+    "retainedBuyers": 1,
+    "preexistingAuthenticationRowEqualityMeasured": false,
+    "report": "../qa/ACF8_STAGING_T25_EXECUTION.md"
+  },
+  "appLog": {
+    "mode": "acf8-staging-complete-app-log-gate",
+    "sourceCommit": "acf8e96ee348c487df0fcefe89d568f2bf93367a",
+    "capturedUtc": "2026-10-14T07:08:56.300Z",
+    "captureBytes": 99413,
+    "rawLogSha256": "e56f63e491529f3e7b1f5fe7676a4585a370308cba30398a7c8a18b84f8999b6",
+    "scope": "current acf8 container complete lifetime through post T25 audit; stdout and stderr",
+    "evidence": {
+      "schemaVersion": 1,
+      "source": "image-runtime",
+      "state": "collected",
+      "linesScanned": 464,
+      "eventCount": 0,
+      "byteLimitReached": false,
+      "lineLimitReached": false,
+      "eventLimitReached": false,
+      "events": []
+    },
+    "wrapperStatusCounts": {
+      "200": 375,
+      "201": 12,
+      "303": 3,
+      "400": 21,
+      "401": 6,
+      "403": 9,
+      "404": 3
+    },
+    "accepted": true
+  },
+  "postT25Backup": {
+    "mode": "encrypted-backup-completed",
+    "directory": "/srv/morphiume/staging/runtime/backups/20261014T071225Z-99f0848d",
+    "offsiteEstablished": false,
+    "restoreAcceptance": "pending",
+    "backupManifestSha256": "152e6fc7c2b70335abe79f06a3be87c6a001f473f445ddb7b1a8b931b6e4518d",
+    "ciphertextSha256": {
+      "database.dump.age": "91a827cf5bd741692a21eee10cacaa6ea86f2739c2052a1d117b2f0f9c50098e",
+      "media.tar.gz.age": "0641a3adf157642d6df406373cbb18a535a143a6d0cc80aa82ef2e6313bb53ef"
+    },
+    "backupStartUtc": "2026-10-14T07:12:25.645927+00:00",
+    "backupCompleteUtc": "2026-10-14T07:12:26.114009+00:00",
+    "runtimeWritersStopped": true,
+    "gracefulExitCodes": {
+      "worker": 0,
+      "app": 143
+    },
+    "sourceCommit": "acf8e96ee348c487df0fcefe89d568f2bf93367a",
+    "elapsedSeconds": 24.46359626899357,
+    "completedUtc": "2026-10-14T07:12:26.118747+00:00"
+  },
+  "restore": {
+    "mode": "restored-ready-business-acceptance-pending",
+    "project": "morphiume-runtime-restore-20261014t071244z-30668c",
+    "root": "/srv/morphiume/staging/runtime/restore/morphiume-runtime-restore-20261014t071244z-30668c",
+    "browserOrigin": "http://localhost:3101",
+    "workerStarted": false,
+    "oldPairsPreserved": true,
+    "businessAcceptance": "pending",
+    "readySha256": "984b1c81895f1bd9e4b7772c8a19f20f1c3b2d73151943e14fa6c095bc34d1da",
+    "startSha256": "a3b5207e12f2540d2f4033e009f7f3ee31511ab670f11fd8e23149e4192038c6",
+    "journalSha256": "eb054c50aa98146c1244bc19c5ea55db849877239e60cc108da39b04d91cf49b",
+    "restoreConfigSha256": "599ed68ce3cdfbe23ee4b9698cb3d7ef34aa32a53a497392c36c858dad252b09",
+    "recoveryStartUtc": "2026-10-14T07:14:14.092649+00:00",
+    "applicationReadyUtc": "2026-10-14T07:14:57.001272+00:00",
+    "elapsedSeconds": 84.58681362800417,
+    "completedUtc": "2026-10-14T07:14:57.053317+00:00",
+    "acceptance": {
+      "mode": "actual-acf8-recovery-accepted-and-runtime-resumed",
+      "acceptedUtc": "2026-10-14T07:32:42.104Z",
+      "resumedHealthyUtc": "2026-10-14T07:34:01.115505+00:00",
+      "acceptanceSha256": "2e0594478f8696de786ef3892f6aefbd86e88349a6ab5afec86d4fba86be370e",
+      "checks": 6,
+      "galleryUiPassed": true,
+      "oldPairsPreserved": true,
+      "restorePairStopped": true,
+      "runtimeAppWorkerHealthy": true,
+      "observedRtoSeconds": 1108.012,
+      "nativeSuiteFromRestoreStartSeconds": 591.307,
+      "observedRecoveryPointGapSeconds": 1032.877,
+      "rpoEstablished": false,
+      "cleanup": {
+        "mode": "accepted-restore-temporary-identity-removed",
+        "identityRemoved": true,
+        "persistentIdentityChanged": false,
+        "restoreDataRemoved": false
+      },
+      "rootAcceptanceFromRestoreStartSeconds": 1108.012,
+      "originalSafeSummarySha256": "8a644d9fc1f313459227b95421259ac72886825f727c5601b42e06eb6f45b63b",
+      "summaryCorrection": "Original private summary mislabeled full Root-acceptance RTO as native-suite time. Native completion 07:24:05.399Z is 591.307s from recorded restore start; Root acceptance is 1108.012s. Original summary preserved; no operation repeated."
+    },
+    "business": {
+      "actualNativeProcessExit": 0,
+      "outerWrapperExit": 1,
+      "outerWrapperFailureAfterSuccess": "bash CRLF exit argument; no native rerun",
+      "checks": 6,
+      "durationMs": 27091.391154,
+      "nativeStatuses": [
+        {
+          "stage": "customer-otp-send",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "waitMs": 0
+        },
+        {
+          "stage": "customer-otp-verify",
+          "attempt": 1,
+          "status": 200,
+          "retryAfterSeconds": null,
+          "waitMs": 0
+        }
+      ],
+      "suiteRetry": 0,
+      "gallery": {
+        "name": "restored-gallery-ui",
+        "passed": true,
+        "retry": false,
+        "engine": "chromium",
+        "browserVersion": "156.0.8078.4",
+        "naturalWidth": 16,
+        "naturalHeight": 20,
+        "mediaSha256": "cd31ae6c29457636095b60d99d8d9b8184c08bc0b3bae22ef87d71480b8a2705",
+        "galleryPosition": 0,
+        "galleryCount": 1,
+        "variantId": null,
+        "advisoryTelemetryPostRequests": 0,
+        "advisoryTelemetryAcceptanceProved": false
+      },
+      "resultSha256": "10d9a32a07f4f229fbafe1db4658a99a24154758ac692e23ea617a27d3ce629f"
+    }
+  },
+  "schedules": {
+    "health": {
+      "mode": "acf8-scheduled-service-measurement",
+      "action": "health",
+      "accepted": true,
+      "measurementId": "76f513e9-d579-4344-b3fa-d7d7744c28b8",
+      "systemctlStartCount": 1,
+      "wallSeconds": 26.110020313994028,
+      "unitCycleSeconds": 25.888878,
+      "executionSeconds": null,
+      "timingSource": "unit-lifecycle-journal",
+      "sampleCount": 97,
+      "privateEvidenceSha256": "e5f781dd5920a20178b6364ba538258486d1f1b5ae185d222ec9d0e03520aedc",
+      "privateEvidencePath": "/srv/morphiume/staging/runtime/metrics/acf8-schedule-measure-76f513e9-d579-4344-b3fa-d7d7744c28b8/private-evidence.json",
+      "timersStarted": false,
+      "originalTableEqualityMeasured": false
+    },
+    "backup": {
+      "mode": "acf8-scheduled-service-measurement",
+      "action": "backup",
+      "accepted": true,
+      "measurementId": "604f3c0a-abff-4bfc-846d-f390262e70d2",
+      "systemctlStartCount": 1,
+      "wallSeconds": 127.28734491500654,
+      "unitCycleSeconds": 127.062066,
+      "executionSeconds": null,
+      "timingSource": "unit-lifecycle-journal",
+      "sampleCount": 477,
+      "privateEvidenceSha256": "92564fff5241d437c8acdf58e029bfb56a30ac4b75af4facf3ef9b16151025dc",
+      "privateEvidencePath": "/srv/morphiume/staging/runtime/metrics/acf8-schedule-measure-604f3c0a-abff-4bfc-846d-f390262e70d2/private-evidence.json",
+      "timersStarted": false,
+      "originalTableEqualityMeasured": false
+    },
+    "enable": {
+      "mode": "acf8-prior-enabled-timers-resumed",
+      "completed": true,
+      "timersStarted": true,
+      "timerEnableFlagsChanged": false,
+      "automaticUnitCompletionClaimed": false,
+      "history": "/srv/morphiume/staging/runtime/metrics/acf8-schedule-enable-6441f081-4be0-4d04-8bf0-8a9a4a9a4cb0"
+    },
+    "resources": {
+      "backup": {
+        "sampleCount": 477,
+        "sampledPeakMemoryBytes": 47575040,
+        "sampledCpuSeconds": 60.203249,
+        "observedOom": 0,
+        "observedOomKill": 0,
+        "unitCycleSeconds": 127.062066,
+        "privateEvidenceSha256": "92564fff5241d437c8acdf58e029bfb56a30ac4b75af4facf3ef9b16151025dc"
+      },
+      "health": {
+        "sampleCount": 97,
+        "sampledPeakMemoryBytes": 46047232,
+        "sampledCpuSeconds": 23.671388,
+        "observedOom": 0,
+        "observedOomKill": 0,
+        "unitCycleSeconds": 25.888878,
+        "privateEvidenceSha256": "e5f781dd5920a20178b6364ba538258486d1f1b5ae185d222ec9d0e03520aedc"
+      }
+    },
+    "firstHealthMeasurement": {
+      "accepted": false,
+      "systemctlStartCount": 1,
+      "actualUnitSucceeded": true,
+      "liveCgroupSamples": 0,
+      "cause": "Collector captured previous inactive InvocationID before async new start; fresh v2 collector checks active state and old ID.",
+      "originalFailureRetained": true
+    },
+    "totalDirectHealthStarts": 2,
+    "totalDirectBackupStarts": 1
+  },
+  "final": {
+    "mode": "acf8-final-readonly-operational-observation",
+    "accepted": true,
+    "observedUtc": "2026-10-14T07:53:23.596075+00:00",
+    "sourceCommit": "acf8e96ee348c487df0fcefe89d568f2bf93367a",
+    "serverCheckoutClean": true,
+    "accessProfileSha256": "22d97cc5fa1f80a11fd87f5db0ac4316765651f0aafb2ed79e516a773396916f",
+    "origin": "http://192.168.240.51",
+    "containers": [
+      {
+        "service": "worker",
+        "image": "sha256:5bf00e2bc40523dd9eaf85d7ef50eecc320bd2c40baf6d10cc38e65e66e2b482",
+        "source": "acf8e96ee348c487df0fcefe89d568f2bf93367a",
+        "user": "1001:1001",
+        "healthy": true,
+        "readOnlyRoot": true,
+        "oomKilled": false,
+        "ports": {}
+      },
+      {
+        "service": "app",
+        "image": "sha256:5bf00e2bc40523dd9eaf85d7ef50eecc320bd2c40baf6d10cc38e65e66e2b482",
+        "source": "acf8e96ee348c487df0fcefe89d568f2bf93367a",
+        "user": "1001:1001",
+        "healthy": true,
+        "readOnlyRoot": true,
+        "oomKilled": false,
+        "ports": {
+          "3000/tcp": [
+            {
+              "HostIp": "127.0.0.1",
+              "HostPort": "3001"
+            }
+          ]
+        }
+      }
+    ],
+    "readiness": 200,
+    "migrations": 13,
+    "tables": 53,
+    "stoppedRestorePairs": 3,
+    "stoppedRestoreContainers": 6,
+    "reservedMountGuardPassed": true,
+    "reservedDatabaseRowsEqualMeasured": false,
+    "approvalSha256": "f1fef1ec4998ac3ba7decab6f8f4e01962e189d0ed463a64be1a37212e5e0b89",
+    "timers": {
+      "health": {
+        "active": true,
+        "enabled": true,
+        "monotonic": [
+          "{ OnUnitActiveUSec=5min ; next_elapse=1d 23h 10min 42.198643s }",
+          "{ OnBootUSec=5min ; next_elapse=5min }"
+        ],
+        "calendar": null,
+        "jitter": "5s",
+        "persistent": "no"
+      },
+      "backup": {
+        "active": true,
+        "enabled": true,
+        "monotonic": null,
+        "calendar": [
+          "{ OnCalendar=*-*-* 03:00:00 UTC ; next_elapse=Thu 2026-10-15 03:00:00 UTC }"
+        ],
+        "jitter": "15min",
+        "persistent": "yes"
+      }
+    },
+    "services": {
+      "health": {
+        "state": "activating",
+        "selectedGuardSha256": "67bb12368e00106d037ef9bcee801e6a10fa7c8aee0152b21549b08dc901d5c6",
+        "timeoutStart": "50s",
+        "timeoutStop": "5s",
+        "cpuQuota": "1s",
+        "memoryMax": "268435456"
+      },
+      "backup": {
+        "state": "inactive",
+        "selectedGuardSha256": "203c309e2b9cddf2d775d13a994804342cfc98d3c867fe9edcc377bfef9194b9",
+        "timeoutStart": "20min",
+        "timeoutStop": "1min 30s",
+        "cpuQuota": "500ms",
+        "memoryMax": "536870912"
+      }
+    },
+    "automaticFutureDeliveryClaimed": false,
+    "serverMutation": false
+  },
+  "limitations": {
+    "livePspOrSms": false,
+    "offsiteEstablished": false,
+    "pitr": false,
+    "generalRpoEstablished": false,
+    "currentReleaseCapacityRetested": false,
+    "allPostWorkerRowsEqual": false,
+    "allSubsequentTimerDeliveryProved": false,
+    "externalAlertDelivery": false
+  },
+  "evidenceDigests": {
+    "cutover": "ceaad653225e5d4945227f87b0ec946dcaf68e2e6199c886535fd17e1ed53bdf",
+    "preservation": "98a7ec8c50b8e7fbac9f9ce66c49b973011a85527a5d70cded54737ece3add95",
+    "completeLog": "9f2475260be722d3648ab33d144d896a66b9c17551573cab8a72e1e323446b6f",
+    "recoverySummary": "9444d919385170fd31a46d7a95f0a105fc98a3766988a7b59dc26b0d18bc8414",
+    "finalObservation": "1e97c900df077746585cbfbaefca3b802b7baae1e4bbbd655977c63023301f18"
+  }
+}

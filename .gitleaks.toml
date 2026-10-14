@@ -35,6 +35,13 @@ regexes = ['''^0005_bulk_operations\.sql$''']
 paths = ['''^src/server/runtime-schema\.ts$''']
 
 [[rules.allowlists]]
+description = "Exact independently verified canonical public SHA256 of the accepted ACF8 private-IP profile in its two execution reports; not Basic or application credentials"
+condition = "AND"
+regexTarget = "secret"
+regexes = ['''^22d97cc5fa1f80a11fd87f5db0ac4316765651f0aafb2ed79e516a773396916f$''']
+paths = ['''^docs/qa/acf8-staging-t25-safe\.json$''', '''^docs/ops/acf8-staging-execution-safe\.json$''']
+
+[[rules.allowlists]]
 description = "Exact canonical public migration2/4 SHA256 values in the preservation guard; verified against SQL bytes"
 condition = "AND"
 regexTarget = "secret"

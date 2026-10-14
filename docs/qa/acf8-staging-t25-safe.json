@@ -1,0 +1,352 @@
+{
+  "schemaVersion": 1,
+  "mode": "acf8-staging-t25-native-observed",
+  "sourceCommit": "acf8e96ee348c487df0fcefe89d568f2bf93367a",
+  "releaseIdentity": {
+    "accessProfileSha256": "22d97cc5fa1f80a11fd87f5db0ac4316765651f0aafb2ed79e516a773396916f",
+    "archiveSha256": "202151aeab7cc6e8e55a1b95d52f411119135c70eceba034d4039d0e79d28606",
+    "candidateManifestDigest": "sha256:54dd109de5f64912d376693114031a91dd9c6f4934d93bca05d7193d4b546308",
+    "engineProofSha256": "6a19a424730c629febab18ebaffafbb5722e6cc0b23ac1d8c279fae09949f239",
+    "opsSha256": "68bc527a9c34ccefef72bb4427288da47c75c3a584e7cb140ecfc3c3fbdad6a3",
+    "runtimeImageId": "sha256:5bf00e2bc40523dd9eaf85d7ef50eecc320bd2c40baf6d10cc38e65e66e2b482",
+    "sourceCommit": "acf8e96ee348c487df0fcefe89d568f2bf93367a",
+    "testedPlatformConfig": "sha256:15e209e3dd9057c3a391a07488437fb44af52b9d552322649b719c2a3c8a157f"
+  },
+  "origin": "http://192.168.240.51",
+  "source": {
+    "trackedFiles": 738,
+    "knownPrivateHelperOverlayCount": 1,
+    "applicationSourceEdited": false,
+    "frozenSourceUnchanged": true,
+    "preparedManifestSha256": "546f7b1880177b56a864fc213ad6f8000e6deab48432188273c9795c80235516",
+    "identityRecordSha256": "3a36e6374cf8e35c98e77f1387f6220bdc854fb3f19f4cd355b99ec433dc012d"
+  },
+  "tools": {
+    "node": "24.21.0",
+    "playwright": "1.64.0",
+    "officialBrowserCacheBinding": "c749f796d62b9680a26dd7ee5a84f38f2fd43da6"
+  },
+  "executionPolicy": {
+    "workers": 1,
+    "retries": 0,
+    "actionTimeoutMs": 10000,
+    "caseTimeoutMs": 120000,
+    "globalTimeoutMs": 1500000,
+    "customBrowserFlags": false,
+    "originForged": false,
+    "rateLimitsChanged": false,
+    "limiterRowsReset": false
+  },
+  "runs": [
+    {
+      "phase": "retained-chromium",
+      "startedUtc": "2026-10-14T06:54:50.780065Z",
+      "completedUtc": "2026-10-14T06:55:14.449835Z",
+      "childDurationSeconds": 21.78505244999542,
+      "reportDurationMs": 20176.827,
+      "expected": 1,
+      "unexpected": 0,
+      "skipped": 0,
+      "flaky": 0,
+      "rawReportSha256": "2e18caec1b28775dceab8ba8cba426e631a829877b370a57a615d9290ef474ed",
+      "privateLogSha256": "0bc2f0a41af88aba745e7b89419ac1aa7f0178afac6b817d2dc26403227b8e6a"
+    },
+    {
+      "phase": "normal-firefox-webkit",
+      "startedUtc": "2026-10-14T06:56:08.426065Z",
+      "completedUtc": "2026-10-14T06:57:03.531233Z",
+      "childDurationSeconds": 51.37710478300869,
+      "reportDurationMs": 50242.356,
+      "expected": 2,
+      "unexpected": 0,
+      "skipped": 0,
+      "flaky": 0,
+      "rawReportSha256": "44a9836d33ced146701861fc76a6bfdde20481ad91a2537a62e493d413b36b3e",
+      "privateLogSha256": "7f9e7af84b82b5ce80b9228768dbb859b952e3f4b4f8a8d6a780306a60435615"
+    }
+  ],
+  "totals": {
+    "passed": 3,
+    "failed": 0,
+    "skipped": 0,
+    "flaky": 0,
+    "retried": 0,
+    "uniqueScenario": 1,
+    "contractChecksPerScenario": 20,
+    "clientAuthObservations": 27,
+    "actualNativeServerResponses": 24,
+    "actualNativeServer200": 21,
+    "actualNativeWrongCode400": 3,
+    "actualNative429": 0,
+    "controlledUiIntercepted503": 3
+  },
+  "cases": [
+    {
+      "engine": "chromium",
+      "browserVersion": "156.0.8078.4",
+      "status": "passed",
+      "caseDurationMs": 16593,
+      "retry": 0,
+      "errorCount": 0,
+      "checks": {
+        "nativeLogin": true,
+        "adminMfa": true,
+        "csrf": true,
+        "cookies": true,
+        "ownedOrder": true,
+        "perimeter": true,
+        "headers": true,
+        "newT25": true,
+        "paymentReceiptDedup": true,
+        "mediaHashes": true,
+        "productCreateUi": true,
+        "productPublishUi": true,
+        "checkoutCreated": true,
+        "mockPaymentVerified": true,
+        "inventorySingleCommit": true,
+        "shipmentRecorded": true,
+        "trackingOwned": true,
+        "foreignOrderDenied": true,
+        "callbackReplayStable": true,
+        "uiImageGalleryLink": true
+      },
+      "clientAuthObservedStatusCounts": {
+        "200": 7,
+        "400": 1,
+        "503": 1
+      },
+      "actualNativeServerResponseCounts": {
+        "200": 7,
+        "400": 1,
+        "429": 0
+      },
+      "controlledUiIntercepted503Count": 1,
+      "scopedFinancialPreservation": {
+        "tables": 14,
+        "preservedRows": 4694,
+        "allPreexistingRowsPreserved": true,
+        "globalRowEqualityMeasured": false
+      }
+    },
+    {
+      "engine": "firefox",
+      "browserVersion": "157.0",
+      "status": "passed",
+      "caseDurationMs": 18576,
+      "retry": 0,
+      "errorCount": 0,
+      "checks": {
+        "nativeLogin": true,
+        "adminMfa": true,
+        "csrf": true,
+        "cookies": true,
+        "ownedOrder": true,
+        "perimeter": true,
+        "headers": true,
+        "newT25": true,
+        "paymentReceiptDedup": true,
+        "mediaHashes": true,
+        "productCreateUi": true,
+        "productPublishUi": true,
+        "checkoutCreated": true,
+        "mockPaymentVerified": true,
+        "inventorySingleCommit": true,
+        "shipmentRecorded": true,
+        "trackingOwned": true,
+        "foreignOrderDenied": true,
+        "callbackReplayStable": true,
+        "uiImageGalleryLink": true
+      },
+      "clientAuthObservedStatusCounts": {
+        "200": 7,
+        "400": 1,
+        "503": 1
+      },
+      "actualNativeServerResponseCounts": {
+        "200": 7,
+        "400": 1,
+        "429": 0
+      },
+      "controlledUiIntercepted503Count": 1,
+      "scopedFinancialPreservation": {
+        "tables": 14,
+        "preservedRows": 4710,
+        "allPreexistingRowsPreserved": true,
+        "globalRowEqualityMeasured": false
+      }
+    },
+    {
+      "engine": "webkit",
+      "browserVersion": "27.2",
+      "status": "passed",
+      "caseDurationMs": 24861,
+      "retry": 0,
+      "errorCount": 0,
+      "checks": {
+        "nativeLogin": true,
+        "adminMfa": true,
+        "csrf": true,
+        "cookies": true,
+        "ownedOrder": true,
+        "perimeter": true,
+        "headers": true,
+        "newT25": true,
+        "paymentReceiptDedup": true,
+        "mediaHashes": true,
+        "productCreateUi": true,
+        "productPublishUi": true,
+        "checkoutCreated": true,
+        "mockPaymentVerified": true,
+        "inventorySingleCommit": true,
+        "shipmentRecorded": true,
+        "trackingOwned": true,
+        "foreignOrderDenied": true,
+        "callbackReplayStable": true,
+        "uiImageGalleryLink": true
+      },
+      "clientAuthObservedStatusCounts": {
+        "200": 7,
+        "400": 1,
+        "503": 1
+      },
+      "actualNativeServerResponseCounts": {
+        "200": 7,
+        "400": 1,
+        "429": 0
+      },
+      "controlledUiIntercepted503Count": 1,
+      "scopedFinancialPreservation": {
+        "tables": 14,
+        "preservedRows": 4726,
+        "allPreexistingRowsPreserved": true,
+        "globalRowEqualityMeasured": false
+      }
+    }
+  ],
+  "retention": {
+    "retainedChromiumPaidFixture": true,
+    "originalBaseURL": "http://192.168.240.51",
+    "legacySchemaUnchanged": true,
+    "fixtureCreatedUtc": "2026-10-14T06:55:12.768Z",
+    "fixtureSha256": "7f64387b765ae753af77d5ae2e0528278ae11a30d1c1752d10edd2c913007604",
+    "separateUiGallerySha256": "59d4bebcd1104bedbdaec1bf15e080512e81628954e58718c2421119da60b76e",
+    "separateUiGalleryBoundToFixture": true,
+    "apiMediaDistinctFromUiGallery": true,
+    "uiImageWidth": 16,
+    "uiImageHeight": 20,
+    "uiGalleryCount": 1,
+    "uiGalleryPosition": 0,
+    "uiGalleryVariantId": null,
+    "qaWroteAcceptedServerMarker": false
+  },
+  "finalReadOnlyAudit": {
+    "mode": "acf8-t25-final-readonly-audit",
+    "accepted": true,
+    "observedUtc": "2026-10-14T07:00:07.972Z",
+    "migrations": 13,
+    "tables": 53,
+    "runtimeDmlIdentityProved": true,
+    "readonly": true,
+    "orders": [
+      {
+        "engine": "webkit",
+        "paid": true,
+        "receipts": 1,
+        "shipments": 1,
+        "stockCommits": 1,
+        "consumedReservations": 1,
+        "onHand": 2,
+        "reserved": 0,
+        "productRetained": false,
+        "buyerRetained": false
+      },
+      {
+        "engine": "chromium",
+        "paid": true,
+        "receipts": 1,
+        "shipments": 1,
+        "stockCommits": 1,
+        "consumedReservations": 1,
+        "onHand": 2,
+        "reserved": 0,
+        "productRetained": true,
+        "buyerRetained": true
+      },
+      {
+        "engine": "firefox",
+        "paid": true,
+        "receipts": 1,
+        "shipments": 1,
+        "stockCommits": 1,
+        "consumedReservations": 1,
+        "onHand": 2,
+        "reserved": 0,
+        "productRetained": false,
+        "buyerRetained": false
+      }
+    ],
+    "createdFixtureUsers": 9,
+    "disabledFixtureUsers": 8,
+    "retainedEnabledBuyers": 1,
+    "remainingDisabledFixtureSessions": 0,
+    "preexistingAuthenticationRowEqualityMeasured": false,
+    "financialHistoryRetained": true
+  },
+  "windowReleasedUtc": "2026-10-14T07:00:07.972Z",
+  "packagedAppLogEvidence": {
+    "status": "captured-complete-gate-pass",
+    "source": "actual-staging-packaged-image-app",
+    "scope": "entire-ACF8-app-container-lifetime-through-post-native-audit",
+    "capturedUtc": "2026-10-14T07:08:56.300Z",
+    "captureBytes": 99413,
+    "linesScanned": 464,
+    "rawLogSha256": "e56f63e491529f3e7b1f5fe7676a4585a370308cba30398a7c8a18b84f8999b6",
+    "safeEvidenceSha256": "9f2475260be722d3648ab33d144d896a66b9c17551573cab8a72e1e323446b6f",
+    "wrapperStatusCounts": {
+      "200": 375,
+      "201": 12,
+      "303": 3,
+      "400": 21,
+      "401": 6,
+      "403": 9,
+      "404": 3
+    },
+    "wrapper500": 0,
+    "wrapper429": 0,
+    "wrapper503": 0,
+    "internalFailureEventCount": 0,
+    "byteLimitReached": false,
+    "lineLimitReached": false,
+    "eventLimitReached": false,
+    "acceptanceGatePassed": true,
+    "mergedStdoutStderr": true,
+    "originalLogTruncated": false,
+    "exactNativeClientRequestScope": false,
+    "nginxPerimeterLogIncluded": false
+  },
+  "limits": {
+    "globalUnrelatedRowEqualityMeasured": false,
+    "preexistingAuthenticationRowEqualityMeasured": false,
+    "newSourceRestoreAcceptanceProved": false,
+    "capacityProvedByThisRun": false,
+    "publicLiveSalesOrTlsProved": false
+  },
+  "privateArtifactEvidence": [
+    {
+      "file": ".local/acf8-qa-retained-safe.json",
+      "sha256": "871c8be33db3debbcf545b1a501386d53d65686bcb1345a772a97cbb9be4f190"
+    },
+    {
+      "file": ".local/acf8-qa-normal-safe.json",
+      "sha256": "b4ff60b45d73fc2bffb1e3861f75a3a8dffd34a62ce77781bb958408d048ba19"
+    },
+    {
+      "file": ".local/acf8-qa-final-audit-safe.json",
+      "sha256": "d3aacb99a2553795e7cbbbff3abf7492c180d30205648900b97aea2324af7804"
+    },
+    {
+      "file": ".local/acf8-qa-window-released-safe.json",
+      "sha256": "ccfb83714f9aa18eb67a2fd7bc8843039d12c4ad4d9561ee732d0c9522e76c88"
+    }
+  ]
+}
