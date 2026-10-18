@@ -28,6 +28,35 @@ def ci():
 
 
 class Prepare(unittest.TestCase):
+    def test_actual_nested_postcheck_mutates_outer_state_and_completes_journal(self):
+        tree=ast.parse((BASE/'prepare.py').read_bytes())
+        apply=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='apply')
+        record=next(n for n in apply.body if isinstance(n,ast.FunctionDef) and n.name=='record')
+        post=next(n for n in ast.walk(apply) if isinstance(n,ast.FunctionDef) and n.name=='postcheck')
+        names=('state','request','h','c','g','preservation','basic','sources','before','a','evidence')
+        # Compile the unmodified actual nested bodies inside a real closure.
+        factory=ast.FunctionDef(name='factory',args=ast.arguments(posonlyargs=[],args=[ast.arg(arg=n) for n in names],
+            kwonlyargs=[],kw_defaults=[],defaults=[]),body=[copy.deepcopy(record),copy.deepcopy(post),ast.Return(ast.Name('postcheck',ast.Load()))],decorator_list=[])
+        candidate={key:'test-'+key for key in ('sourceCommit','testedPlatformConfig','candidateManifestDigest','archiveSha256','opsSha256','runtimeImageId','engineProofSha256')}
+        evidence=Path('/test-evidence'); proof=Path('/test-proof.json'); files={proof:b'actual-proof-record'}; calls=[]
+        state={'stages':[],'loaderChild':{'exitCode':0,'invocationCount':1}}
+        before={'checkoutHead':'old','units':{'active':True},'protected':'unchanged'}
+        after=before|{'checkoutHead':'candidate','units':{'active':False}}
+        encode=lambda value:(__import__('json').dumps(value,sort_keys=True,separators=(',',':'))+'\n').encode()
+        def write(path,body): self.assertNotIn(path,files); files[path]=body; calls.append(str(path))
+        h=SimpleNamespace(PREVIOUS=candidate,OPS=candidate['opsSha256'],raw=lambda path:files[path],
+            write_new=write,encode=encode,utc=lambda:'2026-10-18T00:00:00+00:00')
+        c=SimpleNamespace(archived_image=lambda _:candidate,engine_record_path=lambda *_:proof)
+        namespace=dict(p.__dict__); namespace['protected_state']=lambda *args,**kwargs:after
+        exec(compile(ast.fix_missing_locations(ast.Module([factory],type_ignores=[])),'actual-nested-postcheck','exec'),namespace)
+        fn=namespace['factory'](state,{'sourceCommit':candidate['sourceCommit']},h,c,None,None,None,None,before,
+            {key:candidate[key] for key in ('testedPlatformConfig','candidateManifestDigest','archiveSha256')},evidence)
+        result=fn({'exitCode':0})
+        self.assertEqual(state['candidate'],candidate); self.assertEqual(state['phase'],'candidate-loaded-previous-runtime-preserved')
+        self.assertEqual(result['candidate'],candidate); self.assertTrue(result['allFourOldPairsPreserved'])
+        self.assertEqual(len(calls),2); self.assertIn(str(evidence/'protected-after.json'),calls)
+        self.assertEqual(result['finalEvidenceSha256'],p.sha(files[evidence/'01-candidate-loaded-previous-runtime-preserved.json']))
+
     def test_loader_runs_outside_parent_lock_and_postcheck_inside(self):
         held=[False]; order=[]
         @contextmanager

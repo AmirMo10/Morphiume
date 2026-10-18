@@ -263,8 +263,8 @@ def apply(request,h,c,g,preservation,verifier,basic,sources,args):
             after=protected_state(request,h,c,g,preservation,basic,sources,request['sourceCommit'],timers_active=False)
             need(core(after)==core(before))
             h.write_new(evidence/'protected-after.json',h.encode(after))
-            state|={'candidate':candidate,'engineRecordPath':str(proof),'engineRecordSha256':proof_sha,
-                'allFourOldPairsPreserved':True,'configsOwnerAndProfileUnchanged':True,'runtimeAppWorkerSameHealthy':True}
+            state.update({'candidate':candidate,'engineRecordPath':str(proof),'engineRecordSha256':proof_sha,
+                'allFourOldPairsPreserved':True,'configsOwnerAndProfileUnchanged':True,'runtimeAppWorkerSameHealthy':True})
             record('candidate-loaded-previous-runtime-preserved')
             return {'mode':state['phase'],'candidate':candidate,'engineRecordPath':str(proof),'engineRecordSha256':proof_sha,
                 'evidenceRoot':str(evidence),'finalEvidenceSha256':sha(h.raw(evidence/(str(len(state['stages'])).zfill(2)+'-'+state['phase']+'.json'))),
