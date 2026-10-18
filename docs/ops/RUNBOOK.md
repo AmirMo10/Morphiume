@@ -1,6 +1,12 @@
 # Operations runbook
 
-## Accepted redesign runtime — 18 October 2026
+## Current private preview — 18 October 2026
+
+Application `3b62c340cbcb9becec3b1a9552eedeecb4837be2` is deployed at `http://192.168.240.51`. The owner-authorized preview opens the storefront/shared admin without browser Basic or admin login/MFA, only behind `192.168.240.46/32` and the protected test operator. Normal/default/restore/live authentication and owner credentials remain preserved.
+
+The 17-check purchase, 12-route/eight-boundary browser review, six-check fifth recovery and scoped fixture cleanup passed. All five restore pairs remain stopped with data retained; the temporary RAM key is absent. One actual health job and encrypted backup exited 0 with source/config preservation; recurring approval binds their exact accepted hashes. Final read-only observation `2026-10-18T12:27:06.374753+00:00` confirmed healthy app/worker, clean exact-source checkout and both timers active/enabled, with original cadence/base units/locks preserved. [Actual execution and limits](../qa/PRIVATE_PREVIEW_EXECUTION.md), [access contract](PRIVATE_PREVIEW_ACCESS.md), [accepted CI](../qa/PRIVATE_PREVIEW_CI_EXECUTION.md). Payments/SMS remain controlled tests. Public migration/sales, offsite/PITR and general RPO remain separate; never replay historical commands below.
+
+## Historical accepted redesign runtime — 18 October 2026
 
 The accepted application is `7feb4fe8e8254e917c53f9654b315ee7ef3fada1`, Engine `sha256:f7723802ca524cb16c63988f08220ef14c32f2be136aeaa73f7bbc8720df09df`, with frozen Ops68, thirteen migrations and fifty-three tables. The protected origin remains `http://192.168.240.51`. Three-engine native purchase acceptance and the fourth isolated recovery passed. Recovery acceptance was committed; only the fourth pair was stopped with its data preserved, its temporary RAM key was removed, and the same source app/worker resumed healthy. All three older stopped pairs, owner credentials, original database and reserved mount remain preserved. [Current deployment and scheduling status](REDESIGN_STAGING_EXECUTION.md), [native purchase](../qa/REDESIGN_STAGING_T25_EXECUTION.md), [actual recovery](../qa/REDESIGN_RECOVERY_EXECUTION.md).
 
