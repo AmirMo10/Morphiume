@@ -119,7 +119,7 @@ def inventory(project):
     def meta(path, uid=0, mode='0o700'):
         return {'path': str(path), 'uid': uid, 'gid': uid, 'mode': mode, 'device': 1, 'inode': 2}
     return {'observedAt': '2020-01-01T00:00:00Z', 'mutation': False, 'sql': False, 'project': project, 'root': str(root),
-        'rootMetadata': meta(root), 'storageMetadata': [meta(root / 'postgres', 999), meta(root / 'media', 1001, '0o750')],
+        'rootMetadata': meta(root), 'storageMetadata': [meta(root / 'postgres', 999), meta(root / 'media', 1001, oct(r.old_media_mode(project)))],
         'files': [meta(root / name, uid, '0o600') | {'bytes': 1, 'sha256': 'a' * 64} for name, uid in (r.OLD_FILES | previous['extraFiles']).items()],
         'containers': [r.container_view(docker(service, project)) for service in ('app', 'db')],
         'tcp3002ListenerAbsent': True, 'mediaSnapshot': {}}
@@ -167,6 +167,15 @@ class ReviewedPlanChecks(unittest.TestCase):
 
 
 class UpgradeChecks(unittest.TestCase):
+    def test_restore_companion_requires_exact_revised_storage_policy(self):
+        u.validate_restore_storage_policy(r)
+        for value in ({'version': 1, 'mediaModes': r.old_storage_policy()['mediaModes']},
+                      {'version': 2, 'mediaModes': dict.fromkeys(r.OLD_RELEASES, '0o750')},
+                      {'version': 2, 'mediaModes': dict.fromkeys(r.OLD_RELEASES, '0o700')}):
+            with self.assertRaises(ValueError):
+                u.validate_restore_storage_policy(SimpleNamespace(old_storage_policy=lambda: value))
+        with self.assertRaises(ValueError): u.validate_restore_storage_policy(SimpleNamespace())
+
     def test_default_cannot_import_or_mutate(self):
         with patch.object(u, 'bind_reviewed_plan', side_effect=AssertionError('unexpected import')):
             value = u.main(SimpleNamespace(apply=False))
@@ -241,6 +250,34 @@ class UpgradeChecks(unittest.TestCase):
 
 
 class RestoreChecks(unittest.TestCase):
+    def test_exact_historical_media_modes_preserve_each_release(self):
+        self.assertEqual(list(r.old_storage_policy()['mediaModes'].values()), ['0o750', '0o700', '0o700'])
+        for project in r.OLD_RELEASES: r.inventory_shape(inventory(project))
+
+    def test_swapped_legacy_media_mode_is_rejected_per_release(self):
+        for project in r.OLD_RELEASES:
+            record = inventory(project)
+            media = next(item for item in record['storageMetadata'] if Path(item['path']).name == 'media')
+            media['mode'] = '0o700' if media['mode'] == '0o750' else '0o750'
+            with self.subTest(project=project), self.assertRaises(ValueError): r.inventory_shape(record)
+
+    def test_unknown_or_changed_media_policy_is_rejected(self):
+        with self.assertRaises(ValueError): r.old_media_mode('unknown')
+        for version in (1, True, '2'):
+            with patch.object(r, 'OLD_STORAGE_POLICY_VERSION', version), self.assertRaises(ValueError): r.old_storage_policy()
+        for project in r.OLD_RELEASES:
+            changed = copy.deepcopy(r.OLD_RELEASES); changed[project]['mediaMode'] = 0o700 if changed[project]['mediaMode'] == 0o750 else 0o750
+            with patch.object(r, 'OLD_RELEASES', changed), self.assertRaises(ValueError): r.old_storage_policy()
+        with patch.object(r, 'OLD_RELEASES', r.OLD_RELEASES | {'unknown': {}}), self.assertRaises(ValueError): r.old_storage_policy()
+
+    def test_storage_uid_gid_path_and_metadata_shape_cannot_drift(self):
+        project = next(iter(r.OLD_RELEASES))
+        for key, value in (('uid', 0), ('gid', 0), ('mode', '0o777'), ('path', '/srv/morphiume/postgres')):
+            record = inventory(project); record['storageMetadata'][1][key] = value
+            with self.subTest(key=key), self.assertRaises(ValueError): r.inventory_shape(record)
+        record = inventory(project); record['storageMetadata'][1]['extra'] = True
+        with self.assertRaises(ValueError): r.inventory_shape(record)
+
     def test_default_cannot_bind_import_or_execute(self):
         with patch.object(r, 'bind_reviewed_plan', side_effect=AssertionError('binding')):
             value = r.main(SimpleNamespace(apply=False))

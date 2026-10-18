@@ -23,20 +23,21 @@ CONFIG = Path('/etc/morphiume-staging-runtime')
 TOOL_NAME = 'redesign-isolated-restore.py'
 SOURCE = None  # Bound only by a byte-verified reviewed private plan.
 OPS = '68bc527a9c34ccefef72bb4427288da47c75c3a584e7cb140ecfc3c3fbdad6a3'
+OLD_STORAGE_POLICY_VERSION = 2
 OLD_RELEASES = {
  'morphiume-runtime-restore-20261012t212729z-d03c35': {
   'source': '6130f4ed7ec090344a5a4a1937a65ef04572975b',
   'ops': '591ad92162d1747238db946c9a9a22724edde79627c6995a353c5064b39a77db',
   'root': ROOT / 'restore/morphiume-runtime-restore-20261012T212729Z-d03c35',
-  'extraFiles': {'restore.recovery.env': 0}, 'profile': 'ssh-localhost', 'phase': 'ready-business-acceptance-pending'},
+  'extraFiles': {'restore.recovery.env': 0}, 'profile': 'ssh-localhost', 'phase': 'ready-business-acceptance-pending', 'mediaMode': 0o750},
  'morphiume-runtime-restore-20261013t090118z-504a38': {
   'source': 'e4bed691dc938a9c0f79022696d24f063ad97724',
   'ops': OPS, 'root': ROOT / 'restore/morphiume-runtime-restore-20261013t090118z-504a38',
-  'extraFiles': {}, 'profile': 'ssh-localhost', 'phase': 'ready'},
+  'extraFiles': {}, 'profile': 'ssh-localhost', 'phase': 'ready', 'mediaMode': 0o700},
  'morphiume-runtime-restore-20261014t071244z-30668c': {
   'source': 'acf8e96ee348c487df0fcefe89d568f2bf93367a',
   'ops': OPS, 'root': ROOT / 'restore/morphiume-runtime-restore-20261014t071244z-30668c',
-  'extraFiles': {}, 'profile': 'private-ip', 'phase': 'ready'},
+  'extraFiles': {}, 'profile': 'private-ip', 'phase': 'ready', 'mediaMode': 0o700},
 }
 MIGRATIONS_SHA256 = '4d4c96b6c3c04e9ee6807d57b419dfe0c7760df13925298754dfeba0957f1119'
 EXPECTED = {}  # No forthcoming image identity is guessed here.
@@ -208,6 +209,11 @@ def inventory_shape(record):
     need(record['rootMetadata']['path'] == str(root))
     need(type(record['storageMetadata']) is list and len(record['storageMetadata']) == 2)
     need({item['path'] for item in record['storageMetadata']} == {str(root / name) for name in ('postgres', 'media')})
+    for item in record['storageMetadata']:
+        need(set(item) == {'path', 'uid', 'gid', 'mode', 'device', 'inode'})
+        media = item['path'] == str(root / 'media')
+        need(item['uid'] == item['gid'] == (1001 if media else 999))
+        need(item['mode'] == oct(old_media_mode(record['project']) if media else 0o700))
     for item in record['files']:
         need(set(item) == {'path', 'uid', 'gid', 'mode', 'device', 'inode', 'bytes', 'sha256'})
         need(isinstance(item['sha256'], str) and HASH.fullmatch(item['sha256']))
@@ -333,6 +339,26 @@ def old_pairs(c, value, fresh_project=None):
     return sorted([item for record in value['pairs'] for item in old_pair(c, record, items)], key=lambda x: x['id'])
 
 
+def old_storage_policy():
+    """Exact accepted legacy modes; never chmod preserved recovery data."""
+    expected = {
+        'morphiume-runtime-restore-20261012t212729z-d03c35': 0o750,
+        'morphiume-runtime-restore-20261013t090118z-504a38': 0o700,
+        'morphiume-runtime-restore-20261014t071244z-30668c': 0o700,
+    }
+    need(type(OLD_STORAGE_POLICY_VERSION) is int and OLD_STORAGE_POLICY_VERSION == 2)
+    need(set(OLD_RELEASES) == set(expected))
+    for project, mode in expected.items():
+        need(type(OLD_RELEASES[project].get('mediaMode')) is int and OLD_RELEASES[project]['mediaMode'] == mode)
+    return {'version': 2, 'mediaModes': {project: oct(mode) for project, mode in expected.items()}}
+
+
+def old_media_mode(project):
+    policy = old_storage_policy()
+    need(isinstance(project, str) and project in policy['mediaModes'])
+    return int(policy['mediaModes'][project], 8)
+
+
 def capture_old_inventory(c):
     """Read-only capture for the exact three stopped pairs; includes no SQL."""
     ids = c.run(['docker', 'ps', '--all', '--no-trunc', '--filter', 'label=morphiume.restore.scope=runtime', '--format', '{{.ID}}']).splitlines()
@@ -354,7 +380,7 @@ def capture_old_inventory(c):
                 'bytes': info.st_size, 'sha256': sha(file.read_bytes())})
         pairs.append({'observedAt': utc(), 'mutation': False, 'sql': False,
             'project': project, 'root': str(root), 'rootMetadata': view(root, 0, 0o700),
-            'storageMetadata': [view(root / 'postgres', 999, 0o700), view(root / 'media', 1001, 0o750)],
+            'storageMetadata': [view(root / 'postgres', 999, 0o700), view(root / 'media', 1001, old_media_mode(project))],
             'files': entries, 'containers': [container_view(t) for t in items
                 if t['Config']['Labels'].get('com.docker.compose.project') == project],
             'tcp3002ListenerAbsent': True, 'mediaSnapshot': media_snapshot(c, None, root / 'media')})

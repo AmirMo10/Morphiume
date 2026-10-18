@@ -81,6 +81,7 @@ def bind_reviewed_plan(args):
     restore_module = {'__name__': 'redesign_preservation', '__file__': str(restore_path)}
     exec(compile(raw, str(restore_path), 'exec'), restore_module)
     restore_guard = types.SimpleNamespace(**restore_module)
+    validate_restore_storage_policy(restore_guard)
     bundle = ROOT / 'releases' / args.source / 'ops-bundles' / OPS / 'ops'
     need(Path(args.ops_root) == bundle)
     restore_guard.verify_ops(bundle)
@@ -93,6 +94,17 @@ def bind_reviewed_plan(args):
         result[name] = module
     need(result['contract'].ops_digest() == OPS)
     return plan, restore_guard, result['contract'], result['backup']
+
+
+def validate_restore_storage_policy(guard):
+    """Require the revised exact per-release policy before importing Ops."""
+    validator = getattr(guard, 'old_storage_policy', None)
+    need(callable(validator))
+    need(validator() == {'version': 2, 'mediaModes': {
+        'morphiume-runtime-restore-20261012t212729z-d03c35': '0o750',
+        'morphiume-runtime-restore-20261013t090118z-504a38': '0o700',
+        'morphiume-runtime-restore-20261014t071244z-30668c': '0o700',
+    }})
 
 
 def sql(c, expression):
