@@ -4,6 +4,8 @@ import { lstat, open, realpath } from "node:fs/promises";
 import path from "node:path";
 import { createHash } from "node:crypto";
 import { z } from "zod";
+import { isAPIError } from "better-auth/api";
+import { base32 } from "@better-auth/utils/base32";
 import { CommerceError } from "../../contracts/commerce";
 import { getConfig, type RuntimeConfig } from "../config";
 import { pool } from "../db";
@@ -55,7 +57,11 @@ async function native(value: Lease, call: (headers: Headers) => Promise<Response
   // Use the maintained server API: its real hooks/grants and global mutation
   // quota still apply, without consuming a human's public per-IP login quota.
   const response = await call(headers);
-  if (!response.ok) throw unavailable();
+  if (!response.ok) {
+    const detail = await response.json().catch(() => null) as { code?: unknown } | null;
+    const codes = ["INVALID_TWO_FACTOR_COOKIE", "INVALID_CODE", "TOTP_NOT_ENABLED", "INVALID_EMAIL_OR_PASSWORD", "ACCOUNT_TEMPORARILY_LOCKED"];
+    const failure = unavailable(); failure.cause = { nativeStatus: response.status, nativeCode: typeof detail?.code === "string" && codes.includes(detail.code) ? detail.code : null }; throw failure;
+  }
   for (const line of response.headers.getSetCookie()) {
     const pair = line.split(";", 1)[0]!, offset = pair.indexOf("="), name = pair.slice(0, offset), item = pair.slice(offset + 1);
     if (!item || /max-age=0(?:;|$)/i.test(line)) value.cookies.delete(name); else value.cookies.set(name, item);
@@ -73,6 +79,7 @@ export async function privatePreviewHeaders(): Promise<Headers | null> {
   if (lease?.fingerprint === fingerprint && Date.now() - lease.refreshed < 120000) return headersFor(lease);
   const renew = async () => {
     const next: Lease = lease?.fingerprint === fingerprint ? { ...lease, cookies: new Map(lease.cookies) } : { fingerprint, cookies: new Map<string, string>(), refreshed: 0 };
+    let stage = "existing-session";
     try {
       // Inspect before native getSession removes expired rows. Only a still
       // present, genuinely expired session with its original proof can renew.
@@ -88,14 +95,29 @@ export async function privatePreviewHeaders(): Promise<Headers | null> {
         if (current.rows[0]!.expired) { next.cookies = new Map(); next.refreshed = 0; }
         else if (!await adminAuth.api.getSession({ headers: headersFor(next) })) throw unavailable();
       }
+      stage = "password";
       if (!next.refreshed) await native(next, headers => adminAuth.api.signInEmail({ headers, body: { email: config.email, password: config.password }, asResponse: true }));
-      const { code } = await adminAuth.api.generateTOTP({ body: { secret: new URL(config.totpURI).searchParams.get("secret")! } });
+      stage = "factor-generation";
+      // The authenticator URI contains Base32; BetterAuth's generator expects
+      // its original UTF-8 secret, exactly as its native enrollment stores it.
+      const secret = new TextDecoder("utf-8", { fatal: true }).decode(base32.decode(new URL(config.totpURI).searchParams.get("secret")!));
+      const { code } = await adminAuth.api.generateTOTP({ body: { secret } });
+      stage = "factor-verification";
       await native(next, headers => adminAuth.api.verifyTOTP({ headers, body: { code, trustDevice: false }, asResponse: true }));
+      stage = "native-proof";
       const proof = await adminAuth.api.getSession({ headers: headersFor(next) });
       if (!proof || proof.user.id !== config.userId || proof.user.email !== PRIVATE_PREVIEW_EMAIL || !proof.user.twoFactorEnabled) throw unavailable();
       next.refreshed = Date.now(); next.sessionId = proof.session.id; lease = next;
       return headersFor(next);
-    } catch { throw unavailable(); }
+    } catch (error) {
+      const failure = unavailable();
+      const responseStatus = error instanceof CommerceError && error.cause && typeof error.cause === "object" && "nativeStatus" in error.cause ? error.cause.nativeStatus : null;
+      // Only fixed stage names and numeric statuses survive; native exceptions
+      // can contain request material and must never become diagnostics.
+      const nativeCode = error instanceof CommerceError && error.cause && typeof error.cause === "object" && "nativeCode" in error.cause ? error.cause.nativeCode : null;
+      failure.cause = { stage, nativeStatus: isAPIError(error) ? error.statusCode : typeof responseStatus === "number" ? responseStatus : null, nativeCode, cookieCount: next.cookies.size };
+      throw failure;
+    }
   };
   pending = renew();
   try { return await pending; } finally { pending = undefined; }

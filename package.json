@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@11.25.0",
-  "engines": { "node": ">=24.19.0 <25" },
+  "engines": {
+    "node": ">=24.19.0 <25"
+  },
   "scripts": {
     "dev": "next dev --hostname 127.0.0.1",
     "setup:dev": "node scripts/bootstrap-dev.mjs",
@@ -24,9 +26,10 @@
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "1.7.7",
+    "@better-auth/utils": "0.4.2",
     "better-auth": "1.7.7",
-    "drizzle-orm": "0.45.4",
     "dotenv": "18.0.7",
+    "drizzle-orm": "0.45.4",
     "next": "16.4.0",
     "pg": "8.23.1",
     "react": "19.3.0",
@@ -47,9 +50,9 @@
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "drizzle-kit": "0.31.11",
+    "esbuild": "0.28.2",
     "eslint": "10.12.0",
     "eslint-plugin-react-hooks": "7.1.1",
-    "esbuild": "0.28.2",
     "tailwindcss": "4.3.3",
     "typescript": "6.0.3",
     "typescript-eslint": "8.71.1",
