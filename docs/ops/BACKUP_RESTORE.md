@@ -1,12 +1,18 @@
 # Backup and restore
 
-## Current accepted ACF8 runtime — 2026-10-14T07:53:23.596075+00:00
+## Accepted redesign runtime — 18 October 2026
+
+The accepted application is `7feb4fe8e8254e917c53f9654b315ee7ef3fada1`, Engine `sha256:f7723802ca524cb16c63988f08220ef14c32f2be136aeaa73f7bbc8720df09df`, with frozen Ops68, thirteen migrations and fifty-three tables. The protected origin remains `http://192.168.240.51`. Three-engine native purchase acceptance and the fourth isolated recovery passed. Recovery acceptance was committed; only the fourth pair was stopped with its data preserved, its temporary RAM key was removed, and the same source app/worker resumed healthy. All three older stopped pairs, owner credentials, original database and reserved mount remain preserved. [Current deployment and scheduling status](REDESIGN_STAGING_EXECUTION.md), [native purchase](../qa/REDESIGN_STAGING_T25_EXECUTION.md), [actual recovery](../qa/REDESIGN_RECOVERY_EXECUTION.md).
+
+Server checkout stays clean at this exact application commit. Later main commits publish tooling/reports and do not redeploy their images. The current optimized preview uses controlled staging PSP/SMS and local encrypted backups. The later different-VPS move to `morphiume.ir` is a [separate migration](MORPHIUME_IR_MIGRATION.md). Public TLS/sales, real providers, offsite/PITR and general RPO are not established by this preview. The dated ACF8/E4 procedures below are historical; do not replay them against the current runtime.
+
+## Historical accepted ACF8 runtime — 2026-10-14T07:53:23.596075+00:00
 
 The running application is acf8e96ee348c487df0fcefe89d568f2bf93367a with immutable Engine sha256:5bf00e2bc40523dd9eaf85d7ef50eecc320bd2c40baf6d10cc38e65e66e2b482, frozen Ops68, schema13 and protected private-IP origin http://192.168.240.51. Read [actual deployment, native purchase, isolated restore and scheduler evidence](ACF8_STAGING_EXECUTION.md) before another action. App/worker are healthy and both existing timers active/enabled at the observation. All three stopped restore pairs, reserved storage and owner data remain preserved. Published tools come from c7b1f0ee210fb0a6a6eeb57462bf2ad6c5c51022; checkout stays ACF8. Main reports/tools do not redeploy an image. Local backups, mock providers and no TLS/offsite/PITR remain the explicit scope.
 
 The E4 and generic sections below are historical procedures, not the current release or an instruction to replay a first-deploy/seed/restore command. Never start613 against schema13 or overwrite an existing restore. A new operation requires exact source/image/profile and individually hashed tool bindings.
 
-## Current E4 recovery evidence
+## Historical E4 recovery evidence
 
 The later E4 rehearsal supersedes the older613 result below for the active runtime: a fresh encrypted backup with13 migrations was restored into a separate database/application, all eight media files matched, and six native business checks passed. Acceptance at2026-10-13T09:11:27.877614Z measured full incident-to-business RTO516.390835s. The retained-fixture-to-capture gap1657.188s is not PITR or a measured general RPO. Both restore pairs remain stopped with their data/evidence preserved, and the temporary RAM key was removed. [Full execution and limitations](E4_RESTORE_EXECUTION.md).
 

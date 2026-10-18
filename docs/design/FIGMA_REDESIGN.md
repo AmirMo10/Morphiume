@@ -50,6 +50,14 @@ No final screen node IDs exist yet. Do not fabricate links for empty page conten
 
 Coordinator recheck after the user's sign-in intent: `whoami` still reported the same Starter/View plan. The browser tool then failed to initialize its kernel assets; a resumed agent had no enabled browser surface. The user's current browser sign-in state could therefore no longer be observed. This later tool failure is not evidence that the user stayed signed out. Implementation and native application QA continued independently.
 
+## Current access audit, 10:43 UTC
+
+The continuation agent checked the connection again on 2026-10-14. `whoami` reported Starter with a View seat. One read-only `use_figma` call attempted to inspect the saved foundations and product tile, but the connector rejected it with `You've reached the Figma MCP tool call limit on the Starter plan.` No canvas inspection or mutation ran, so variable counts, empty screen pages and node IDs above remain the prior successful native observations rather than a new API audit.
+
+After local disk space was recovered, the browser tool initialized successfully. Its inventory had no tabs in this agent's task-scoped browser. Opening the existing file in a new background task tab displayed `Sign up to comment, edit, inspect and more.`, Sign up and Continue with Google. The canvas screenshot showed the saved component families and the unresolved product-tile overlap. No login form, credentials, subscription, access permissions or canvas content was changed. This checks only the newly opened task browser; it does **not** establish whether the user completed sign-in in another tab or browser.
+
+The known tile repair and five editable Figma screen compositions remain pending. No new screen IDs or accepted Figma frame links are reported. The five local editable SVG boards remain available. [The safe access-audit record](boards/figma-access-audit-20261014.json) records the actual calls, scope and limitations without account identifiers or credentials. The temporary audit tab was closed after inspection.
+
 ## State ledger
 
 ```json
@@ -77,7 +85,7 @@ Coordinator recheck after the user's sign-in intent: `whoami` still reported the
   "completed": ["file and library discovery","33 scoped variables","6 Vazirmatn text styles","button/filter/status/wordmark/metric families","local SVG board composition and visual review"],
   "pending": ["tile overlap/geometry repair","native Figma screen composition","Figma full-view/editability acceptance"],
   "screenFrames": {},
-  "blockingCondition": "Starter-plan connector quota; browser remained unauthenticated and read-only at last check"
+  "blockingCondition": "Starter-plan connector quota reobserved 2026-10-14; newly opened task browser read-only, user sign-in elsewhere unobserved"
 }
 ```
 

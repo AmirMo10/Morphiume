@@ -224,7 +224,17 @@
     ]
   },
   "screenFrames": {},
-  "blockingCondition": "Starter-plan connector quota; browser last observed unauthenticated/read-only",
+  "blockingCondition": "Starter-plan connector quota reobserved 2026-10-14; newly opened task browser read-only, user sign-in elsewhere unobserved",
+  "accessAudit": {
+    "observedAt": "2026-10-14T10:43:30Z",
+    "record": "figma-access-audit-20261014.json",
+    "connectorInspectionExecuted": false,
+    "connectorMutationsExecuted": 0,
+    "nativeScreenCompositionAccepted": false,
+    "taskBrowserObservation": "New background task tab showed sign-up/edit-access prompt and existing component canvas",
+    "userSignInElsewhereObserved": false,
+    "priorNativeLedgerRevalidated": false
+  },
   "knownIssues": [
     "tile set 3:80 overlaps",
     "media logo instances 3:44 / 3:63 clip and are below approved wordmark minimum",
