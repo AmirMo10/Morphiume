@@ -1,5 +1,6 @@
 """Offline contract tests. No main(), SSH, Docker, HTTP, DB or private inputs."""
 import copy
+import ast
 import datetime
 import importlib.util
 from pathlib import Path
@@ -29,6 +30,39 @@ def request():
 
 
 class Preparation(unittest.TestCase):
+    def test_writer_stop_binds_same_ids_and_real_graceful_exit_codes(self):
+        before=[{'Id':str(index)*64,'Config':{'Labels':{'com.docker.compose.service':service}},'State':{'Status':'running','Running':True}}
+            for index,service in ((1,'app'),(2,'worker'))]
+        after=copy.deepcopy(before)
+        for item,code in zip(after,(143,0)):
+            item['State']={'Status':'exited','Running':False,'Paused':False,'Restarting':False,'OOMKilled':False,'ExitCode':code}
+        self.assertEqual(h.graceful_writer_stop(before,after),{'app':143,'worker':0})
+        cases=[]
+        for key,value in (('Running',True),('Paused',True),('Restarting',True),('OOMKilled',True),('Status','dead'),('ExitCode',137),('ExitCode',False),('ExitCode',1)):
+            row=copy.deepcopy(after); row[0]['State'][key]=value; cases.append(row)
+        row=copy.deepcopy(after); row[0]['Id']='3'*64; cases.append(row)
+        row=copy.deepcopy(after); row[1]['Id']=row[0]['Id']; cases.append(row)
+        row=copy.deepcopy(after); row[1]['Config']['Labels']['com.docker.compose.service']='app'; cases.append(row)
+        cases.extend((after[:1],after+after[:1]))
+        for index,row in enumerate(cases):
+            with self.subTest(index=index),self.assertRaises(ValueError): h.graceful_writer_stop(before,row)
+
+    def test_swap_closes_site_only_under_lock_and_checks_stop_before_backup(self):
+        tree=ast.parse((BASE/'control.py').read_text()); swap=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='swap')
+        locked=next(n for n in ast.walk(swap) if isinstance(n,ast.With) and any(isinstance(i.context_expr,ast.Call) and isinstance(i.context_expr.func,ast.Attribute) and i.context_expr.func.attr=='lock' for i in n.items))
+        closed=next(n for n in ast.walk(swap) if isinstance(n,ast.Call) and isinstance(n.func,ast.Name) and n.func.id=='change_site')
+        self.assertIn(closed,list(ast.walk(locked)))
+        check=next(n for n in ast.walk(swap) if isinstance(n,ast.Call) and isinstance(n.func,ast.Name) and n.func.id=='graceful_writer_stop')
+        backup=next(n for n in ast.walk(swap) if isinstance(n,ast.Call) and isinstance(n.func,ast.Name) and n.func.id=='backup_verified')
+        self.assertLess(check.lineno,backup.lineno)
+        self.assertTrue(any(isinstance(n,ast.Constant) and n.value=='gracefulExitCodes' for n in ast.walk(locked)))
+        callback=ast.parse((BASE/'schedule.py').read_text())
+        execute=next(n for n in callback.body if isinstance(n,ast.FunctionDef) and n.name=='execute')
+        guard=next(n for n in ast.walk(execute) if isinstance(n,ast.Call) and isinstance(n.func,ast.Attribute) and n.func.attr=='graceful_writer_stop')
+        backup=next(n for n in ast.walk(execute) if isinstance(n,ast.Call) and isinstance(n.func,ast.Attribute) and n.func.attr=='backup_verified')
+        self.assertLess(guard.lineno,backup.lineno)
+        self.assertEqual([n.id for n in guard.args],['before_stop','after_stop'])
+
     def test_fourth_exact_actual_storage_mode_rejects_creation_mode(self):
         mode=0o700
         class FakePath:

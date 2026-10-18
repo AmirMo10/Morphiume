@@ -195,11 +195,14 @@ def execute(h,request,c,backup,health,b,args):
             need(result.get('runtimeImageId')==request['candidate']['runtimeImageId'])
         else:
             with c.lock():
-                c.db_container(); c.load_configs(); c.validate_app_containers(h.writers(c),request['candidate'])
+                c.db_container(); c.load_configs()
+                before_stop=h.writers(c); c.validate_app_containers(before_stop,request['candidate'])
                 command_args=c.compose(request['candidate']['runtimeImageId'])
                 try:
                     c.run(command_args+['stop','--timeout','30','app','worker'],timeout=75)
-                    result=h.backup_verified(c,backup,request['candidate'])|{'mode':'encrypted-backup-completed','offsiteEstablished':False,'restoreAcceptance':'pending'}
+                    after_stop=h.writers(c); c.validate_app_containers(after_stop,request['candidate'],running=False)
+                    graceful=h.graceful_writer_stop(before_stop,after_stop)
+                    result=h.backup_verified(c,backup,request['candidate'])|{'mode':'encrypted-backup-completed','offsiteEstablished':False,'restoreAcceptance':'pending','gracefulExitCodes':graceful}
                 finally:
                     # Same frozen scheduling behavior: resume the exact writer pair after a backup attempt.
                     c.run(command_args+['up','-d','--no-build','--pull','never','--wait','--wait-timeout','180','app','worker'],timeout=210)

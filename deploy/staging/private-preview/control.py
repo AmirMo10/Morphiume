@@ -451,6 +451,29 @@ def operator(c,command,action):
     return parse(c.run(args,timeout=90))
 
 
+def graceful_writer_stop(before,after):
+    """Bind the same two writer IDs and reject forced/OOM/ambiguous stops."""
+    def by_service(items):
+        need(type(items) is list and len(items)==2,'writer_stop_set')
+        result={}
+        for item in items:
+            service=item['Config']['Labels'].get('com.docker.compose.service')
+            need(service in ('app','worker') and service not in result,'writer_stop_service')
+            need(isinstance(item['Id'],str) and re.fullmatch('[a-f0-9]{64}',item['Id']),'writer_stop_id')
+            result[service]=item
+        need(set(result)=={'app','worker'} and len({i['Id'] for i in result.values()})==2,'writer_stop_ids')
+        return result
+    previous,current=by_service(before),by_service(after)
+    codes={}
+    for service,item in current.items():
+        need(item['Id']==previous[service]['Id'],'writer_stop_identity_changed')
+        state=item['State']
+        need(state['Status']=='exited' and all(state[key] is False for key in ('Running','Paused','Restarting','OOMKilled')),'writer_stop_state')
+        need(type(state['ExitCode']) is int and state['ExitCode'] in (0,143),'writer_stop_exit')
+        codes[service]=state['ExitCode']
+    return codes
+
+
 def swap(c,backup,g,preservation,templates,request,request_sha256):
     baseline,context=observe(c,g,preservation,templates,request)
     need(request['baselineSha256'] is not None and sha(encode(baseline))==request['baselineSha256'],'current_baseline_changed')
@@ -467,16 +490,20 @@ def swap(c,backup,g,preservation,templates,request,request_sha256):
     journal(state,'prepared-after-root-candidate-load')
     try:
         need(all(manager(c,u)['ActiveState']=='inactive' for u in UNITS))
-        change_site(c,closed_site); journal(state,'site-closed')
         with c.lock():
+            change_site(c,closed_site); journal(state,'site-closed')
             preservation.candidate_migrations(c,{'candidate':request['candidate'],'migrationManifestSha256':g.MIGRATIONS_SHA256})
             old_command=c.compose(PREVIOUS['runtimeImageId'],ops_root=old_bundle)
             next_command=c.compose(request['candidate']['runtimeImageId'],env_file=CONFIG/'deploy.candidate.env',ops_root=c.OPS_ROOT)
             c.run(old_command+['config','--quiet']); c.preserve_profile(next_profile)
             write_new(CONFIG/'deploy.candidate.env',c.compose_environment(request['candidate']['runtimeImageId'],c.OPS_ROOT,next_profile).encode())
-            c.run(next_command+['config','--quiet']); journal(state,'before-writer-stop')
+            c.run(next_command+['config','--quiet'])
+            before_stop=writers(c); c.validate_app_containers(before_stop,PREVIOUS)
+            state['writerIdsBeforeStop']={i['Config']['Labels']['com.docker.compose.service']:i['Id'] for i in before_stop}
+            journal(state,'before-writer-stop')
             c.run(old_command+['stop','--timeout','30','app','worker'],timeout=75)
-            c.validate_app_containers(writers(c),PREVIOUS,running=False); journal(state,'writers-stopped')
+            after_stop=writers(c); c.validate_app_containers(after_stop,PREVIOUS,running=False)
+            state['gracefulExitCodes']=graceful_writer_stop(before_stop,after_stop); journal(state,'writers-stopped')
             state['preUpgradeBackup']=backup_verified(c,backup,PREVIOUS); journal(state,'fresh-backup-verified')
             before=preservation.capture_database(c,g); write_new(evidence/'database-before.json',encode(before))
             c.select_profile(next_profile); journal(state,'candidate-profile-selected')
