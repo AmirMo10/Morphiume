@@ -82,6 +82,7 @@ def bind_reviewed_plan(args):
     exec(compile(raw, str(restore_path), 'exec'), restore_module)
     restore_guard = types.SimpleNamespace(**restore_module)
     validate_restore_storage_policy(restore_guard)
+    validate_restore_acceptance_policy(restore_guard)
     bundle = ROOT / 'releases' / args.source / 'ops-bundles' / OPS / 'ops'
     need(Path(args.ops_root) == bundle)
     restore_guard.verify_ops(bundle)
@@ -104,6 +105,16 @@ def validate_restore_storage_policy(guard):
         'morphiume-runtime-restore-20261012t212729z-d03c35': '0o750',
         'morphiume-runtime-restore-20261013t090118z-504a38': '0o700',
         'morphiume-runtime-restore-20261014t071244z-30668c': '0o700',
+    }})
+
+
+def validate_restore_acceptance_policy(guard):
+    validator = getattr(guard, 'old_acceptance_policy', None)
+    need(callable(validator))
+    need(validator() == {'version': 1, 'schemas': {
+        'morphiume-runtime-restore-20261012t212729z-d03c35': '613-legacy',
+        'morphiume-runtime-restore-20261013t090118z-504a38': 'e4-legacy',
+        'morphiume-runtime-restore-20261014t071244z-30668c': 'acf8-expanded',
     }})
 
 

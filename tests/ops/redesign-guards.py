@@ -125,6 +125,22 @@ def inventory(project):
         'tcp3002ListenerAbsent': True, 'mediaSnapshot': {}}
 
 
+def old_acceptance_fixture(index):
+    files = dict(zip(('app.json', 'recovery-ready.json', 'recovery-journal.json', 'recovery-start.json',
+                      'business-acceptance-result.json'), (str(i) * 64 for i in range(1, 6))))
+    canonical = '6' * 64
+    if index == 2:
+        record = {'restoreReadySha256': files['recovery-ready.json'],
+            'restoreJournalSha256': files['recovery-journal.json'], 'restoreConfigCanonicalSha256': canonical,
+            'restoreConfigRawSha256': files['app.json'], 'restoreStartSha256': files['recovery-start.json'],
+            'rawResultSha256': files['business-acceptance-result.json']}
+    else:
+        record = {'readyRecordSha256': files['recovery-ready.json'],
+            'journalSha256': files['recovery-journal.json'], 'restoreConfigSha256': canonical}
+        if index == 1: record['restoreConfigRawSha256'] = files['app.json']
+    return record, files, canonical
+
+
 def effective(a):
     health = a.action == 'health'
     return {'Id': s.unit(a.action), 'Names': s.unit(a.action), 'LoadState': 'loaded',
@@ -167,6 +183,14 @@ class ReviewedPlanChecks(unittest.TestCase):
 
 
 class UpgradeChecks(unittest.TestCase):
+    def test_restore_companion_requires_exact_acceptance_policy(self):
+        u.validate_restore_acceptance_policy(r)
+        for value in ({'version': 0, 'schemas': r.old_acceptance_policy()['schemas']},
+                      {'version': 1, 'schemas': dict.fromkeys(r.OLD_RELEASES, '613-legacy')}):
+            with self.assertRaises(ValueError):
+                u.validate_restore_acceptance_policy(SimpleNamespace(old_acceptance_policy=lambda: value))
+        with self.assertRaises(ValueError): u.validate_restore_acceptance_policy(SimpleNamespace())
+
     def test_restore_companion_requires_exact_revised_storage_policy(self):
         u.validate_restore_storage_policy(r)
         for value in ({'version': 1, 'mediaModes': r.old_storage_policy()['mediaModes']},
@@ -250,6 +274,39 @@ class UpgradeChecks(unittest.TestCase):
 
 
 class RestoreChecks(unittest.TestCase):
+    def test_three_exact_historical_acceptance_schemas(self):
+        for index, project in enumerate(r.OLD_RELEASES):
+            record, files, canonical = old_acceptance_fixture(index)
+            r.old_acceptance_hashes(record, files, canonical, project)
+
+    def test_missing_or_mismatched_historical_link_rejected(self):
+        for index, project in enumerate(r.OLD_RELEASES):
+            record, files, canonical = old_acceptance_fixture(index)
+            for key in record:
+                with self.subTest(project=project, key=key), self.assertRaises(ValueError):
+                    r.old_acceptance_hashes(record | {key: '0' * 64}, files, canonical, project)
+                with self.assertRaises(ValueError):
+                    r.old_acceptance_hashes({k: v for k, v in record.items() if k != key}, files, canonical, project)
+
+    def test_mixed_aliases_and_wrong_release_contract_rejected(self):
+        for index, project in enumerate(r.OLD_RELEASES):
+            record, files, canonical = old_acceptance_fixture(index)
+            alias = 'readyRecordSha256' if index == 2 else 'restoreReadySha256'
+            with self.assertRaises(ValueError): r.old_acceptance_hashes(record | {alias: files['recovery-ready.json']}, files, canonical, project)
+            other, _, _ = old_acceptance_fixture(0 if index == 2 else 2)
+            with self.assertRaises(ValueError): r.old_acceptance_hashes(other, files, canonical, project)
+        record, files, canonical = old_acceptance_fixture(0)
+        with self.assertRaises(ValueError):
+            r.old_acceptance_hashes(record | {'restoreConfigRawSha256': files['app.json']}, files, canonical, next(iter(r.OLD_RELEASES)))
+
+    def test_unknown_or_stale_acceptance_policy_rejected(self):
+        for version in (0, True, '1'):
+            with patch.object(r, 'OLD_ACCEPTANCE_POLICY_VERSION', version), self.assertRaises(ValueError): r.old_acceptance_policy()
+        changed = copy.deepcopy(r.OLD_RELEASES); changed[next(iter(changed))]['acceptanceSchema'] = 'acf8-expanded'
+        with patch.object(r, 'OLD_RELEASES', changed), self.assertRaises(ValueError): r.old_acceptance_policy()
+        record, files, canonical = old_acceptance_fixture(0)
+        with self.assertRaises(ValueError): r.old_acceptance_hashes(record, files, canonical, 'unknown')
+
     def test_exact_historical_media_modes_preserve_each_release(self):
         self.assertEqual(list(r.old_storage_policy()['mediaModes'].values()), ['0o750', '0o700', '0o700'])
         for project in r.OLD_RELEASES: r.inventory_shape(inventory(project))

@@ -24,20 +24,22 @@ TOOL_NAME = 'redesign-isolated-restore.py'
 SOURCE = None  # Bound only by a byte-verified reviewed private plan.
 OPS = '68bc527a9c34ccefef72bb4427288da47c75c3a584e7cb140ecfc3c3fbdad6a3'
 OLD_STORAGE_POLICY_VERSION = 2
+OLD_ACCEPTANCE_POLICY_VERSION = 1
 OLD_RELEASES = {
  'morphiume-runtime-restore-20261012t212729z-d03c35': {
   'source': '6130f4ed7ec090344a5a4a1937a65ef04572975b',
   'ops': '591ad92162d1747238db946c9a9a22724edde79627c6995a353c5064b39a77db',
   'root': ROOT / 'restore/morphiume-runtime-restore-20261012T212729Z-d03c35',
-  'extraFiles': {'restore.recovery.env': 0}, 'profile': 'ssh-localhost', 'phase': 'ready-business-acceptance-pending', 'mediaMode': 0o750},
+  'extraFiles': {'restore.recovery.env': 0}, 'profile': 'ssh-localhost', 'phase': 'ready-business-acceptance-pending', 'mediaMode': 0o750,
+  'acceptanceSchema': '613-legacy'},
  'morphiume-runtime-restore-20261013t090118z-504a38': {
   'source': 'e4bed691dc938a9c0f79022696d24f063ad97724',
   'ops': OPS, 'root': ROOT / 'restore/morphiume-runtime-restore-20261013t090118z-504a38',
-  'extraFiles': {}, 'profile': 'ssh-localhost', 'phase': 'ready', 'mediaMode': 0o700},
+  'extraFiles': {}, 'profile': 'ssh-localhost', 'phase': 'ready', 'mediaMode': 0o700, 'acceptanceSchema': 'e4-legacy'},
  'morphiume-runtime-restore-20261014t071244z-30668c': {
   'source': 'acf8e96ee348c487df0fcefe89d568f2bf93367a',
   'ops': OPS, 'root': ROOT / 'restore/morphiume-runtime-restore-20261014t071244z-30668c',
-  'extraFiles': {}, 'profile': 'private-ip', 'phase': 'ready', 'mediaMode': 0o700},
+  'extraFiles': {}, 'profile': 'private-ip', 'phase': 'ready', 'mediaMode': 0o700, 'acceptanceSchema': 'acf8-expanded'},
 }
 MIGRATIONS_SHA256 = '4d4c96b6c3c04e9ee6807d57b419dfe0c7760df13925298754dfeba0957f1119'
 EXPECTED = {}  # No forthcoming image identity is guessed here.
@@ -292,10 +294,43 @@ def old_files(record):
             metadata(path, item['uid']); need(info.st_size == item['bytes'] and sha(path.read_bytes()) == item['sha256'])
 
 
-def old_acceptance_hashes(accepted, file_hashes, config):
-    need(accepted['readyRecordSha256'] == file_hashes['recovery-ready.json'])
-    need(accepted['journalSha256'] == file_hashes['recovery-journal.json'])
-    need(accepted['restoreConfigSha256'] == sha(json.dumps(config, sort_keys=True, separators=(',', ':')).encode()))
+def old_acceptance_policy():
+    expected = {
+        'morphiume-runtime-restore-20261012t212729z-d03c35': '613-legacy',
+        'morphiume-runtime-restore-20261013t090118z-504a38': 'e4-legacy',
+        'morphiume-runtime-restore-20261014t071244z-30668c': 'acf8-expanded',
+    }
+    need(type(OLD_ACCEPTANCE_POLICY_VERSION) is int and OLD_ACCEPTANCE_POLICY_VERSION == 1)
+    need(set(OLD_RELEASES) == set(expected))
+    need(all(OLD_RELEASES[project].get('acceptanceSchema') == schema for project, schema in expected.items()))
+    return {'version': 1, 'schemas': expected}
+
+
+def old_acceptance_hashes(accepted, file_hashes, config_sha256, project):
+    """Select one exact historical contract; renamed fields are not aliases."""
+    policy = old_acceptance_policy()
+    need(isinstance(project, str) and project in policy['schemas'])
+    need(isinstance(config_sha256, str) and HASH.fullmatch(config_sha256))
+    legacy = {'readyRecordSha256', 'journalSha256', 'restoreConfigSha256'}
+    expanded = {'restoreReadySha256', 'restoreJournalSha256', 'restoreConfigCanonicalSha256',
+                'restoreStartSha256', 'rawResultSha256'}
+    schema = policy['schemas'][project]
+    if schema == 'acf8-expanded':
+        need(not (legacy | {'resultSha256'}) & set(accepted))
+        expected = {'restoreReadySha256': file_hashes['recovery-ready.json'],
+            'restoreJournalSha256': file_hashes['recovery-journal.json'],
+            'restoreConfigCanonicalSha256': config_sha256,
+            'restoreConfigRawSha256': file_hashes['app.json'],
+            'restoreStartSha256': file_hashes['recovery-start.json'],
+            'rawResultSha256': file_hashes['business-acceptance-result.json']}
+    else:
+        need(not expanded & set(accepted))
+        expected = {'readyRecordSha256': file_hashes['recovery-ready.json'],
+            'journalSha256': file_hashes['recovery-journal.json'], 'restoreConfigSha256': config_sha256}
+        if schema == 'e4-legacy': expected['restoreConfigRawSha256'] = file_hashes['app.json']
+        else: need('restoreConfigRawSha256' not in accepted)
+    need(all(isinstance(accepted.get(key), str) and HASH.fullmatch(accepted[key]) and accepted[key] == value
+             for key, value in expected.items()))
 
 
 def old_pair(c, record, items):
@@ -312,7 +347,8 @@ def old_pair(c, record, items):
     need(set(accepted.get('checks', {})) == CHECKS and all(value is True for value in accepted['checks'].values()))
     need(accepted.get('workerStarted') is False and accepted.get('restoreProject') == record['project'])
     hashes = {Path(item['path']).name: item['sha256'] for item in record['files']}
-    old_acceptance_hashes(accepted, hashes, parse(metadata(root / 'app.json', uid=1001).read_bytes()))
+    config = parse(metadata(root / 'app.json', uid=1001).read_bytes())
+    old_acceptance_hashes(accepted, hashes, sha(json.dumps(config, sort_keys=True, separators=(',', ':')).encode()), record['project'])
     timestamp(accepted['acceptedUtc'])
     ready = parse(metadata(root / 'recovery-ready.json').read_bytes())
     journal_value = parse(metadata(root / 'recovery-journal.json').read_bytes())
