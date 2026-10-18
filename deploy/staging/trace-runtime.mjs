@@ -20,7 +20,7 @@ if (!destinationRelative || destinationRelative.startsWith(`..${sep}`) || isAbso
 const entries = args.length ? args : ["dist-runtime/worker.mjs", "dist-runtime/migrate.mjs", "dist-runtime/seed.mjs", "dist-runtime/private-preview-operator.mjs"];
 const require = createRequire(resolve(base, "package.json"));
 const { nodeFileTrace } = require("next/dist/compiled/@vercel/nft");
-const { fileList, warnings } = await nodeFileTrace(entries.map(file => resolve(base, file)), {
+const { fileList, warnings, reasons } = await nodeFileTrace(entries.map(file => resolve(base, file)), {
   base, processCwd: base, conditions: ["node", "react-server", "production"],
 });
 const optionalImports = ["pg-native", "cloudflare:sockets", "@opentelemetry/api (BetterAuth optional instrumentation only)"];
@@ -34,6 +34,22 @@ const unresolved = [...warnings].filter(warning => {
 if (unresolved.length) {
   for (const warning of unresolved) console.error(warning.message);
   throw new Error("Runtime tracing has unresolved dependencies");
+}
+// BetterAuth telemetry probes node_modules/*/package.json with fs, so NFT
+// conservatively includes development-package manifests and their import links.
+// These are version-discovery metadata, not executable dependencies. Omit only
+// tsx/esbuild metadata proven to come exclusively from that optional detector.
+// Any executable tool file or another importer remains a hard packaging error.
+const toolPackage = /(?:^|\/)node_modules\/(tsx|esbuild)(?:\/|$)/;
+for (const file of fileList) {
+  const normalized = file.replaceAll("\\", "/");
+  if (!toolPackage.test(normalized)) continue;
+  const parents = [...(reasons.get(file)?.parents ?? [])];
+  if (!/\/node_modules\/(?:tsx|esbuild)(?:\/package\.json)?$/.test(`/${normalized}`)
+    || !parents.length || !parents.every(parent => parent.replaceAll("\\", "/").endsWith("/node_modules/@better-auth/telemetry/dist/node.mjs"))) {
+    throw new Error(`Executable build tool or unreviewed dependency in runtime trace: ${file}`);
+  }
+  fileList.delete(file);
 }
 // pg-native is optional and pg-cloudflare selects its socket only when the
 // detected runtime is Cloudflare Workers. This image uses Node's net/tls driver.
@@ -64,6 +80,7 @@ async function collectLinks(directory, scoped = false) {
 }
 for (const directory of packageModules) await collectLinks(directory);
 const files = [...fileList].filter(file => file.replaceAll("\\", "/").startsWith("node_modules/")).sort();
+if (files.some(file => toolPackage.test(file.replaceAll("\\", "/")))) throw new Error("Build tool survived runtime trace filtering");
 const traced = [];
 for (const file of files) {
   const source = resolve(base, file);
