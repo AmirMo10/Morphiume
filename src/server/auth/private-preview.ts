@@ -6,6 +6,7 @@ import { createHash } from "node:crypto";
 import { z } from "zod";
 import { CommerceError } from "../../contracts/commerce";
 import { getConfig, type RuntimeConfig } from "../config";
+import { pool } from "../db";
 import { adminAuth } from "./index";
 
 export const PRIVATE_PREVIEW_EMAIL = "private-preview@morphiume.invalid";
@@ -45,13 +46,15 @@ export async function readPrivatePreviewConfig(settings: RuntimeConfig = getConf
 
 export async function isPrivatePreviewEnabled() { return !!await readPrivatePreviewConfig(); }
 
-type Lease = { fingerprint: string; cookies: Map<string, string>; refreshed: number };
+type Lease = { fingerprint: string; cookies: Map<string, string>; refreshed: number; sessionId?: string };
 let lease: Lease | undefined;
 let pending: Promise<Headers> | undefined;
 function headersFor(value: Lease) { return new Headers({ cookie: [...value.cookies].map(([key, item]) => `${key}=${item}`).join("; ") }); }
-async function native(value: Lease, endpoint: string, body: object) {
+async function native(value: Lease, call: (headers: Headers) => Promise<Response>) {
   const headers = headersFor(value); headers.set("Origin", origin); headers.set("Content-Type", "application/json");
-  const response = await adminAuth.handler(new Request(`${origin}/api/admin/auth${endpoint}`, { method: "POST", headers, body: JSON.stringify(body) }));
+  // Use the maintained server API: its real hooks/grants and global mutation
+  // quota still apply, without consuming a human's public per-IP login quota.
+  const response = await call(headers);
   if (!response.ok) throw unavailable();
   for (const line of response.headers.getSetCookie()) {
     const pair = line.split(";", 1)[0]!, offset = pair.indexOf("="), name = pair.slice(0, offset), item = pair.slice(offset + 1);
@@ -69,17 +72,28 @@ export async function privatePreviewHeaders(): Promise<Headers | null> {
   if (pending) { await pending; return privatePreviewHeaders(); }
   if (lease?.fingerprint === fingerprint && Date.now() - lease.refreshed < 120000) return headersFor(lease);
   const renew = async () => {
-    const next = lease?.fingerprint === fingerprint ? lease : { fingerprint, cookies: new Map<string, string>(), refreshed: 0 };
+    const next: Lease = lease?.fingerprint === fingerprint ? { ...lease, cookies: new Map(lease.cookies) } : { fingerprint, cookies: new Map<string, string>(), refreshed: 0 };
     try {
-      // Revocation is deliberate: never recreate an account, role or session
-      // merely because an existing session has been revoked.
-      if (next.refreshed && !await adminAuth.api.getSession({ headers: headersFor(next) })) throw unavailable();
-      if (!next.refreshed) await native(next, "/sign-in/email", { email: config.email, password: config.password });
+      // Inspect before native getSession removes expired rows. Only a still
+      // present, genuinely expired session with its original proof can renew.
+      // Missing/revoked sessions, factors, roles and disabled users fail closed.
+      if (next.refreshed) {
+        const current = await pool.query<{ expired: boolean }>(
+          `SELECT s.expires_at<=clock_timestamp() AS expired FROM session s
+           JOIN "user" u ON u.id=s.user_id JOIN admin_grant g ON g.session_id=s.id
+           WHERE s.id=$1 AND u.id=$2 AND u.email=$3 AND NOT u.disabled AND u.two_factor_enabled
+           AND EXISTS(SELECT 1 FROM role_membership r WHERE r.user_id=u.id)`,
+          [next.sessionId, config.userId, PRIVATE_PREVIEW_EMAIL]);
+        if (!current.rowCount) throw unavailable();
+        if (current.rows[0]!.expired) { next.cookies = new Map(); next.refreshed = 0; }
+        else if (!await adminAuth.api.getSession({ headers: headersFor(next) })) throw unavailable();
+      }
+      if (!next.refreshed) await native(next, headers => adminAuth.api.signInEmail({ headers, body: { email: config.email, password: config.password }, asResponse: true }));
       const { code } = await adminAuth.api.generateTOTP({ body: { secret: new URL(config.totpURI).searchParams.get("secret")! } });
-      await native(next, "/two-factor/verify-totp", { code, trustDevice: false });
+      await native(next, headers => adminAuth.api.verifyTOTP({ headers, body: { code, trustDevice: false }, asResponse: true }));
       const proof = await adminAuth.api.getSession({ headers: headersFor(next) });
       if (!proof || proof.user.id !== config.userId || proof.user.email !== PRIVATE_PREVIEW_EMAIL || !proof.user.twoFactorEnabled) throw unavailable();
-      next.refreshed = Date.now(); lease = next;
+      next.refreshed = Date.now(); next.sessionId = proof.session.id; lease = next;
       return headersFor(next);
     } catch { throw unavailable(); }
   };

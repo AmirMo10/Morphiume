@@ -35,14 +35,26 @@ describe.skipIf(!enabled)("private preview with real native auth and isolated Po
   let file = "", created = false, genuineHeaders: Headers;
 
   async function native(endpoint: string, body: object) {
-    const response = await auth.adminAuth.handler(new Request(`${origin}/api/admin/auth${endpoint}`, {
-      method: "POST", headers: { Origin: origin, "Content-Type": "application/json", Cookie: enrollmentCookies.header() },
-      body: JSON.stringify(body),
-    }));
-    enrollmentCookies.collect(response);
-    // Never include native response bodies, credentials or cookies in failures.
-    expect(response.status).toBe(200);
-    return await response.json() as Record<string, unknown>;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const response = await auth.adminAuth.handler(new Request(`${origin}/api/admin/auth${endpoint}`, {
+        method: "POST", headers: { Origin: origin, "Content-Type": "application/json", Cookie: enrollmentCookies.header() },
+        body: JSON.stringify(body),
+      }));
+      if (response.status === 429 && attempt === 0) {
+        const retry = response.headers.get("X-Retry-After") ?? response.headers.get("Retry-After");
+        const seconds = retry === null ? NaN : Number(retry);
+        if (!Number.isInteger(seconds) || seconds < 1 || seconds > 15) throw new Error("Unexpected native preview fixture retry interval");
+        await response.body?.cancel();
+        console.info(JSON.stringify({ event: "private_preview_qa_native_rate_wait", endpoint, waitMs: seconds * 1000 + 100 }));
+        await new Promise(resolve => setTimeout(resolve, seconds * 1000 + 100));
+        continue;
+      }
+      enrollmentCookies.collect(response);
+      // Never include native response bodies, credentials or cookies in failures.
+      expect(response.status).toBe(200);
+      return await response.json() as Record<string, unknown>;
+    }
+    throw new Error("Native preview fixture rate limit did not clear after one permitted retry");
   }
 
   beforeAll(async () => {
@@ -83,7 +95,7 @@ describe.skipIf(!enabled)("private preview with real native auth and isolated Po
     expect((await pool.query<{ two_factor_enabled: boolean }>('SELECT two_factor_enabled FROM "user" WHERE id=$1', [id])).rows[0]!.two_factor_enabled).toBe(false);
     await native("/sign-out", {});
     capability = { version: 1, origin, email: preview.PRIVATE_PREVIEW_EMAIL, userId: id, password, totpURI: String(enrollment.totpURI) };
-  });
+  }, 40_000); // Includes at most two native 10s quota waits during enrollment.
 
   afterAll(async () => {
     try {
@@ -135,6 +147,40 @@ describe.skipIf(!enabled)("private preview with real native auth and isolated Po
     expect(await auth.customerAuth.api.getSession({ headers: genuineHeaders })).toBeNull();
     await expect(actors.customerActor(genuineHeaders)).rejects.toMatchObject({ code: "UNAUTHENTICATED", status: 401 });
     expect(await actors.customerActor(genuineHeaders, true)).toBeUndefined();
+  });
+
+  it("refreshes a genuine factor and replaces a naturally expired native session", async () => {
+    const original = await auth.adminAuth.api.getSession({ headers: genuineHeaders });
+    expect(original?.user.id).toBe(id);
+    const now = Date.now();
+    let offset = 121_000;
+    // Only the process wall clock changes; timers and the actual PostgreSQL
+    // clock stay real. Native TOTP generation and verification see the same time.
+    const clock = vi.spyOn(Date, "now").mockImplementation(() => now + offset);
+    try {
+      const refreshed = await preview.privatePreviewHeaders();
+      expect(refreshed).toBeInstanceOf(Headers);
+      const same = await auth.adminAuth.api.getSession({ headers: refreshed! });
+      expect(same?.session.id).toBe(original!.session.id);
+      expect((await actors.adminActor(new Headers(), "refunds.write", true)).userId).toBe(id);
+
+      // Expire only this test's native session. Keep its real grant and row so
+      // the service can distinguish expiry from deliberate deletion/revocation.
+      await pool.query("UPDATE session SET expires_at=clock_timestamp()-interval '1 second' WHERE id=$1 AND user_id=$2", [original!.session.id, id]);
+      offset = 242_000;
+      const renewed = await preview.privatePreviewHeaders();
+      expect(renewed).toBeInstanceOf(Headers);
+      const proof = await auth.adminAuth.api.getSession({ headers: renewed! });
+      expect(proof?.user.id).toBe(id);
+      expect(proof?.user.twoFactorEnabled).toBe(true);
+      expect(proof?.session.id).not.toBe(original!.session.id);
+      const grant = await pool.query<{ fresh: boolean }>(
+        `SELECT g.factor_verified_at>clock_timestamp()-interval '5 minutes' AND g.expires_at>clock_timestamp() AS fresh
+         FROM admin_grant g JOIN session s ON s.id=g.session_id WHERE s.id=$1 AND s.user_id=$2`, [proof!.session.id, id]);
+      expect(grant.rows).toEqual([{ fresh: true }]);
+      genuineHeaders = renewed!;
+      expect((await actors.adminActor(new Headers(), "refunds.write", true)).userId).toBe(id);
+    } finally { clock.mockRestore(); }
   });
 
   it("honors a revoked role immediately without recreating the role", async () => {

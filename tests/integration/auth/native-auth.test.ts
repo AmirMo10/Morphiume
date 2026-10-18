@@ -15,15 +15,29 @@ describe.skipIf(!enabled)("native BetterAuth with actual isolated PostgreSQL", (
   const users: string[] = [], phones: string[] = [];
   const base = process.env.APP_BASE_URL!;
   const fixturePhone = () => { const phone = `+989${String(randomInt(0, 1_000_000_000)).padStart(9, "0")}`; phones.push(phone); return phone; };
-  async function request(kind: "customer" | "admin", endpoint: string, body?: object, jar = new TestCookies()) {
+  async function request(kind: "customer" | "admin", endpoint: string, body?: object | (() => object), jar = new TestCookies()) {
     const path = kind === "admin" ? "/api/admin/auth" : "/api/auth";
-    const response = await (kind === "admin" ? auth.adminAuth : auth.customerAuth).handler(new Request(`${base}${path}${endpoint}`, {
-      method: body ? "POST" : "GET",
-      headers: { Origin: base, "Content-Type": "application/json", Cookie: jar.header() },
-      ...(body ? { body: JSON.stringify(body) } : {}),
-    }));
-    jar.collect(response);
-    return { response, data: await response.json() as Record<string, unknown>, jar };
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const value = typeof body === "function" ? body() : body;
+      const response = await (kind === "admin" ? auth.adminAuth : auth.customerAuth).handler(new Request(`${base}${path}${endpoint}`, {
+        method: value ? "POST" : "GET",
+        headers: { Origin: base, "Content-Type": "application/json", Cookie: jar.header() },
+        ...(value ? { body: JSON.stringify(value) } : {}),
+      }));
+      if (kind === "admin" && response.status === 429 && attempt === 0) {
+        const header = response.headers.get("X-Retry-After") ?? response.headers.get("Retry-After");
+        // Native two-factor attempts also use the inspected3/10s window.
+        const seconds = header === null && endpoint.startsWith("/two-factor/") ? 10 : Number(header);
+        if (!Number.isInteger(seconds) || seconds < 1 || seconds > 15) throw new Error("Unexpected native authentication retry interval");
+        await response.body?.cancel();
+        console.info(JSON.stringify({ event: "native_auth_qa_rate_wait", endpoint, waitMs: seconds * 1000 + 100 }));
+        await new Promise(resolve => setTimeout(resolve, seconds * 1000 + 100));
+        continue;
+      }
+      jar.collect(response);
+      return { response, data: await response.json() as Record<string, unknown>, jar };
+    }
+    throw new Error("Native authentication retry bound exhausted");
   }
   beforeAll(async () => {
     const target = new URL(process.env.DATABASE_URL!);
@@ -120,7 +134,7 @@ describe.skipIf(!enabled)("native BetterAuth with actual isolated PostgreSQL", (
     expect(enable.response.status).toBe(200);
     const uri = String(enable.data.totpURI);
     expect(uri.startsWith("otpauth://totp/")).toBe(true);
-    const verified = await request("admin", "/two-factor/verify-totp", { code: totpForUri(uri), trustDevice: false }, jar);
+    const verified = await request("admin", "/two-factor/verify-totp", () => ({ code: totpForUri(uri), trustDevice: false }), jar);
     expect(verified.response.status).toBe(200);
     const approved = await actors.adminSession(new Headers({ cookie: jar.header() }));
     expect(approved?.mfaVerified).toBe(true);
