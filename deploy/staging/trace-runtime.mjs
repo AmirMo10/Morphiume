@@ -17,15 +17,18 @@ const destinationRelative = relative(base, destination);
 if (!destinationRelative || destinationRelative.startsWith(`..${sep}`) || isAbsolute(destinationRelative) || destinationRelative.startsWith("node_modules")) {
   throw new Error("Trace output must be a separate directory inside the build context");
 }
-const entries = args.length ? args : ["dist-runtime/worker.mjs", "dist-runtime/migrate.mjs", "dist-runtime/seed.mjs"];
+const entries = args.length ? args : ["dist-runtime/worker.mjs", "dist-runtime/migrate.mjs", "dist-runtime/seed.mjs", "dist-runtime/private-preview-operator.mjs"];
 const require = createRequire(resolve(base, "package.json"));
 const { nodeFileTrace } = require("next/dist/compiled/@vercel/nft");
 const { fileList, warnings } = await nodeFileTrace(entries.map(file => resolve(base, file)), {
   base, processCwd: base, conditions: ["node", "react-server", "production"],
 });
-const optionalImports = ["pg-native", "cloudflare:sockets"];
+const optionalImports = ["pg-native", "cloudflare:sockets", "@opentelemetry/api (BetterAuth optional instrumentation only)"];
 const unresolved = [...warnings].filter(warning => {
   if (/^Failed to resolve dependency "pg-native":/.test(warning.message)) return false;
+  // BetterAuth core1.7.7 declares this peer optional and catches its import,
+  // falling back to instrumentation/noop.mjs. Do not exempt other importers.
+  if (/^Failed to resolve dependency "@opentelemetry\/api":/.test(warning.message) && warning.message.replaceAll("\\", "/").includes("/@better-auth/core/dist/instrumentation/api.mjs")) return false;
   return !(/^Failed to resolve dependency "cloudflare:sockets":/.test(warning.message) && warning.message.includes("pg-cloudflare"));
 });
 if (unresolved.length) {

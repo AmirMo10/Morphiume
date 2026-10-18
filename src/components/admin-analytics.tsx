@@ -12,11 +12,18 @@ import { reportRange, reportUnits } from "./report-ui";
 import { usePagedData } from "./use-paged-data";
 
 export function AdminAnalytics() {
+  const session = useAdmin();
+  return session?.accessMode === "private-preview" ? <AuthorizedAnalytics /> : <AuthenticatedAnalytics />;
+}
+function AuthenticatedAnalytics() {
   const session = useAdmin(), native = adminAuth.useSession();
   if (native.isPending || native.isRefetching) return <Loading label="در حال بررسی حساب مدیریت…" />;
   if (native.error || !native.data?.user || native.data.user.id !== session?.user.id) return <Notice error>حساب مدیریت نیازمند بررسی دوباره است. <Link href="/admin/login" className="text-link">ورود دوباره به مدیریت</Link></Notice>;
-  // The server-provided permission list is authoritative; do not infer from a role name.
-  // A string set also permits the isolated panel before the shared union is integrated.
+  return <AuthorizedAnalytics />;
+}
+function AuthorizedAnalytics() {
+  const session = useAdmin();
+  // The server-provided permission list is authoritative in both access modes.
   if (!session?.mfaVerified || !new Set<string>(session.permissions ?? []).has("analytics.read")) return <Notice error>اجازهٔ مشاهدهٔ آمار فعالیت را ندارید.</Notice>;
   return <AnalyticsAccess key={session.user.id} />;
 }

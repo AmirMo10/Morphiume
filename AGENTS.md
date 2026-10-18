@@ -20,6 +20,7 @@ Pinned package manager pnpm. Commands: pnpm install --frozen-lockfile; pnpm dev;
 - PostgreSQL governs price, stock, reservations and receipts. Fixed SKU lock order; no oversell; immutable order snapshots; one inventory/fulfillment commitment per order; distinct receipts recorded.
 - Persist idempotency/order/attempt before network, bind keys to actor and payload, use transactional outbox and DB dedup. Callback browser status is not payment proof.
 - Maintained auth library, separate customer/admin sessions, mandatory admin MFA, fresh operation/object permissions, CSRF and private-response no-store. DB/secrets are server-only; no auth tokens in browser storage.
+- User-authorized exception: the private staging preview at http://192.168.240.51 may open the admin panel without browser login/MFA, only through the existing client IP restriction and explicit protected server capability. Attribute actions to a separate shared preview operator, preserve owner credentials and normal/default/restore/live authentication, and retain transactional permission checks. See docs/ops/PRIVATE_PREVIEW_ACCESS.md.
 - DEPLOYMENT_ENV=test|staging|live differs from NODE_ENV. Live rejects mocks, sample/default credentials, missing required services and unsafe origins. Controlled test adapters use no live secrets/data.
 - Root HTML lang=fa dir=rtl, logical CSS, bidi isolation, Persian/Arabic/Latin numeric input, UTC storage/Tehran business time, accessible labels/focus/errors and reduced motion.
 

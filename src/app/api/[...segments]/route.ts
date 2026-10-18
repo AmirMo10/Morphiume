@@ -215,7 +215,7 @@ async function dispatch(request: NextRequest): Promise<Response> {
     recordCommerceResponse("payment.verification.response", { orderId: result.orderId, outcome: result.status });
     return NextResponse.redirect(new URL(`/orders/${result.orderId}`, getConfig().APP_BASE_URL), 303);
   }
-  if (route === "admin/session" && method === "GET") { const state = await adminSession(request.headers); return success({user:state.user,role:state.role,roles:state.roles,permissions:state.permissions,mfaRequired:state.mfaRequired,mfaVerified:state.mfaVerified}); }
+  if (route === "admin/session" && method === "GET") { const state = await adminSession(request.headers); return success({user:state.user,role:state.role,roles:state.roles,permissions:state.permissions,mfaRequired:state.mfaRequired,mfaVerified:state.mfaVerified,accessMode:state.accessMode}); }
   if (path[0] === "admin") {
     if(path[1] === "notifications") {
       const actor=await adminActor(request.headers),feed=getNotificationFeed();

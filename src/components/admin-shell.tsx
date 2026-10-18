@@ -8,7 +8,7 @@ import { api, ApiError, authMessage, errorMessage, Loading, Notice } from "./com
 import { AdminIcon, type AdminIconName } from "./admin-icons";
 import { CspImage } from "./csp-image";
 
-export type AdminSession = { user: { id: string; name: string; email: string }; role: Role; roles?: Role[]; permissions?: Permission[]; mfaVerified: boolean; mfaRequired?: boolean };
+export type AdminSession = { user: { id: string; name: string; email: string }; role: Role; roles?: Role[]; permissions?: Permission[]; mfaVerified: boolean; mfaRequired?: boolean; accessMode?: "private-preview" | "authenticated" };
 const permissions: Record<Role, Permission[]> = { owner: ["catalog.write", "inventory.write", "orders.read", "orders.fulfill", "refunds.write", "roles.write", "content.write", "analytics.read"], product_manager: ["catalog.write", "content.write", "analytics.read"], fulfillment: ["inventory.write", "orders.read", "orders.fulfill"], support: ["orders.read"], finance: ["orders.read", "refunds.write", "analytics.read"] };
 const roleLabels: Record<Role, string> = { owner: "مالک فروشگاه", product_manager: "مدیر محصول", fulfillment: "مسئول آماده‌سازی", support: "پشتیبانی", finance: "امور مالی" };
 const Context = createContext<AdminSession | null>(null);
@@ -45,6 +45,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
   }, [navigation]);
   if (pathname === "/admin/login") return <div className="admin-login-layout">{children}</div>;
   if (!session) return <main id="main" className="page admin-access-state">{error ? <Notice error>{error}<Link href="/admin/login" className="text-link">ورود دوباره</Link></Notice> : <Loading label="در حال بررسی دسترسی مدیریت…" />}</main>;
+  const preview = session.accessMode === "private-preview";
+  const sessionScope = [session.accessMode ?? "authenticated", session.user.id, ...(session.roles ?? [session.role]), ...(session.permissions ?? permissions[session.role] ?? [])].join(":");
   const groups: { label: string; links: Destination[] }[] = [
     { label: "فضای کار", links: [{ href: "/admin", label: "نمای کلی", icon: "overview" }, { href: "/admin/orders", label: "سفارش‌ها", icon: "orders", permission: "orders.read" }, { href: "/admin/inventory", label: "موجودی", icon: "inventory", permission: "inventory.write" }, { href: "/admin/notifications", label: "اعلان‌های مدیریت", icon: "notifications", visible: hasPermission(session, "orders.fulfill") || hasPermission(session, "refunds.write") }] },
     { label: "کاتالوگ و فروش", links: [{ href: "/admin/products", label: "محصولات", icon: "products", permission: "catalog.write" }, { href: "/admin/collections", label: "مجموعه‌ها", icon: "collections", permission: "catalog.write" }, { href: "/admin/bulk", label: "ویرایش گروهی", icon: "bulk", permission: hasPermission(session, "catalog.write") ? "catalog.write" : "inventory.write" }, { href: "/admin/import", label: "ورود گروهی محصولات", icon: "import", permission: "catalog.write" }, { href: "/admin/coupons", label: "تخفیف‌ها", icon: "coupons", permission: "content.write" }, { href: "/admin/shipping", label: "هزینهٔ ارسال", icon: "shipping", permission: "refunds.write" }] },
@@ -62,7 +64,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
       setSession(null); router.replace("/admin/login");
     } catch (failure) { setError(errorMessage(failure)); setSigningOut(false); }
   };
-  return <Context.Provider value={session}><div className="admin-layout">
+  return <Context.Provider key={sessionScope} value={session}><div className="admin-layout">
     <header className="admin-topbar">
       <div className="admin-topbar-start">
         <button type="button" className="admin-menu-toggle secondary" aria-label={navigation ? "بستن منوی مدیریت" : "بازکردن منوی مدیریت"} aria-expanded={navigation} aria-controls="admin-navigation" onClick={() => setNavigation(!navigation)}><AdminIcon name="menu" /></button>
@@ -72,13 +74,13 @@ export function AdminShell({ children }: { children: ReactNode }) {
           {pathname.split("/").length > 3 && <><span aria-hidden="true">/</span><span>{pathname.endsWith("/new") ? "افزودن" : "جزئیات"}</span></>}
         </nav>
       </div>
-      <div className="admin-session"><span className="admin-session-avatar" aria-hidden="true">{(session.user.name || session.user.email).slice(0, 1).toUpperCase()}</span><div><bdi>{session.user.name || session.user.email}</bdi><small>{roleLabels[session.role]}</small></div><span className="admin-secure"><AdminIcon name="check" />تأیید دومرحله‌ای</span></div>
+      <div className="admin-session"><span className="admin-session-avatar" aria-hidden="true">{(session.user.name || session.user.email).slice(0, 1).toUpperCase()}</span><div><bdi>{session.user.name || session.user.email}</bdi><small>{preview ? "حساب مشترک پیش‌نمایش" : roleLabels[session.role]}</small></div><span className="admin-secure"><AdminIcon name="check" />{preview ? "پیش‌نمایش آزاد" : "تأیید دومرحله‌ای"}</span></div>
     </header>
     <aside className="admin-sidebar" id="admin-navigation" data-open={navigation}>
       <Link href="/admin" className="admin-brand" aria-label="Morphiume — نمای کلی مدیریت" onClick={() => setNavigation(false)}><CspImage src="/brand/morphiume-wordmark.svg" alt="" width={526} height={122} /><small>مدیریت فروشگاه</small></Link>
       <nav aria-label="پنل مدیریت">{allowed.map(group => <div className="admin-nav-group" key={group.label}><p>{group.label}</p>{group.links.map(link => <Link href={link.href} key={link.href} onClick={() => setNavigation(false)} aria-current={current?.href === link.href ? "page" : undefined}><AdminIcon name={link.icon} /><span>{link.label}</span></Link>)}</div>)}</nav>
-      <div className="admin-sidebar-footer"><Link href="/" className="admin-store-link">مشاهدهٔ فروشگاه<AdminIcon name="arrow" /></Link><button className="admin-signout" disabled={signingOut} onClick={() => void signOut()}><AdminIcon name="logout" />{signingOut ? "در حال خروج…" : "خروج از مدیریت"}</button></div>
+      <div className="admin-sidebar-footer"><Link href="/" className="admin-store-link">{preview ? "بازگشت به فروشگاه" : "مشاهدهٔ فروشگاه"}<AdminIcon name="arrow" /></Link>{!preview && <button className="admin-signout" disabled={signingOut} onClick={() => void signOut()}><AdminIcon name="logout" />{signingOut ? "در حال خروج…" : "خروج از مدیریت"}</button>}</div>
     </aside>
-    <main id="main" className="admin-main">{error && <Notice error>{error}</Notice>}{children}<footer className="admin-workspace-footer"><bdi>Morphiume</bdi><span>فضای مدیریت فروشگاه</span></footer></main>
+    <main id="main" className="admin-main">{preview && <Notice silent>پیش‌نمایش آزمایشی با حساب مشترک باز است. تغییرهای این پنل در داده‌های آزمایشی ذخیره و به حساب پیش‌نمایش نسبت داده می‌شوند.</Notice>}{error && <Notice error>{error}</Notice>}{children}<footer className="admin-workspace-footer"><bdi>Morphiume</bdi><span>فضای مدیریت فروشگاه</span></footer></main>
   </div></Context.Provider>;
 }

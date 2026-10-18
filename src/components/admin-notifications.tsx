@@ -8,9 +8,17 @@ import { ApiError, Loading, Notice } from "./commerce-client";
 import { NotificationInbox } from "./notifications";
 
 export function AdminNotifications() {
+  const session = useAdmin();
+  return session?.accessMode === "private-preview" ? <AuthorizedNotifications /> : <AuthenticatedNotifications />;
+}
+function AuthenticatedNotifications() {
   const session = useAdmin(), native = adminAuth.useSession();
   if (native.isPending || native.isRefetching) return <Loading label="در حال بررسی حساب مدیریت…" />;
   if (native.error || !native.data?.user || native.data.user.id !== session?.user.id) return <Notice error>حساب مدیریت نیازمند بررسی دوباره است. <Link href="/admin/login" className="text-link">ورود دوباره به مدیریت</Link></Notice>;
+  return <AuthorizedNotifications />;
+}
+function AuthorizedNotifications() {
+  const session = useAdmin();
   const allowed = session?.permissions?.includes("orders.fulfill") || session?.permissions?.includes("refunds.write");
   if (!session?.mfaVerified || !allowed) return <Notice error>اجازهٔ مشاهدهٔ اعلان‌های مدیریت را ندارید.</Notice>;
   const permissionScope = ["orders.fulfill", "refunds.write", "orders.read"].map(permission => session.permissions?.some(value => value === permission) === true).join(":");
