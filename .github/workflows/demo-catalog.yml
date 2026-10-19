@@ -1,0 +1,33 @@
+name: Verify professional demo catalog
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'deploy/staging/demo-catalog/**'
+      - 'tests/ops/demo-catalog.test.mjs'
+      - 'tests/ops/demo-catalog.test.py'
+      - '.github/workflows/demo-catalog.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  catalog:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24.21.0
+      - name: Validate the committed fictional catalog and actual WebP files
+        run: node deploy/staging/demo-catalog/validate.mjs
+      - name: Verify finite native API and preservation guards without services
+        run: node --test tests/ops/demo-catalog.test.mjs
+      - name: Verify observer syntax and non-executing defaults
+        run: |
+          python3 -I -B -c "import ast,pathlib; ast.parse(pathlib.Path('deploy/staging/demo-catalog/observe.py').read_text())"
+          python3 -I -B tests/ops/demo-catalog.test.py
+          python3 -I -B deploy/staging/demo-catalog/observe.py
+          node deploy/staging/demo-catalog/native.mjs

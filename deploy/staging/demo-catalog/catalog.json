@@ -1,0 +1,336 @@
+{
+  "formatVersion": 1,
+  "mode": "morphiume-demo-catalog",
+  "brand": "Morphiume",
+  "sampleOnly": true,
+  "allowedEnvironments": [
+    "test",
+    "staging"
+  ],
+  "products": [
+    {
+      "key": "sepid",
+      "is_sample": true,
+      "latinName": "SEPID",
+      "sourceAssetFilename": "morphiume-demo-sepid.webp",
+      "media": {
+        "path": "deploy/staging/demo-catalog/media/morphiume-demo-sepid.webp",
+        "sha256": "d187532490be635b830bef5885be850ac188e2cb85c58fb3bbe50f7b48ce24a1",
+        "width": 1024,
+        "height": 1536,
+        "alt": "تصویر نمونهٔ توسعه؛ تصویر واقعی محصول نیست — سپیده؛ تصویر ساختگی تولیدشده با هوش مصنوعی — کاتالوگ آزمایشی"
+      },
+      "referencePriceIrr": {
+        "50": "9800000",
+        "100": "15800000"
+      },
+      "apiPayload": {
+        "name": "سپیده (آزمایشی)",
+        "slug": "demo-sepid",
+        "shortDescription": "نمونهٔ نمایشی و ساختگی؛ محصول واقعی نیست. روایتی روشن از مرکبات و چای سفید برای مرور کاتالوگ آزمایشی.",
+        "description": "نمونهٔ نمایشی و ساختگی؛ محصول واقعی نیست. سپیده، با نام لاتین SEPID، یک مفهوم خیالی در مجموعهٔ نمایشی Morphiume است: کنار هم نشستن ترنج، نارنگی و چای سفید در یک ترکیب فرضی. خانوادهٔ رایحه، نت‌ها، غلظت، حجم، قیمت و موجودی این صفحه فقط برای آزمایش انتخاب و خرید در فروشگاه تعریف شده‌اند و مشخصات کالای واقعی نیستند. تصویر با هوش مصنوعی ساخته شده و عکس محصول واقعی نیست. پرداخت و ارسال واقعی برای این نمونه فعال نیست.",
+        "careInstructions": "",
+        "approvedWarnings": "فقط برای نمایش و آزمون فروشگاه. نام، مشخصات رایحه، حجم، قیمت و موجودی ساختگی‌اند؛ این نمونه برای فروش یا ارسال واقعی ارائه نشده است.",
+        "concentration": "ادوپرفیوم (نمایشی)",
+        "family": "مرکباتی",
+        "topNotes": [
+          "ترنج",
+          "نارنگی"
+        ],
+        "heartNotes": [
+          "بهارنارنج",
+          "چای سفید"
+        ],
+        "baseNotes": [
+          "مشک",
+          "چوب سدر"
+        ],
+        "variants": [
+          {
+            "sku": "DEMO-SEPID-050",
+            "volumeMl": 50,
+            "priceToman": "980000",
+            "initialStock": 18
+          },
+          {
+            "sku": "DEMO-SEPID-100",
+            "volumeMl": 100,
+            "priceToman": "1580000",
+            "initialStock": 12
+          }
+        ]
+      },
+      "imagePrompt": "Fictional Morphiume SEPID fragrance concept, an AI-generated demo product image rather than evidence of real merchandise. Single beveled rectangular clear-glass bottle, matte charcoal cap, understated ivory label with exact text Morphiume, SEPID, DEMO CONCEPT; no volume, country, ingredients, certification or real-brand references. Pale gold liquid, warm bone backdrop, a small fold of natural ivory linen and one restrained citrus-peel accent. High-end editorial studio still life, natural soft side light, clean glass refraction, crisp fine edges, quiet shadow, generous negative space, frontal three-quarter composition, same bottle family and scale as the other five concepts, 3:4 portrait, no collage, no packaging box, no extra text or watermark. Props are visual styling for this fictional concept and make no real composition claim."
+    },
+    {
+      "key": "mehzar",
+      "is_sample": true,
+      "latinName": "MEHZAR",
+      "sourceAssetFilename": "morphiume-demo-mehzar.webp",
+      "media": {
+        "path": "deploy/staging/demo-catalog/media/morphiume-demo-mehzar.webp",
+        "sha256": "05b32129e1b054aa0a7e2d5df0852717a6ac18bcd67d133b6868ff218cf84929",
+        "width": 1024,
+        "height": 1536,
+        "alt": "تصویر نمونهٔ توسعه؛ تصویر واقعی محصول نیست — مه‌زار؛ تصویر ساختگی تولیدشده با هوش مصنوعی — کاتالوگ آزمایشی"
+      },
+      "referencePriceIrr": {
+        "50": "10800000",
+        "100": "17400000"
+      },
+      "apiPayload": {
+        "name": "مه‌زار (آزمایشی)",
+        "slug": "demo-mehzar",
+        "shortDescription": "نمونهٔ نمایشی و ساختگی؛ محصول واقعی نیست. همراهی فرضی چای سبز، مریم‌گلی و خزه در یک روایت سبز و آرام.",
+        "description": "نمونهٔ نمایشی و ساختگی؛ محصول واقعی نیست. مه‌زار، با نام لاتین MEHZAR، یک مفهوم خیالی در مجموعهٔ نمایشی Morphiume است: فضای سبز چای و مریم‌گلی در کنار چوب و خزه، تنها به‌عنوان داستان رایحهٔ این نمونه. خانوادهٔ رایحه، نت‌ها، غلظت، حجم، قیمت و موجودی این صفحه فقط برای آزمایش انتخاب و خرید در فروشگاه تعریف شده‌اند و مشخصات کالای واقعی نیستند. تصویر با هوش مصنوعی ساخته شده و عکس محصول واقعی نیست. پرداخت و ارسال واقعی برای این نمونه فعال نیست.",
+        "careInstructions": "",
+        "approvedWarnings": "فقط برای نمایش و آزمون فروشگاه. نام، مشخصات رایحه، حجم، قیمت و موجودی ساختگی‌اند؛ این نمونه برای فروش یا ارسال واقعی ارائه نشده است.",
+        "concentration": "ادوپرفیوم (نمایشی)",
+        "family": "سبز",
+        "topNotes": [
+          "گریپ‌فروت",
+          "برگ بنفشه"
+        ],
+        "heartNotes": [
+          "چای سبز",
+          "مریم‌گلی"
+        ],
+        "baseNotes": [
+          "خزه",
+          "چوب سدر"
+        ],
+        "variants": [
+          {
+            "sku": "DEMO-MEHZAR-050",
+            "volumeMl": 50,
+            "priceToman": "1080000",
+            "initialStock": 18
+          },
+          {
+            "sku": "DEMO-MEHZAR-100",
+            "volumeMl": 100,
+            "priceToman": "1740000",
+            "initialStock": 12
+          }
+        ]
+      },
+      "imagePrompt": "Fictional Morphiume MEHZAR fragrance concept, an AI-generated demo product image rather than evidence of real merchandise. Single beveled rectangular glass bottle, matte charcoal cap, understated ivory label with exact text Morphiume, MEHZAR, DEMO CONCEPT; no volume, country, ingredients, certification or real-brand references. Very pale muted green liquid, warm bone and muted sage backdrop, one small sculptural moss-texture stone beside the bottle. High-end editorial studio still life, natural soft side light, clean glass refraction, crisp fine edges, quiet shadow, generous negative space, frontal three-quarter composition, same bottle family and scale as the other five concepts, 3:4 portrait, no collage, no packaging box, no extra text or watermark. Props are visual styling for this fictional concept and make no real composition claim."
+    },
+    {
+      "key": "rozva",
+      "is_sample": true,
+      "latinName": "ROZVA",
+      "sourceAssetFilename": "morphiume-demo-rozva.webp",
+      "media": {
+        "path": "deploy/staging/demo-catalog/media/morphiume-demo-rozva.webp",
+        "sha256": "3e640c8368e1ae8b33e056d2e4559afcbaf775d2e1dc755170212359084eceec",
+        "width": 1024,
+        "height": 1536,
+        "alt": "تصویر نمونهٔ توسعه؛ تصویر واقعی محصول نیست — رزوا؛ تصویر ساختگی تولیدشده با هوش مصنوعی — کاتالوگ آزمایشی"
+      },
+      "referencePriceIrr": {
+        "50": "11800000",
+        "100": "19200000"
+      },
+      "apiPayload": {
+        "name": "رزوا (آزمایشی)",
+        "slug": "demo-rozva",
+        "shortDescription": "نمونهٔ نمایشی و ساختگی؛ محصول واقعی نیست. طرحی خیالی از رز و زنبق با جزئیات نرم مشک و چوب صندل.",
+        "description": "نمونهٔ نمایشی و ساختگی؛ محصول واقعی نیست. رزوا، با نام لاتین ROZVA، یک مفهوم خیالی در مجموعهٔ نمایشی Morphiume است: رز و زنبق، در یک طرح فرضی با اشاره‌هایی به گلابی، مشک و چوب صندل. خانوادهٔ رایحه، نت‌ها، غلظت، حجم، قیمت و موجودی این صفحه فقط برای آزمایش انتخاب و خرید در فروشگاه تعریف شده‌اند و مشخصات کالای واقعی نیستند. تصویر با هوش مصنوعی ساخته شده و عکس محصول واقعی نیست. پرداخت و ارسال واقعی برای این نمونه فعال نیست.",
+        "careInstructions": "",
+        "approvedWarnings": "فقط برای نمایش و آزمون فروشگاه. نام، مشخصات رایحه، حجم، قیمت و موجودی ساختگی‌اند؛ این نمونه برای فروش یا ارسال واقعی ارائه نشده است.",
+        "concentration": "ادوپرفیوم (نمایشی)",
+        "family": "گلی",
+        "topNotes": [
+          "گلابی",
+          "فلفل صورتی"
+        ],
+        "heartNotes": [
+          "رز",
+          "زنبق"
+        ],
+        "baseNotes": [
+          "مشک",
+          "چوب صندل"
+        ],
+        "variants": [
+          {
+            "sku": "DEMO-ROZVA-050",
+            "volumeMl": 50,
+            "priceToman": "1180000",
+            "initialStock": 18
+          },
+          {
+            "sku": "DEMO-ROZVA-100",
+            "volumeMl": 100,
+            "priceToman": "1920000",
+            "initialStock": 12
+          }
+        ]
+      },
+      "imagePrompt": "Fictional Morphiume ROZVA fragrance concept, an AI-generated demo product image rather than evidence of real merchandise. Single beveled rectangular clear-glass bottle, matte charcoal cap, understated ivory label with exact text Morphiume, ROZVA, DEMO CONCEPT; no volume, country, ingredients, certification or real-brand references. Subtle blush liquid, warm ivory and dusty rose backdrop, two restrained sculptural rose petals beside the bottle. High-end editorial studio still life, natural soft side light, clean glass refraction, crisp fine edges, quiet shadow, generous negative space, frontal three-quarter composition, same bottle family and scale as the other five concepts, 3:4 portrait, no collage, no packaging box, no extra text or watermark. Props are visual styling for this fictional concept and make no real composition claim."
+    },
+    {
+      "key": "narvan",
+      "is_sample": true,
+      "latinName": "NARVAN",
+      "sourceAssetFilename": "morphiume-demo-narvan.webp",
+      "media": {
+        "path": "deploy/staging/demo-catalog/media/morphiume-demo-narvan.webp",
+        "sha256": "219fef5e359f243ed2b8293568743c2e28017c96646189ec312d9b50db7808a4",
+        "width": 1024,
+        "height": 1536,
+        "alt": "تصویر نمونهٔ توسعه؛ تصویر واقعی محصول نیست — نارون؛ تصویر ساختگی تولیدشده با هوش مصنوعی — کاتالوگ آزمایشی"
+      },
+      "referencePriceIrr": {
+        "50": "12400000",
+        "100": "20400000"
+      },
+      "apiPayload": {
+        "name": "نارون (آزمایشی)",
+        "slug": "demo-narvan",
+        "shortDescription": "نمونهٔ نمایشی و ساختگی؛ محصول واقعی نیست. طرحی چوبی با سدر و وتیور؛ روایتی فرضی با جزئیات هل و انجیر.",
+        "description": "نمونهٔ نمایشی و ساختگی؛ محصول واقعی نیست. نارون، با نام لاتین NARVAN، یک مفهوم خیالی در مجموعهٔ نمایشی Morphiume است: سدر، وتیور و چوب صندل در کنار اشاره‌هایی فرضی به هل و برگ انجیر. خانوادهٔ رایحه، نت‌ها، غلظت، حجم، قیمت و موجودی این صفحه فقط برای آزمایش انتخاب و خرید در فروشگاه تعریف شده‌اند و مشخصات کالای واقعی نیستند. تصویر با هوش مصنوعی ساخته شده و عکس محصول واقعی نیست. پرداخت و ارسال واقعی برای این نمونه فعال نیست.",
+        "careInstructions": "",
+        "approvedWarnings": "فقط برای نمایش و آزمون فروشگاه. نام، مشخصات رایحه، حجم، قیمت و موجودی ساختگی‌اند؛ این نمونه برای فروش یا ارسال واقعی ارائه نشده است.",
+        "concentration": "ادوپرفیوم (نمایشی)",
+        "family": "چوبی",
+        "topNotes": [
+          "هل",
+          "ترنج"
+        ],
+        "heartNotes": [
+          "چوب سدر",
+          "برگ انجیر"
+        ],
+        "baseNotes": [
+          "وتیور",
+          "چوب صندل"
+        ],
+        "variants": [
+          {
+            "sku": "DEMO-NARVAN-050",
+            "volumeMl": 50,
+            "priceToman": "1240000",
+            "initialStock": 18
+          },
+          {
+            "sku": "DEMO-NARVAN-100",
+            "volumeMl": 100,
+            "priceToman": "2040000",
+            "initialStock": 12
+          }
+        ]
+      },
+      "imagePrompt": "Fictional Morphiume NARVAN fragrance concept, an AI-generated demo product image rather than evidence of real merchandise. Single beveled rectangular glass bottle, matte charcoal cap, understated ivory label with exact text Morphiume, NARVAN, DEMO CONCEPT; no volume, country, ingredients, certification or real-brand references. Pale umber liquid, warm bone backdrop, one minimal dark-wood sculptural block and a calm earthy shadow. High-end editorial studio still life, natural soft side light, clean glass refraction, crisp fine edges, quiet shadow, generous negative space, frontal three-quarter composition, same bottle family and scale as the other five concepts, 3:4 portrait, no collage, no packaging box, no extra text or watermark. Props are visual styling for this fictional concept and make no real composition claim."
+    },
+    {
+      "key": "kahruba",
+      "is_sample": true,
+      "latinName": "KAHRUBA",
+      "sourceAssetFilename": "morphiume-demo-kahruba.webp",
+      "media": {
+        "path": "deploy/staging/demo-catalog/media/morphiume-demo-kahruba.webp",
+        "sha256": "5b4b0f689686f1a7c728986693c2e971cbbd596092ca0fac56cccd2e0c45eaef",
+        "width": 1024,
+        "height": 1536,
+        "alt": "تصویر نمونهٔ توسعه؛ تصویر واقعی محصول نیست — کهربا؛ تصویر ساختگی تولیدشده با هوش مصنوعی — کاتالوگ آزمایشی"
+      },
+      "referencePriceIrr": {
+        "50": "13200000",
+        "100": "21800000"
+      },
+      "apiPayload": {
+        "name": "کهربا (آزمایشی)",
+        "slug": "demo-kahruba",
+        "shortDescription": "نمونهٔ نمایشی و ساختگی؛ محصول واقعی نیست. تصویری خیالی از گرمای کهربا و بنزوئین، با اشاره‌هایی به وانیل و زعفران.",
+        "description": "نمونهٔ نمایشی و ساختگی؛ محصول واقعی نیست. کهربا، با نام لاتین KAHRUBA، یک مفهوم خیالی در مجموعهٔ نمایشی Morphiume است: یک آکورد فرضی کهربایی، با بنزوئین و اشاره‌هایی به وانیل و زعفران. خانوادهٔ رایحه، نت‌ها، غلظت، حجم، قیمت و موجودی این صفحه فقط برای آزمایش انتخاب و خرید در فروشگاه تعریف شده‌اند و مشخصات کالای واقعی نیستند. تصویر با هوش مصنوعی ساخته شده و عکس محصول واقعی نیست. پرداخت و ارسال واقعی برای این نمونه فعال نیست.",
+        "careInstructions": "",
+        "approvedWarnings": "فقط برای نمایش و آزمون فروشگاه. نام، مشخصات رایحه، حجم، قیمت و موجودی ساختگی‌اند؛ این نمونه برای فروش یا ارسال واقعی ارائه نشده است.",
+        "concentration": "ادوپرفیوم (نمایشی)",
+        "family": "کهربایی",
+        "topNotes": [
+          "زعفران",
+          "نارنگی"
+        ],
+        "heartNotes": [
+          "کهربا",
+          "لابدانوم"
+        ],
+        "baseNotes": [
+          "وانیل",
+          "بنزوئین"
+        ],
+        "variants": [
+          {
+            "sku": "DEMO-KAHRUBA-050",
+            "volumeMl": 50,
+            "priceToman": "1320000",
+            "initialStock": 18
+          },
+          {
+            "sku": "DEMO-KAHRUBA-100",
+            "volumeMl": 100,
+            "priceToman": "2180000",
+            "initialStock": 12
+          }
+        ]
+      },
+      "imagePrompt": "Fictional Morphiume KAHRUBA fragrance concept, an AI-generated demo product image rather than evidence of real merchandise. Single beveled rectangular glass bottle, matte charcoal cap, understated ivory label with exact text Morphiume, KAHRUBA, DEMO CONCEPT; no volume, country, ingredients, certification or real-brand references. Deep amber liquid, warm bone backdrop with a restrained wine-colored side plane and one pale stone slab. High-end editorial studio still life, natural soft side light, clean glass refraction, crisp fine edges, quiet shadow, generous negative space, frontal three-quarter composition, same bottle family and scale as the other five concepts, 3:4 portrait, no collage, no packaging box, no extra text or watermark. Props are visual styling for this fictional concept and make no real composition claim."
+    },
+    {
+      "key": "shabgun",
+      "is_sample": true,
+      "latinName": "SHABGUN",
+      "sourceAssetFilename": "morphiume-demo-shabgun.webp",
+      "media": {
+        "path": "deploy/staging/demo-catalog/media/morphiume-demo-shabgun.webp",
+        "sha256": "df6d3320aea555a0826b73f3cf64fcd9a7aff7f24fd198a9faf048df3a8ac397",
+        "width": 1024,
+        "height": 1536,
+        "alt": "تصویر نمونهٔ توسعه؛ تصویر واقعی محصول نیست — شبگون؛ تصویر ساختگی تولیدشده با هوش مصنوعی — کاتالوگ آزمایشی"
+      },
+      "referencePriceIrr": {
+        "50": "14200000",
+        "100": "23400000"
+      },
+      "apiPayload": {
+        "name": "شبگون (آزمایشی)",
+        "slug": "demo-shabgun",
+        "shortDescription": "نمونهٔ نمایشی و ساختگی؛ محصول واقعی نیست. روایتی فرضی از فلفل سیاه و هل، همراه با سایه‌هایی از بخور و نعناع هندی.",
+        "description": "نمونهٔ نمایشی و ساختگی؛ محصول واقعی نیست. شبگون، با نام لاتین SHABGUN، یک مفهوم خیالی در مجموعهٔ نمایشی Morphiume است: فلفل سیاه و هل در کنار لایه‌های فرضی بخور و نعناع هندی. خانوادهٔ رایحه، نت‌ها، غلظت، حجم، قیمت و موجودی این صفحه فقط برای آزمایش انتخاب و خرید در فروشگاه تعریف شده‌اند و مشخصات کالای واقعی نیستند. تصویر با هوش مصنوعی ساخته شده و عکس محصول واقعی نیست. پرداخت و ارسال واقعی برای این نمونه فعال نیست.",
+        "careInstructions": "",
+        "approvedWarnings": "فقط برای نمایش و آزمون فروشگاه. نام، مشخصات رایحه، حجم، قیمت و موجودی ساختگی‌اند؛ این نمونه برای فروش یا ارسال واقعی ارائه نشده است.",
+        "concentration": "ادوپرفیوم (نمایشی)",
+        "family": "ادویه‌ای",
+        "topNotes": [
+          "فلفل سیاه",
+          "هل"
+        ],
+        "heartNotes": [
+          "بخور",
+          "برگ بنفشه"
+        ],
+        "baseNotes": [
+          "نعناع هندی",
+          "چوب سدر"
+        ],
+        "variants": [
+          {
+            "sku": "DEMO-SHABGUN-050",
+            "volumeMl": 50,
+            "priceToman": "1420000",
+            "initialStock": 18
+          },
+          {
+            "sku": "DEMO-SHABGUN-100",
+            "volumeMl": 100,
+            "priceToman": "2340000",
+            "initialStock": 12
+          }
+        ]
+      },
+      "imagePrompt": "Fictional Morphiume SHABGUN fragrance concept, an AI-generated demo product image rather than evidence of real merchandise. Single beveled rectangular glass bottle, matte charcoal cap, understated ivory label with exact text Morphiume, SHABGUN, DEMO CONCEPT; no volume, country, ingredients, certification or real-brand references. Muted smoky purple liquid, pale bone backdrop with a charcoal sculptural plane and a soft dusky violet reflection. High-end editorial studio still life, natural soft side light, clean glass refraction, crisp fine edges, quiet shadow, generous negative space, frontal three-quarter composition, same bottle family and scale as the other five concepts, 3:4 portrait, no collage, no packaging box, no visible smoke, no extra text or watermark. Props are visual styling for this fictional concept and make no real composition claim."
+    }
+  ]
+}
