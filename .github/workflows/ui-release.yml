@@ -1,0 +1,27 @@
+name: Verify UI release operator guards
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'deploy/staging/ui-release/**'
+      - 'tests/ops/ui-release.test.py'
+      - 'docs/ops/UI_RELEASE_RUNBOOK.md'
+      - '.github/workflows/ui-release.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  guards:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Verify operator code syntax and non-executing defaults
+        run: |
+          python3 -I -B -c "import ast,pathlib; [ast.parse(p.read_text(), filename=str(p)) for p in pathlib.Path('deploy/staging/ui-release').glob('*.py')]"
+          python3 -I -B deploy/staging/ui-release/control.py
+          python3 -I -B deploy/staging/ui-release/schedule.py
+      - name: Exercise image-only release safety guards without services
+        run: python3 -I -B tests/ops/ui-release.test.py
