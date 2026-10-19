@@ -21,8 +21,8 @@ export function ProductMedia({ image, eager = false, id, unavailableLabel = "ت�
     if (element?.complete) measure(element);
   }, [measure]);
   const lowResolution = !!url && measurement?.url === url && measurement.lowResolution;
-  return <div ref={container} id={id} className={`product-image${lowResolution ? " sf-media-low-resolution" : ""}`} onLoadCapture={event => { if (event.target instanceof HTMLImageElement) measure(event.target); }}>
-    {image ? <><CspImage className="sf-original-product-image" src={image.url} alt={image.alt} width={640} height={800} loading={eager ? "eager" : "lazy"} />{lowResolution && <><span className="sf-media-quality-mark" aria-hidden="true"><CspImage src="/brand/morphiume-mark.svg" alt="" width={96} height={96} /></span><span className="sf-media-quality-label">تصویر با وضوح محدود</span></>}</> : <div className="image-unavailable"><CspImage src="/brand/morphiume-mark.svg" alt="" width={72} height={96} /><span>{unavailableLabel}</span></div>}
+  return <div ref={container} id={id} className={`product-image${lowResolution ? " sf-media-low-resolution" : ""}${!image ? " sf-media-missing" : ""}`} onLoadCapture={event => { if (event.target instanceof HTMLImageElement) measure(event.target); }}>
+    {image ? <><CspImage className="sf-original-product-image" src={image.url} alt={image.alt} width={640} height={800} loading={eager ? "eager" : "lazy"} />{lowResolution && <><span className="sf-media-quality-brand" aria-hidden="true"><bdi>Morphiume</bdi></span><span className="sf-media-quality-mark" aria-hidden="true"><CspImage src="/brand/morphiume-mark.svg" alt="" width={96} height={96} /></span><span className="sf-media-quality-label">تصویر با وضوح محدود</span></>}</> : <div className="image-unavailable"><CspImage src="/brand/morphiume-mark.svg" alt="" width={72} height={96} /><span>{unavailableLabel}</span></div>}
   </div>;
 }
 

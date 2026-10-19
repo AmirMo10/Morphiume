@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-export type AdminIconName = "overview" | "products" | "inventory" | "orders" | "shipping" | "collections" | "bulk" | "import" | "customers" | "reports" | "analytics" | "notifications" | "audit" | "content" | "presentation" | "settings" | "coupons" | "arrow" | "refresh" | "menu" | "logout" | "check";
+export type AdminIconName = "overview" | "products" | "inventory" | "orders" | "shipping" | "collections" | "bulk" | "import" | "customers" | "reports" | "analytics" | "notifications" | "audit" | "content" | "presentation" | "settings" | "coupons" | "arrow" | "refresh" | "menu" | "logout" | "check" | "search" | "plus" | "external";
 const paths: Record<AdminIconName, ReactNode> = {
   overview: <><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></>,
   products: <path d="m12 3 9 5-9 5-9-5 9-5Zm-9 5v9l9 5 9-5V8M12 13v9M7.5 5.5l9 5" />,
@@ -24,6 +24,9 @@ const paths: Record<AdminIconName, ReactNode> = {
   menu: <path d="M4 6h16M4 12h16M4 18h16" />,
   logout: <path d="M10 4H4v16h6M9 12h12m-5-5 5 5-5 5" />,
   check: <path d="m5 12 4 4L19 6" />,
+  search: <><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 5 5" /></>,
+  plus: <path d="M12 5v14M5 12h14" />,
+  external: <><path d="M14 3h7v7m0-7L11 13M10 4H4v16h16v-6" /></>,
 };
 export function AdminIcon({ name }: { name: AdminIconName }) {
   return <svg className="admin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">{paths[name]}</svg>;

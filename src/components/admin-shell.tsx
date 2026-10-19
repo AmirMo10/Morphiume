@@ -77,16 +77,17 @@ export function AdminShell({ children }: { children: ReactNode }) {
     <header className="admin-topbar">
       <div className="admin-topbar-start">
         <button ref={navigationToggle} type="button" className="admin-menu-toggle secondary" aria-label={navigation ? "بستن منوی مدیریت" : "بازکردن منوی مدیریت"} aria-expanded={navigation} aria-controls="admin-navigation" onClick={() => setNavigation(!navigation)}><AdminIcon name="menu" /></button>
+        <span className="admin-workspace-symbol" aria-hidden="true"><AdminIcon name={current?.icon ?? "overview"} /></span>
         <nav className="admin-breadcrumb" aria-label="مسیر مدیریت">
           <Link href="/admin" aria-current={pathname === "/admin" ? "page" : undefined}>مدیریت فروشگاه</Link>
           {pathname !== "/admin" && <><span aria-hidden="true">/</span>{detail ? <Link href={current.href}>{current.label}</Link> : <span aria-current="page">{current?.label ?? "جزئیات"}</span>}</>}
           {detail && <><span aria-hidden="true">/</span><span aria-current="page">{detailLabel}</span></>}
         </nav>
       </div>
-      <div className="admin-session"><span className="admin-session-avatar" aria-hidden="true">{(session.user.name || session.user.email).slice(0, 1).toUpperCase()}</span><div><bdi>{session.user.name || session.user.email}</bdi><small>{preview ? "حساب مشترک پیش‌نمایش" : roleLabels[session.role]}</small></div><span className="admin-secure"><AdminIcon name="check" />{preview ? "پیش‌نمایش آزاد" : "تأیید دومرحله‌ای"}</span></div>
+      <div className="admin-topbar-end"><Link href="/" className="admin-open-store">بازکردن فروشگاه<AdminIcon name="external" /></Link><div className="admin-session"><span className="admin-session-avatar" aria-hidden="true">{(session.user.name || session.user.email).slice(0, 1).toUpperCase()}</span><div><bdi>{session.user.name || session.user.email}</bdi><small>{preview ? "حساب مشترک پیش‌نمایش" : roleLabels[session.role]}</small></div><span className="admin-secure"><AdminIcon name="check" />{preview ? "پیش‌نمایش آزاد" : "تأیید دومرحله‌ای"}</span></div></div>
     </header>
     <aside ref={navigationPanel} className="admin-sidebar" id="admin-navigation" data-open={navigation}>
-      <Link href="/admin" className="admin-brand" aria-label="Morphiume — نمای کلی مدیریت" onClick={() => setNavigation(false)}><CspImage src="/brand/morphiume-wordmark.svg" alt="" width={526} height={122} /><small>مدیریت فروشگاه</small></Link>
+      <Link href="/admin" className="admin-brand" aria-label="Morphiume — نمای کلی مدیریت" onClick={() => setNavigation(false)}><CspImage src="/brand/morphiume-wordmark-light.svg" alt="" width={526} height={122} /><small><span aria-hidden="true" />فضای مدیریت فروشگاه</small></Link>
       <div className="admin-mobile-nav-tools"><button type="button" className="text-button" onClick={() => { setNavigation(false); navigationToggle.current?.focus(); }}>بستن فهرست</button><a href="#main" className="text-link" onClick={() => setNavigation(false)}>رفتن به محتوای صفحه</a></div>
       <p className="admin-nav-current">بخش فعلی: <strong>{current?.label ?? "مدیریت فروشگاه"}</strong></p>
       <nav aria-label="پنل مدیریت">{allowed.map(group => <div className="admin-nav-group" key={group.label}><p>{group.label}</p>{group.links.map(link => <Link href={link.href} key={link.href} onClick={() => setNavigation(false)} aria-current={current?.href === link.href ? "page" : undefined}><AdminIcon name={link.icon} /><span>{link.label}</span></Link>)}</div>)}</nav>

@@ -2,6 +2,11 @@ name: Verify and build staging image
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - 'deploy/staging/ui-release/**'
+      - 'tests/ops/ui-release.test.py'
+      - 'docs/ops/UI_RELEASE_RUNBOOK.md'
+      - '.github/workflows/ui-release.yml'
   workflow_dispatch:
 permissions:
   contents: read
