@@ -110,6 +110,12 @@ hr { border: 0; border-block-start: 1px solid var(--color-border-subtle); margin
 .product-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 48px 24px; }
 .product-image { background: var(--color-surface); aspect-ratio: 4/5; position: relative; overflow: hidden; }
 .product-image > img { width: 100%; height: 100%; object-fit: contain; }
+/* Shared by storefront media and the admin draft preview. Keep tiny originals at their intrinsic size. */
+.product-image.sf-media-low-resolution { background: var(--color-canvas); }
+.product-image.sf-media-low-resolution img.sf-original-product-image { inline-size: 100%; block-size: 100%; object-fit: scale-down; object-position: center 66%; transform: none; }
+.product-image .sf-media-quality-mark { position: absolute; inset-inline: 0; margin-inline: auto; inline-size: 96px; inset-block-start: 36%; transform: translateY(-50%); pointer-events: none; }
+.product-image .sf-media-quality-mark > img { inline-size: 96px; block-size: 96px; max-inline-size: none; object-fit: contain; opacity: .18; transform: none; }
+.product-image .sf-media-quality-label { position: absolute; inset-inline: 12px; inset-block-end: 16px; color: var(--color-muted); font-size: 13px; line-height: 1.8; text-align: center; pointer-events: none; }
 .product-gallery { min-inline-size: 0; }
 .gallery-thumbnails { display: flex; flex-wrap: wrap; gap: 12px; margin-block-start: 16px; }
 .gallery-thumbnail { background: var(--color-surface); border: 1px solid var(--color-border-control); padding: 4px; inline-size: 72px; block-size: 88px; flex: none; }

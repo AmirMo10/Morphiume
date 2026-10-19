@@ -78,8 +78,7 @@ test("T01/T12/T17/T19/T20/T21/T23/T25: real admin product → guest purchase →
     await expect(page).toHaveURL(/\/admin\/products\/[0-9a-f-]+$/);
     productId = page.url().split("/").at(-1)!;
     await readyDraftScreenshot(page, productName);
-    await mkdir("docs/qa/screenshots", { recursive: true });
-    await page.screenshot({ path: `docs/qa/screenshots/admin-product-draft-${info.project.name}.png`, fullPage: true });
+    await page.screenshot({ path: info.outputPath("admin-product-draft.png"), fullPage: true });
     await page.getByRole("button", { name: "انتشار محصول", exact: true }).click();
     await expect(page.getByText("محصول منتشر شد.", { exact: true })).toBeVisible();
     await buyer.goto(`/products/${productId}`);
@@ -96,7 +95,7 @@ test("T01/T12/T17/T19/T20/T21/T23/T25: real admin product → guest purchase →
     const displayedMediaSha256 = createHash("sha256").update(await displayedMedia.body()).digest("hex");
     const catalogAxe = await new AxeBuilder({ page: buyer }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
     expect(catalogAxe.violations).toEqual([]);
-    await buyer.screenshot({ path: `docs/qa/screenshots/product-${info.project.name}-390.png`, fullPage: true });
+    await buyer.screenshot({ path: info.outputPath("product-390.png"), fullPage: true });
     await buyer.getByRole("button", { name: "افزودن به سبد خرید", exact: true }).click();
     await expect(buyer.getByText("محصول به سبد خرید افزوده شد.", { exact: false }).first()).toBeVisible();
     await buyer.goto("/cart");
@@ -172,8 +171,7 @@ test("T01/T12/T17/T19/T20/T21/T23/T25: real admin product → guest purchase →
     expect((await foreign.request.get(`/api/orders/${orderId}`)).status()).toBe(404);
     await foreign.close();
     await buyer.setViewportSize({ width: 320, height: 640 });
-    await mkdir("docs/qa/screenshots", { recursive: true });
-    await buyer.screenshot({ path: `docs/qa/screenshots/owned-order-${info.project.name}-320.png`, fullPage: true });
+    await buyer.screenshot({ path: info.outputPath("owned-order-320.png"), fullPage: true });
     const overflow = await buyer.evaluate(() => ({ width: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth, elements: [...document.querySelectorAll("body *")].map(el => ({ tag: el.tagName, cls: el.className, left: el.getBoundingClientRect().left, right: el.getBoundingClientRect().right, width: el.getBoundingClientRect().width })).filter(el => el.left < -1 || el.right > document.documentElement.clientWidth + 1).slice(0, 20) }));
     await info.attach("rtl-overflow", { body: JSON.stringify(overflow), contentType: "application/json" });
     await info.attach("browser-version", { body: browser.version(), contentType: "text/plain" });

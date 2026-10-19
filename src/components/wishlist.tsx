@@ -55,9 +55,14 @@ function useWishlistReader() {
   if (!value) throw new Error("WishlistProvider required");
   return value;
 }
+function FavoriteControl({ label, selected, pending = false, disabled = false, onClick }: { label: string; selected?: boolean; pending?: boolean; disabled?: boolean; onClick?: () => void }) {
+  return <button type="button" className="sf-favorite-button" aria-label={label} title={label} aria-pressed={selected} aria-busy={pending || undefined} disabled={disabled} onClick={onClick}><svg viewBox="0 0 24 24" fill={selected ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z" /></svg><span className="sr-only">{label}</span></button>;
+}
 export function FavoriteButton({ productId }: { productId: string }) {
   const session = useCustomerSession();
-  if (session.pending) return <button className="text-button" disabled>در حال بررسی علاقه‌مندی…</button>;
+  const [retrying, setRetrying] = useState(false);
+  if (session.error) return <><FavoriteControl label="بررسی علاقه‌مندی انجام نشد" disabled /><p className="field-error" role="alert">بررسی حساب انجام نشد. <button type="button" className="text-button" disabled={retrying} onClick={async () => { setRetrying(true); try { await session.revalidate(); } catch { /* The native session error remains visible until a successful check. */ } finally { setRetrying(false); } }}>{retrying ? "در حال بررسی…" : "بررسی دوبارهٔ علاقه‌مندی"}</button></p></>;
+  if (session.pending) return <FavoriteControl label="در حال بررسی علاقه‌مندی…" pending disabled />;
   return <FavoriteForActor key={`${session.scopeKey}:${productId}`} productId={productId} userId={session.ownerId ?? undefined} />;
 }
 function FavoriteForActor({ productId, userId }: { productId: string; userId?: string }) {
@@ -67,7 +72,10 @@ function FavoriteForActor({ productId, userId }: { productId: string; userId?: s
   const [busy, setBusy] = useState(false), [error, setError] = useState("");
   const selected = userId ? server.changes[productId] ?? server.data?.some(product => product.id === productId) ?? false : guest.includes(productId);
   const toggle = async () => { if (inFlight.current || (!!userId && (server.loading || server.error))) return; const controller = new AbortController(), signal = controller.signal; operation.current = controller; inFlight.current = true; setBusy(true); setError(""); try { if (userId) { await api("/api/wishlist", { method: "POST", body: JSON.stringify({ productId, enabled: !selected }), signal }); if (!signal.aborted) server.confirmChange(productId, !selected); } else { if (!selected && guest.length >= 100) throw new Error("تا ۱۰۰ انتخاب در این دستگاه ذخیره می‌شود. برای افزودن عطر تازه، یکی از انتخاب‌ها را حذف کنید."); writeGuest(selected ? guest.filter(id => id !== productId) : [...guest, productId]); } } catch (e) { if (!signal.aborted) setError(errorMessage(e)); } finally { inFlight.current = false; if (operation.current === controller) operation.current = null; if (!signal.aborted) setBusy(false); } };
-  return <><button className="text-button" aria-pressed={selected} disabled={busy || (!!userId && (server.loading || !!server.error))} onClick={toggle}>{selected ? "حذف از علاقه‌مندی‌ها" : "ذخیره در علاقه‌مندی‌ها"}</button>{(error || server.error) && <p className="field-error" role="alert">{error || server.error}{server.error && <button className="text-button" type="button" onClick={server.reload}>تلاش دوباره</button>}</p>}</>;
+  const pending = busy || (!!userId && server.loading);
+  const selectionKnown = !userId || server.changes[productId] !== undefined || server.data !== null;
+  const label = busy ? "در حال به‌روزرسانی علاقه‌مندی…" : userId && server.loading ? "در حال بررسی علاقه‌مندی…" : !selectionKnown && server.error ? "بررسی علاقه‌مندی انجام نشد" : selected ? "حذف از علاقه‌مندی‌ها" : "ذخیره در علاقه‌مندی‌ها";
+  return <><FavoriteControl label={label} selected={selectionKnown ? selected : undefined} pending={pending} disabled={pending || (!!userId && !!server.error)} onClick={toggle} />{(error || server.error) && <p className="field-error" role="alert">{error || server.error}{server.error && <button className="text-button" type="button" onClick={server.reload}>تلاش دوباره</button>}</p>}</>;
 }
 export function WishlistContent() {
   const session = useCustomerSession();

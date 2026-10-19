@@ -230,5 +230,31 @@
 @media (max-width: 479px) { .admin-main .editor-actions { position: static; padding: 16px; } .admin-main .editor-actions > button { inline-size: 100%; } }
 .admin-main tbody tr[data-chosen="true"] { background: var(--admin-soft-brand); box-shadow: inset -3px 0 var(--admin-brand); }
 .admin-layout { min-block-size: 100dvh; }
-.admin-layout .admin-sidebar { block-size: 100dvh; overscroll-behavior: contain; }
+.admin-layout .admin-sidebar { overscroll-behavior: contain; }
 .admin-topbar { padding-block-start: calc(18px + env(safe-area-inset-top, 0px)); }
+@media (min-width: 768px) {
+  .admin-layout .admin-sidebar { block-size: 100dvh; }
+}
+@media (max-width: 767px) {
+  .admin-layout .admin-sidebar { block-size: auto; max-block-size: min(60dvh, calc(100dvh - 176px)); overflow-y: auto; }
+}
+
+/* Keep dense management tables usable without squeezing their actions. */
+.admin-main .table-wrap td .text-link { display: inline-flex; align-items: center; min-inline-size: 44px; min-block-size: 44px; white-space: nowrap; }
+.admin-main .table-wrap td .text-link.block { display: flex; }
+.admin-main .admin-tabs button { min-inline-size: 44px; }
+.admin-metric > a, .admin-panel-heading > a { min-block-size: 44px; }
+.admin-main .admin-product-identity { display: flex; align-items: center; gap: 12px; min-inline-size: 230px; }
+.admin-main .admin-product-identity > div { min-inline-size: 0; }
+.admin-main .admin-product-thumbnail { display: grid; place-items: center; flex: none; inline-size: 44px; block-size: 56px; overflow: hidden; border: 1px solid var(--admin-border); background: var(--admin-canvas); color: var(--admin-muted); }
+.admin-main .admin-product-thumbnail img { display: block; inline-size: 100%; block-size: 100%; object-fit: cover; }
+.admin-layout .admin-mobile-nav-tools, .admin-layout .admin-nav-current { display: none; }
+.admin-main .private-preview .sf-gallery-nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block-start: 16px; }
+.admin-main .private-preview .sf-gallery-nav button { inline-size: 48px; padding-inline: 12px; }
+.admin-main .private-preview .sf-gallery-nav p { margin: 0; }
+@media (max-width: 767px) {
+  .admin-layout .admin-mobile-nav-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; padding-block: 8px; }
+  .admin-mobile-nav-tools > * { display: inline-flex; align-items: center; min-block-size: 44px; margin: 0; }
+  .admin-layout .admin-nav-current { display: block; margin-block: 0 12px; font-size: 12px; line-height: 1.8; color: var(--admin-muted); }
+  .admin-nav-current strong { color: var(--admin-brand); font-weight: 600; }
+}

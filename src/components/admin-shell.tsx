@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import type { Permission, Role } from "@/contracts/commerce";
 import { adminAuth } from "./auth-clients";
 import { api, ApiError, authMessage, errorMessage, Loading, Notice } from "./commerce-client";
@@ -23,6 +23,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const [error, setError] = useState("");
   const [navigation, setNavigation] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const navigationToggle = useRef<HTMLButtonElement>(null);
+  const navigationPanel = useRef<HTMLElement>(null);
   useEffect(() => {
     if (pathname === "/admin/login") return;
     let alive = true;
@@ -39,7 +41,12 @@ export function AdminShell({ children }: { children: ReactNode }) {
   }, [pathname, router]);
   useEffect(() => {
     if (!navigation) return;
-    const close = (event: KeyboardEvent) => { if (event.key === "Escape") setNavigation(false); };
+    navigationPanel.current?.querySelector<HTMLAnchorElement>("nav a[aria-current='page']")?.focus();
+    const close = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setNavigation(false);
+      navigationToggle.current?.focus();
+    };
     document.addEventListener("keydown", close);
     return () => document.removeEventListener("keydown", close);
   }, [navigation]);
@@ -55,6 +62,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
   ];
   const allowed = groups.map(group => ({ ...group, links: group.links.filter(link => link.visible !== false && (!link.permission || hasPermission(session, link.permission))) })).filter(group => group.links.length);
   const current = allowed.flatMap(group => group.links).find(link => pathname === link.href || (link.href !== "/admin" && pathname.startsWith(link.href + "/")));
+  const detail = current && pathname !== current.href && pathname.startsWith(current.href + "/");
+  const detailLabel = pathname.endsWith("/new") ? "افزودن محصول" : current?.href === "/admin/products" ? "ویرایش محصول" : current?.href === "/admin/orders" ? "جزئیات سفارش" : "جزئیات";
   const signOut = async () => {
     if (signingOut) return;
     setSigningOut(true);
@@ -67,20 +76,22 @@ export function AdminShell({ children }: { children: ReactNode }) {
   return <Context.Provider key={sessionScope} value={session}><div className="admin-layout">
     <header className="admin-topbar">
       <div className="admin-topbar-start">
-        <button type="button" className="admin-menu-toggle secondary" aria-label={navigation ? "بستن منوی مدیریت" : "بازکردن منوی مدیریت"} aria-expanded={navigation} aria-controls="admin-navigation" onClick={() => setNavigation(!navigation)}><AdminIcon name="menu" /></button>
+        <button ref={navigationToggle} type="button" className="admin-menu-toggle secondary" aria-label={navigation ? "بستن منوی مدیریت" : "بازکردن منوی مدیریت"} aria-expanded={navigation} aria-controls="admin-navigation" onClick={() => setNavigation(!navigation)}><AdminIcon name="menu" /></button>
         <nav className="admin-breadcrumb" aria-label="مسیر مدیریت">
-          <Link href="/admin">مدیریت فروشگاه</Link>
-          {pathname !== "/admin" && <><span aria-hidden="true">/</span><span aria-current="page">{current?.label ?? "جزئیات"}</span></>}
-          {pathname.split("/").length > 3 && <><span aria-hidden="true">/</span><span>{pathname.endsWith("/new") ? "افزودن" : "جزئیات"}</span></>}
+          <Link href="/admin" aria-current={pathname === "/admin" ? "page" : undefined}>مدیریت فروشگاه</Link>
+          {pathname !== "/admin" && <><span aria-hidden="true">/</span>{detail ? <Link href={current.href}>{current.label}</Link> : <span aria-current="page">{current?.label ?? "جزئیات"}</span>}</>}
+          {detail && <><span aria-hidden="true">/</span><span aria-current="page">{detailLabel}</span></>}
         </nav>
       </div>
       <div className="admin-session"><span className="admin-session-avatar" aria-hidden="true">{(session.user.name || session.user.email).slice(0, 1).toUpperCase()}</span><div><bdi>{session.user.name || session.user.email}</bdi><small>{preview ? "حساب مشترک پیش‌نمایش" : roleLabels[session.role]}</small></div><span className="admin-secure"><AdminIcon name="check" />{preview ? "پیش‌نمایش آزاد" : "تأیید دومرحله‌ای"}</span></div>
     </header>
-    <aside className="admin-sidebar" id="admin-navigation" data-open={navigation}>
+    <aside ref={navigationPanel} className="admin-sidebar" id="admin-navigation" data-open={navigation}>
       <Link href="/admin" className="admin-brand" aria-label="Morphiume — نمای کلی مدیریت" onClick={() => setNavigation(false)}><CspImage src="/brand/morphiume-wordmark.svg" alt="" width={526} height={122} /><small>مدیریت فروشگاه</small></Link>
+      <div className="admin-mobile-nav-tools"><button type="button" className="text-button" onClick={() => { setNavigation(false); navigationToggle.current?.focus(); }}>بستن فهرست</button><a href="#main" className="text-link" onClick={() => setNavigation(false)}>رفتن به محتوای صفحه</a></div>
+      <p className="admin-nav-current">بخش فعلی: <strong>{current?.label ?? "مدیریت فروشگاه"}</strong></p>
       <nav aria-label="پنل مدیریت">{allowed.map(group => <div className="admin-nav-group" key={group.label}><p>{group.label}</p>{group.links.map(link => <Link href={link.href} key={link.href} onClick={() => setNavigation(false)} aria-current={current?.href === link.href ? "page" : undefined}><AdminIcon name={link.icon} /><span>{link.label}</span></Link>)}</div>)}</nav>
       <div className="admin-sidebar-footer"><Link href="/" className="admin-store-link">{preview ? "بازگشت به فروشگاه" : "مشاهدهٔ فروشگاه"}<AdminIcon name="arrow" /></Link>{!preview && <button className="admin-signout" disabled={signingOut} onClick={() => void signOut()}><AdminIcon name="logout" />{signingOut ? "در حال خروج…" : "خروج از مدیریت"}</button>}</div>
     </aside>
-    <main id="main" className="admin-main">{preview && <Notice silent>پیش‌نمایش آزمایشی با حساب مشترک باز است. تغییرهای این پنل در داده‌های آزمایشی ذخیره و به حساب پیش‌نمایش نسبت داده می‌شوند.</Notice>}{error && <Notice error>{error}</Notice>}{children}<footer className="admin-workspace-footer"><bdi>Morphiume</bdi><span>فضای مدیریت فروشگاه</span></footer></main>
+    <main id="main" tabIndex={-1} className="admin-main">{preview && <Notice silent>پیش‌نمایش آزمایشی با حساب مشترک باز است. تغییرهای این پنل در داده‌های آزمایشی ذخیره و به حساب پیش‌نمایش نسبت داده می‌شوند.</Notice>}{error && <Notice error>{error}</Notice>}{children}<footer className="admin-workspace-footer"><bdi>Morphiume</bdi><span>فضای مدیریت فروشگاه</span></footer></main>
   </div></Context.Provider>;
 }

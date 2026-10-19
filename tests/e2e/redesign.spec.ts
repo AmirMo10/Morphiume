@@ -99,7 +99,7 @@ test("Redesign: real management counts, status queues and mobile workspace navig
   const pool = isolatedPool(), admin = await createAdmin(pool);
   try {
     await loginAdmin(page, admin);
-    await expect(page.getByRole("heading", { name: "امروز در فروشگاه", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "نمای کلی فروشگاه", exact: true })).toBeVisible();
     await expect(page.locator(".site-header")).toHaveCount(0);
     const response = await page.request.get("/api/admin/orders/page?page=1&pageSize=1");
     expect(response.status()).toBe(200);
@@ -112,7 +112,7 @@ test("Redesign: real management counts, status queues and mobile workspace navig
     await page.getByRole("combobox", { name: "وضعیت سفارش", exact: true }).selectOption("confirmed");
     expect((await requested).status()).toBe(200);
     await page.goto("/admin");
-    await expect(page.getByRole("heading", { name: "امروز در فروشگاه", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "نمای کلی فروشگاه", exact: true })).toBeVisible();
     await page.screenshot({ path: info.outputPath("redesign-admin-desktop.png"), fullPage: true, mask: [page.locator(".admin-session")] });
     for (const width of [320, 390, 768, 1440]) {
       await page.setViewportSize({ width, height: 900 });
