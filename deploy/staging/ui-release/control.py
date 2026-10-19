@@ -175,8 +175,12 @@ def library(name,digest):
 
 
 def manager(c,unit):
-    fields=('Id','LoadState','ActiveState','UnitFileState','Result','ExecMainStatus','InvocationID')
-    result=dict(line.split('=',1) for line in c.run(['systemctl','show',unit,'--property='+','.join(fields)]).splitlines())
+    need(unit in UNITS)
+    fields=('Id','LoadState','ActiveState','UnitFileState','Result','InvocationID')
+    if unit.endswith('.service'): fields+=('ExecMainStatus',)
+    result={}
+    for line in c.run(['systemctl','show',unit,'--all','--property='+','.join(fields)]).splitlines():
+        key,value=line.split('=',1); need(key in fields and key not in result); result[key]=value
     need(set(result)==set(fields) and result['Id']==unit and result['LoadState']=='loaded'); return result
 
 

@@ -40,6 +40,45 @@ def request():
 
 
 class Guards(unittest.TestCase):
+    def manager_output(self,unit):
+        result={'Id':unit,'LoadState':'loaded','ActiveState':'active' if unit.endswith('.timer') else 'inactive',
+            'UnitFileState':'enabled' if unit.endswith('.timer') else 'static','Result':'success','InvocationID':'a'*32}
+        if unit.endswith('.service'): result['ExecMainStatus']='0'
+        return result
+
+    def test_manager_actual_timer_six_and_service_seven_field_shapes(self):
+        for unit in c.UNITS:
+            actual=self.manager_output(unit); calls=[]
+            def run(args): calls.append(args); return '\n'.join(k+'='+v for k,v in actual.items())
+            self.assertEqual(c.manager(types.SimpleNamespace(run=run),unit),actual)
+            self.assertIn('--all',calls[0]); self.assertEqual(calls[0][2],unit)
+            self.assertEqual(len(actual),7 if unit.endswith('.service') else 6)
+            self.assertEqual('ExecMainStatus' in calls[0][-1],unit.endswith('.service'))
+
+    def test_manager_rejects_unknown_duplicate_and_missing_fields(self):
+        for unit in c.UNITS:
+            actual=self.manager_output(unit); lines=[k+'='+v for k,v in actual.items()]
+            for wire in ('\n'.join(lines+['Unexpected=secret']), '\n'.join(lines+['Id='+unit]), '\n'.join(lines[1:])):
+                with self.subTest(unit=unit,wire=wire),self.assertRaises(ValueError): c.manager(types.SimpleNamespace(run=lambda _:wire),unit)
+            if unit.endswith('.service'):
+                missing='\n'.join(k+'='+v for k,v in actual.items() if k!='ExecMainStatus')
+                with self.assertRaises(ValueError): c.manager(types.SimpleNamespace(run=lambda _:missing),unit)
+        runner=types.SimpleNamespace(run=lambda _:self.fail('unknown unit dispatched'))
+        with self.assertRaises(ValueError): c.manager(runner,'unreviewed.service')
+
+    def test_paused_requires_actual_service_success_and_exit_zero(self):
+        actual={unit:self.manager_output(unit) for unit in c.UNITS}
+        for unit in c.UNITS:
+            if unit.endswith('.timer'): actual[unit]['ActiveState']='inactive'
+        def run(args): return '\n'.join(k+'='+v for k,v in actual[args[2]].items())
+        runner=types.SimpleNamespace(run=run)
+        self.assertEqual(c.paused(runner),actual)
+        service=next(u for u in c.UNITS if u.endswith('.service'))
+        for key,value in (('ExecMainStatus','1'),('Result','exit-code'),('ActiveState','active')):
+            old=actual[service][key];actual[service][key]=value
+            with self.subTest(key=key),self.assertRaisesRegex(ValueError,'units_not_quiet'):c.paused(runner)
+            actual[service][key]=old
+
     def test_request_exact_and_unknown_fields_rejected(self):
         self.assertEqual(c.validate_request(request())['preservedPairCount'],5)
         for change in ({'approved':1},{'preservedPairCount':True},{'extra':1},{'sharedDatabaseWindowReleased':False}):
