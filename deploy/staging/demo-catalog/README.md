@@ -1,9 +1,11 @@
 # Professional fictional catalog data release
 
 This is a **private staging data/media operation**, separate from the accepted
-`32b89e13d31288fe4497f7419e170550baf5b293` application image. Publishing these
-files to main does not rebuild the app, update `/opt/morphiume`, pause a writer,
-change a scheduler, migrate, seed or change access/authentication settings.
+`32b89e13d31288fe4497f7419e170550baf5b293` application image. Applying this
+catalog leaves that deployed image and `/opt/morphiume` unchanged, does not pause
+a writer, change a scheduler, migrate, seed or change access/authentication
+settings. Normal main CI can still verify/build a new CI image for the content
+commit; this native data operation never loads or switches to that CI image.
 Only `http://192.168.240.51`, its existing server-only shared preview operator,
 the accepted image/profile/capability/site and controlled mock providers are
 accepted. The native API still performs MFA, fresh role and transactional
@@ -121,3 +123,13 @@ preservation and prohibited targets. Python guards test inert observation,
 exact paths/new-operation binding, shared pins, actual file rehash and changed
 ciphertext rejection. These guard results do not prove a server action,
 successful native Sharp decoding, a browser review or a real purchase.
+
+## Actual private installation
+
+The six finalized samples from `420990541325706cd120b98e5bea3fd4b32f22a4`
+were installed through the existing native API on 2026-10-19 at13:16:42.958Z.
+Exactly four reviewed published QA products were archived. Independent history,
+served-image, browser and controlled purchase checks were then executed; the
+six demo products remain published. The app image remains32b. See the
+[execution record](../../../docs/qa/DEMO_CATALOG_EXECUTION.md) for actual
+scope, preserved initial harness failure, final acceptance and limitations.
