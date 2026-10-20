@@ -1,12 +1,16 @@
 # Morphiume
 
+## Replacement VPS handoff — 20 October 2026
+
+OVF/OVA is canceled. Follow the [clean Ubuntu VPS migration](docs/ops/NEW_VPS_MIGRATION.md), [machine-readable requirements](deploy/vps/requirements.json), [dependency matrix](docs/ops/VPS_DEPENDENCY_MATRIX.md) and [fresh source inventory/sizing](docs/ops/VPS_SOURCE_INVENTORY.md). The owner requested package upgrades and full source/image acceptance before migration. This replica preserves the complete current staging data/media/accounts/history; the separate public real-sales plan has different gates. No destination deployment is implied.
+
 وضعیت جاری در ۱۳ اکتبر ۲۰۲۶: فروشگاه و پنل روی [IP خصوصی](http://192.168.240.51) با حفاظت HTTP و محدودیت شبکه فعال‌اند. منبع مستقر E4، پایگاه با ۱۳ مهاجرت و ۵۳ جدول، مسیر خرید واقعی آزمایشی، بازیابی جدا و زمان‌بندی سلامت/پشتیبان پذیرفته شده‌اند. [گزارش پیشرفت](docs/PROJECT_PROGRESS_20261013.md) و [وضعیت](docs/STATUS.md) مرجع نتیجه‌های فعلی‌اند. برای عملیات جاری، [قرارداد استقرار](docs/ops/STAGING_CONTRACT.md) را بخوانید.
 
 حساب شخصی مالک در staging ساخته شده و تنظیم MFA در نخستین ورود او باقی است. اطلاعات ورود فقط در فایل محلی حفاظت‌شده نگه‌داری می‌شوند؛ [راهنمای ورود مالک](docs/ops/STAGING_OWNER_HANDOFF.md) فاقد رمز و اطلاعات شخصی است. پرداخت و پیامک فعلی آزمایشی‌اند؛ اتصال سرویس‌های واقعی و فروش عمومی هنوز فعال نیستند.
 
 فروشگاه و پنل فارسی Morphiume با Next.js، BetterAuth و PostgreSQL. سند اجرایی، نقش عامل‌های واقعی، مالکیت فایل‌ها و محدودیت‌ها در [برنامهٔ اجرا](docs/IMPLEMENTATION_PLAN.md) و [وضعیت جاری](docs/STATUS.md) ثبت هستند. پرداخت و پیامک فعلی کنترل‌شده و آزمایشی‌اند؛ فروش واقعی فعال نشده است.
 
-Node `24.21.0` و pnpm `11.25.0` پین شده‌اند. برای توسعه، `.env.example` را به `.env.local` کپی کنید و secretهای مستقل و اتصال DB آزمایشی خود را تنظیم کنید. کلیدها را از محیط واقعی کپی نکنید. سپس:
+Node `24.22.0` و pnpm `12.14.0` پین شده‌اند. برای توسعه، `.env.example` را به `.env.local` کپی کنید و secretهای مستقل و اتصال DB آزمایشی خود را تنظیم کنید. کلیدها را از محیط واقعی کپی نکنید. سپس:
 
 ```powershell
 pnpm install --frozen-lockfile

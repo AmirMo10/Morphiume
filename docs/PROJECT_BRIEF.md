@@ -1,5 +1,9 @@
 # مشخصات اجرایی Morphiume
 
+## Current owner decision — 20 October 2026
+
+OVF/OVA is canceled. Upgrade dependencies, fully accept the new source and packaged image, then prepare a fresh Ubuntu24.04amd64 VPS replica of the complete existing staging store, accounts/MFA, six demo products/media and financial/order history. Use [NEW_VPS_MIGRATION.md](ops/NEW_VPS_MIGRATION.md); keep the source intact until independently accepted cutover. The future public real-sales/domain transition remains separate. A Git checkout alone does not transfer runtime data, secrets, approvals or target access. No destination has yet been supplied or deployed.
+
 ## تحویل جاری کاتالوگ نمایشی، ۱۹ اکتبر ۲۰۲۶
 
 به درخواست صریح مالک، شش مفهوم خیالی با نام فارسی و تصاویر تولیدشدهٔ حرفه‌ای جای چهار کالای QA منتشرشده را گرفتند. همهٔ نام‌ها «(آزمایشی)» دارند و تصویر/توضیحات ساختگی‌بودن را روشن می‌کنند؛ این‌ها مشخصات یا بسته‌بندی کالای واقعی نیستند. شش تصویر WebP با وضوح ۱۰۲۴×۱۵۳۶، دو حجم برای هر محصول و قیمت‌های نمایشی در [manifest و قرارداد](design/DEMO_CATALOG.md) ثبت‌اند. commit محتوایی `4209905` روی main است و داده/رسانه از API واقعی روی IP خصوصی مستقر شده‌اند؛ تصویر پذیرفته‌شدهٔ برنامه همان `32b89e1` است.

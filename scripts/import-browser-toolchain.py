@@ -19,11 +19,14 @@ import tarfile
 import zipfile
 import zlib
 
-ARCHIVE = "browser-toolchain-ubuntu24.04-x64-playwright1.64.0.tar.gz"
+ARCHIVE = "browser-toolchain-ubuntu24.04-x64-playwright1.64.1.tar.gz"
 MANIFEST = "browser-toolchain.manifest.json"
 SIDECAR = "browser-toolchain.sha256"
 PLATFORM = "ubuntu24.04-x64"
-VERSIONS = {"node": "24.21.0", "pnpm": "11.25.0", "playwright": "1.64.0"}
+VERSIONS = {"node": "24.22.0", "pnpm": "12.14.0", "playwright": "1.64.1"}
+# Reviewed upstream v1.64.1 metadata retains these browser binary revisions.
+# Old toolchain manifests remain rejected even when engine revisions coincide.
+# https://github.com/microsoft/playwright/blob/v1.64.1/packages/playwright-core/browsers.json
 ROOTS = {
     "chromium": {"engine": "chromium", "directory": "chromium-1248", "revision": "1248", "browserVersion": "156.0.8078.4"},
     "chromium-headless-shell": {"engine": "chromium-headless-shell", "directory": "chromium_headless_shell-1248", "revision": "1248", "browserVersion": "156.0.8078.4"},
@@ -41,6 +44,8 @@ PREF_DIR = "firefox-1555/firefox/browser/defaults/preferences"
 PREFS = {f"{PREF_DIR}/{name}" for name in ("debugger.js", "firefox.js", "firefox-branding.js")}
 AUTOMATION_PREF = PREF_DIR + "/00-playwright-prefs.js"
 AUTOMATION_PREF_BYTES = 160
+# Exact upstream v1.64.1 source, independently fetched and byte-checked:
+# https://github.com/microsoft/playwright/blob/v1.64.1/browser_patches/firefox/preferences/00-playwright-prefs.js
 AUTOMATION_PREF_SHA256 = "8c2d32801a924f2c2b133f1191d01213513c86e8d1e42e144e9cb1015ea71084"
 # Exact reviewed vendor paths only. New vendor members require source review and
 # a new published importer hash; no directory-prefix or case-folded exceptions.

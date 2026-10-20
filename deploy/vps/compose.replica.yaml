@@ -1,0 +1,135 @@
+# New-host staging replica only. Never use this on 192.168.240.51.
+# No build, seed, migration, original cluster or stopped restore projects.
+name: morphiume-replica
+
+x-runtime: &runtime
+  image: ${MORPHIUME_IMAGE:?Set the independently verified immutable Engine image ID}
+  platform: linux/amd64
+  user: "1001:1001"
+  init: true
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+  pids_limit: 128
+  restart: unless-stopped
+  stop_grace_period: 30s
+  logging:
+    driver: local
+    options: {max-size: "10m", max-file: "5"}
+  tmpfs:
+    - /tmp:rw,noexec,nosuid,size=128m,uid=1001,gid=1001,mode=1777
+
+x-environment: &environment
+  NODE_ENV: production
+  DEPLOYMENT_ENV: staging
+  PAYMENT_PROVIDER: mock
+  SMS_PROVIDER: mock
+  APP_BASE_URL: ${MORPHIUME_APP_BASE_URL:?Set the explicitly reviewed target origin}
+  MEDIA_ROOT: /app/media
+  MORPHIUME_RUNTIME_CONFIG: /run/secrets/runtime_config
+
+services:
+  db:
+    image: ${MORPHIUME_POSTGRES_IMAGE:?Set the accepted PostgreSQL tag at its SHA256 digest}
+    platform: linux/amd64
+    user: "999:999"
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    pids_limit: 128
+    mem_limit: 1280m
+    cpus: "1.5"
+    shm_size: 128m
+    stop_grace_period: 60s
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_bootstrap_password
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256 --data-checksums
+      PGDATA: /var/lib/postgresql/18/docker
+    command: [postgres, -c, max_connections=60, -c, shared_buffers=256MB]
+    networks: [database]
+    # No host DB port. Use docker compose exec or a separately reviewed tunnel.
+    volumes:
+      - type: bind
+        source: /srv/morphiume/replica/postgres
+        target: /var/lib/postgresql
+        bind: {create_host_path: false}
+      - type: bind
+        source: /opt/morphiume/deploy/vps/init-replica.sh
+        target: /docker-entrypoint-initdb.d/10-replica-roles.sh
+        read_only: true
+        bind: {create_host_path: false}
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m,uid=999,gid=999,mode=1777
+      - /var/run/postgresql:rw,nosuid,size=16m,uid=999,gid=999,mode=3775
+    secrets: [db_bootstrap_password, db_owner_password, db_app_password]
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U postgres -d postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+    logging:
+      driver: local
+      options: {max-size: "10m", max-file: "5"}
+
+  app:
+    <<: *runtime
+    profiles: [application]
+    command: [node, server.js]
+    environment: *environment
+    mem_limit: 1536m
+    cpus: "1.5"
+    ports: ["127.0.0.1:3001:3000"]
+    networks: [database, edge]
+    secrets: [{source: app_runtime, target: runtime_config}]
+    volumes:
+      - type: bind
+        source: /srv/morphiume/replica/media
+        target: /app/media
+        bind: {create_host_path: false}
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=128m,uid=1001,gid=1001,mode=1777
+      - /app/.next/cache:rw,nosuid,size=128m,uid=1001,gid=1001,mode=0750
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:3000/api/health/ready',{signal:AbortSignal.timeout(4000)}).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 4
+      start_period: 60s
+
+  worker:
+    <<: *runtime
+    profiles: [application]
+    command: [node, --conditions=react-server, runtime/worker.mjs]
+    environment:
+      <<: *environment
+      WORKER_HEARTBEAT_PATH: /tmp/morphiume-worker-heartbeat
+    mem_limit: 384m
+    cpus: "0.5"
+    networks: [database]
+    secrets: [{source: worker_runtime, target: runtime_config}]
+    volumes:
+      - type: bind
+        source: /srv/morphiume/replica/media
+        target: /app/media
+        bind: {create_host_path: false}
+    healthcheck:
+      test: [CMD, node, -e, "try{process.exit(Date.now()-require('node:fs').statSync('/tmp/morphiume-worker-heartbeat').mtimeMs<90000?0:1)}catch{process.exit(1)}"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+
+networks:
+  database: {internal: true}
+  edge: {}
+
+secrets:
+  db_bootstrap_password: {file: /etc/morphiume-replica/db_bootstrap_password}
+  db_owner_password: {file: /etc/morphiume-replica/db_owner_password}
+  db_app_password: {file: /etc/morphiume-replica/db_app_password}
+  app_runtime: {file: /etc/morphiume-replica/app.json}
+  worker_runtime: {file: /etc/morphiume-replica/worker.json}

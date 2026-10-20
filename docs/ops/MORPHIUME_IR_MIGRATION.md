@@ -1,5 +1,9 @@
 # morphiume.ir: migration and public-release runbook
 
+## Current migration entrypoint — 20 October 2026
+
+The owner canceled OVF/OVA and requested an upgraded, fully tested **full staging replica** on a new VPS. Use [NEW_VPS_MIGRATION.md](NEW_VPS_MIGRATION.md) for that migration, preserving all current demo/account/financial history and media. This document remains the separate future **public real-sales** conversion plan; its fresh-live-ledger guidance must not be applied to the requested staging replica.
+
 Prepared 2026-10-18 for the owner's stated later move to **another VPS**. This is an unexecuted migration plan. The current authorized delivery is the optimized, protected private-IP staging application with controlled payment/SMS. Domain selection is known; DNS ownership/access, destination VPS and real service contracts have not been verified.
 
 The existing [launch evidence matrix](../LAUNCH_READINESS.md), [CI acceptance](../qa/REDESIGN_CI_EXECUTION.md) and [redesign staging execution](REDESIGN_STAGING_EXECUTION.md) define what has actually run. This document contains no production credentials or copy-and-run commands with staging database defaults.

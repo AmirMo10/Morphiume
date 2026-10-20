@@ -5,8 +5,14 @@ on:
     paths:
       - .github/workflows/browser-toolchain.yml
       - scripts/prepare-browser-toolchain-artifact.mjs
+      - scripts/import-browser-toolchain.py
       - tests/ops/browser-toolchain-artifact.test.mjs
-      - tests/fixtures/firefox-playwright-preferences-1.64.0.txt
+      - tests/ops/browser-toolchain-import.test.py
+      - tests/fixtures/firefox-playwright-preferences-1.64.1.txt
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
@@ -14,17 +20,19 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 24.21.0
-      - run: npm install --global pnpm@11.25.0
+          node-version: 24.22.0
+      - run: npm install --global pnpm@12.14.0
       - run: pnpm install --frozen-lockfile
       - name: Check export boundaries without services or credentials
-        run: node --test tests/ops/browser-toolchain-artifact.test.mjs
+        run: |
+          node --test tests/ops/browser-toolchain-artifact.test.mjs
+          python3 -B tests/ops/browser-toolchain-import.test.py
       - name: Download official pinned browsers into a fresh isolated cache
         env:
           PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/morphiume-browser-toolchain-cache
@@ -40,12 +48,13 @@ jobs:
           --cache-dir "$PLAYWRIGHT_BROWSERS_PATH"
           --output-dir "${{ runner.temp }}/morphiume-browser-toolchain-export"
           --source-commit "${{ github.sha }}"
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         id: upload
         with:
+          archive: true
           name: pinned-linux-browser-toolchain-${{ github.sha }}
           path: |
-            ${{ runner.temp }}/morphiume-browser-toolchain-export/browser-toolchain-ubuntu24.04-x64-playwright1.64.0.tar.gz
+            ${{ runner.temp }}/morphiume-browser-toolchain-export/browser-toolchain-ubuntu24.04-x64-playwright1.64.1.tar.gz
             ${{ runner.temp }}/morphiume-browser-toolchain-export/browser-toolchain.manifest.json
             ${{ runner.temp }}/morphiume-browser-toolchain-export/browser-toolchain.sha256
           if-no-files-found: error

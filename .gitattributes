@@ -12,3 +12,4 @@
 docs/spec/Morphiume_Codex_Master_Prompt.txt -text
 public/brand/fonts/OFL.txt -text whitespace=-blank-at-eol
 src/lib/iran-locations.LICENSE.txt -text
+tests/fixtures/firefox-playwright-preferences-*.txt text eol=lf

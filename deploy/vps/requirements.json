@@ -1,0 +1,80 @@
+{
+  "formatVersion": 1,
+  "purpose": "Clean Ubuntu VPS staging replica of the current Morphiume application and authoritative runtime data; OVF/OVA is canceled",
+  "preparedDate": "2026-10-20",
+  "executedOnDestination": false,
+  "sourceObservation": {
+    "observedUtc": "2026-10-20T06:24:06Z",
+    "observedBy": "Coordinator, read-only SSH inventory",
+    "os": "Ubuntu 24.04.5 LTS noble x86_64",
+    "kernel": "6.8.0-146",
+    "cpuCount": 4,
+    "installedMemoryBytes": 5155532800,
+    "rootFilesystem": {"totalBytes": 25185042432, "usedBytes": 4870270976, "availableBytes": 19009507328},
+    "composeVersion": "5.6.0",
+    "dockerAptVersions": {
+      "docker-ce": "5:29.9.0-1~ubuntu.24.04~noble",
+      "docker-ce-cli": "5:29.9.0-1~ubuntu.24.04~noble",
+      "containerd.io": "2.4.1-2~ubuntu.24.04~noble",
+      "docker-buildx-plugin": "0.38.0-1~ubuntu.24.04~noble",
+      "docker-compose-plugin": "5.6.0-1~ubuntu.24.04~noble"
+    },
+    "otherObservedAptVersions": {
+      "nginx": "1.24.0-2ubuntu7.18",
+      "age": "1.1.1-1ubuntu0.24.04.3",
+      "python3": "3.12.3-0ubuntu2.1",
+      "openssh-server": "1:9.6p1-3ubuntu13.20"
+    },
+    "applicationDatabaseWorkerHealthy": true,
+    "meaning": "Fresh observed source metadata; target requirements are recommendations, not measurements of a new VPS"
+  },
+  "host": {
+    "os": "Ubuntu Server 24.04 LTS",
+    "architecture": "amd64",
+    "kernelPolicy": "Supported provider Ubuntu kernel, current security updates and completed required reboot before migration",
+    "initialPurchaseRecommendation": {"vcpu": 4, "ramGiB": 8, "nvmeGiB": 100},
+    "recoveryAndGrowthRecommendation": {"vcpu": 8, "ramGiB": 16, "nvmeGiB": 160},
+    "minimumGuard": {"vcpu": 4, "observedInstalledRamGiB": 7, "advertisedRamClassGiB": 8, "freshRootAvailableGiB": 60},
+    "swap": "Optional 2-4 GiB safety margin; not a substitute for RAM or measured capacity",
+    "capacityGuarantee": false,
+    "timeSynchronization": "Required; UTC storage, application business timezone Asia/Tehran",
+    "offsiteBackup": "Separate versioned encrypted destination and independently held age recovery identity required"
+  },
+  "ubuntuPackages": ["ca-certificates", "curl", "gnupg", "nginx", "ufw", "age", "git", "rsync", "python3", "jq", "tar", "gzip", "xz-utils", "util-linux", "iproute2", "procps", "openssh-server", "unattended-upgrades", "dnsutils", "iptables"],
+  "dockerAptPackages": ["docker-ce", "docker-ce-cli", "containerd.io", "docker-buildx-plugin", "docker-compose-plugin"],
+  "aptVersionPolicy": "Use official signed Noble repositories; pin all five Docker package versions in a private target manifest and record dpkg-query package versions. Ubuntu security patch versions are captured at target preparation, not invented in Git.",
+  "noHostRuntimeInstallRequired": ["nodejs", "npm", "pnpm", "postgresql server/client", "redis", "Python pip packages", "Playwright browsers", "Chromium", "Firefox", "WebKit", "C/C++ compiler", "Alpine apk packages"],
+  "applicationRelease": {
+    "selectionStatus": "Select only after the requested dependency upgrade passes full source and packaged-image acceptance",
+    "acceptedCandidate": null,
+    "requiredCandidateFields": ["sourceCommit", "ciRunId", "ciAttempt", "testedPlatformConfig", "candidateManifestDigest", "archiveSha256", "archiveBytes", "postgresImage", "deploymentToolSha256", "lockfileSha256"],
+    "runtimeSource": "The accepted Dockerfile and bundled standalone Node/worker/CLI image; use package.json and pnpm-lock.yaml at that exact source commit",
+    "historicalBeforeUpgrade": {
+      "applicationSource": "32b89e13d31288fe4497f7419e170550baf5b293",
+      "catalogAndFinalReportCommit": "549b4acef7b1e40233fff7c238a318a0f6246a78",
+      "postgresImage": "postgres:18.6-bookworm@sha256:afc7e2d441324c0388fa80c3d24f733b4194a4eb7f47dd8ee2b08eb1a24a647c",
+      "meaning": "Historical reference only; never substitute these values for the newly accepted upgrade"
+    }
+  },
+  "activeContainerLimitsMiB": {"database": 1280, "application": 1536, "worker": 384, "sum": 3200},
+  "network": {
+    "ingress": {"ssh": "Actual approved SSH port, restricted admin source CIDR", "httpHttps": "Reverse proxy only, explicit target preview CIDR/VPN until public launch"},
+    "appBind": "127.0.0.1:3001",
+    "databasePublish": "None",
+    "mustTest": ["Actual external IPv4", "Actual external IPv6 or verified absence of AAAA/IPv6 route", "Docker published ports", "Unknown Host rejection", "Forwarded header trust", "No public test control/OTP inbox"],
+    "sourceOrigin": "http://192.168.240.51",
+    "targetOrigin": null,
+    "previewAuthority": "Existing authless-admin capability is hard-coded to the source origin. Do not activate it on a new public origin; target login/MFA remains normal unless a separately reviewed restricted-preview implementation is accepted."
+  },
+  "storage": {
+    "targetRoot": "/srv/morphiume/replica",
+    "postgres": "/srv/morphiume/replica/postgres",
+    "media": "/srv/morphiume/replica/media",
+    "config": "/etc/morphiume-replica",
+    "preserveSource": ["/srv/morphiume/postgres", "/srv/morphiume/staging/postgres", "/srv/morphiume/staging/runtime", "/etc/morphiume-staging", "/etc/morphiume-staging-runtime"],
+    "transfer": "Encrypted logical database dump, exact bounded media tree, protected service config and role/ACL metadata; accepted immutable application image; no live PGDATA copy",
+    "spaceRule": "Size from fresh allocated bytes: OS/Docker + current PG cluster growth + media + accepted/fallback image archives/layers + retained encrypted backups + largest isolated restore working set + >=25% free headroom. Include optional historical archives separately."
+  },
+  "sourcesVerifiedDate": "2026-10-20",
+  "officialSources": ["https://docs.docker.com/engine/install/ubuntu/", "https://docs.docker.com/engine/network/packet-filtering-firewalls/", "https://ubuntu.com/server/docs/how-to/software/package-management/", "https://www.postgresql.org/docs/18/app-pgdump.html", "https://www.postgresql.org/docs/18/app-pgrestore.html"]
+}

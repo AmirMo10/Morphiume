@@ -7,16 +7,29 @@ import { tmpdir } from "node:os";
 import { join, resolve, dirname, basename } from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import { browserRoots, validateEntryPath, validateEntries, inspectBrowserCache, exportBrowserToolchain, safeExportFailure, TOOLCHAIN_LIMITS } from "../../scripts/prepare-browser-toolchain-artifact.mjs";
+import { browserRoots, validateEntryPath, validateEntries, inspectBrowserCache, exportBrowserToolchain, safeExportFailure, TOOLCHAIN_LIMITS, TOOLCHAIN_VERSIONS, TOOLCHAIN_BROWSER_METADATA_SHA256 } from "../../scripts/prepare-browser-toolchain-artifact.mjs";
 
 const run = promisify(execFile);
-const metadata = { browsers: [{ name: "chromium", revision: "1248", browserVersion: "156.0.8078.4" }, { name: "firefox", revision: "1555", browserVersion: "157.0" }, { name: "webkit", revision: "2370", browserVersion: "27.2" }, { name: "ffmpeg", revision: "1011" }, { name: "chromium-headless-shell", revision: "1248", browserVersion: "156.0.8078.4" }] };
+const metadata = { browsers: [{ name: "chromium", revision: "1248", browserVersion: "156.0.8078.4" }, { name: "firefox", revision: "1555", browserVersion: "157.0" }, { name: "webkit", revision: "2370", browserVersion: "27.2" }, { name: "ffmpeg", revision: "1013" }, { name: "chromium-headless-shell", revision: "1248", browserVersion: "156.0.8078.4" }] };
 const roots = browserRoots(metadata), required = roots.filter(root => ["chromium", "firefox", "webkit"].includes(root.engine));
 const sha = createHash("sha256").update("official-fixture-license").digest("hex");
 const directory = path => ({ path, type: "directory", mode: 0o755, bytes: 0 });
 const file = path => ({ path, type: "file", mode: 0o644, bytes: 24, sha256: sha });
 const entries = () => required.flatMap(root => [directory(root.directory), file(`${root.directory}/LICENSE`)]);
 const rejected = action => assert.throws(action, /^Error: Browser toolchain contract rejected\.$/u);
+
+test("current exporter binds the selected versions and actual installed vendor browser descriptors", async () => {
+  assert.deepEqual(TOOLCHAIN_VERSIONS, { node: "24.22.0", pnpm: "12.14.0", playwright: "1.64.1" });
+  const packageInfo = JSON.parse(await readFile(new URL("../../package.json", import.meta.url), "utf8"));
+  assert.equal(packageInfo.packageManager, `pnpm@${TOOLCHAIN_VERSIONS.pnpm}`);
+  assert.equal(packageInfo.devDependencies["@playwright/test"], TOOLCHAIN_VERSIONS.playwright);
+  const core = new URL(`../../node_modules/.pnpm/playwright-core@${TOOLCHAIN_VERSIONS.playwright}/node_modules/playwright-core/`, import.meta.url);
+  assert.equal(JSON.parse(await readFile(new URL("package.json", core), "utf8")).version, TOOLCHAIN_VERSIONS.playwright);
+  const vendorMetadata = await readFile(new URL("browsers.json", core));
+  assert.equal(createHash("sha256").update(vendorMetadata).digest("hex"), TOOLCHAIN_BROWSER_METADATA_SHA256);
+  const actualRoots = browserRoots(JSON.parse(vendorMetadata.toString("utf8")));
+  assert.deepEqual(actualRoots.sort((a, b) => a.engine.localeCompare(b.engine)), [...roots].sort((a, b) => a.engine.localeCompare(b.engine)));
+});
 
 test("required official engines and Ubuntu revision override are bound precisely", () => {
   assert.equal(roots.length, 5);
@@ -98,7 +111,7 @@ test("real vendor preferences retain normal mode/hash checks and reject user pre
 });
 
 test("exact official Playwright preference source is required in addition to path and metadata", async () => {
-  const bytes = await readFile(new URL("../fixtures/firefox-playwright-preferences-1.64.0.txt", import.meta.url));
+  const bytes = await readFile(new URL("../fixtures/firefox-playwright-preferences-1.64.1.txt", import.meta.url));
   const digest = createHash("sha256").update(bytes).digest("hex"), base = "firefox-1555/firefox/browser/defaults/preferences", path = `${base}/00-playwright-prefs.js`;
   assert.equal(bytes.length, 160); assert.equal(digest, "8c2d32801a924f2c2b133f1191d01213513c86e8d1e42e144e9cb1015ea71084");
   const parents = ["firefox-1555/firefox", "firefox-1555/firefox/browser", "firefox-1555/firefox/browser/defaults", base].map(directory);
@@ -112,7 +125,7 @@ test("real source-bound preference emits only a closed alias/content boolean on 
   await fixture(async ({ cache, root }) => {
     const base = join(cache, "firefox-1555/firefox/browser/defaults/preferences"), path = join(base, "00-playwright-prefs.js");
     await mkdir(base, { recursive: true, mode: 0o755 });
-    const bytes = await readFile(new URL("../fixtures/firefox-playwright-preferences-1.64.0.txt", import.meta.url));
+    const bytes = await readFile(new URL("../fixtures/firefox-playwright-preferences-1.64.1.txt", import.meta.url));
     await writeFile(path, bytes, { mode: 0o644 });
     const manifest = await exportBrowserToolchain({ cacheDir: cache, outputDir: join(root, "source-bound-export"), metadata, sourceCommit: "a".repeat(40), lockfileSha256: "b".repeat(64), exporterSha256: "c".repeat(64) });
     assert.equal(manifest.entries.find(entry => entry.path.endsWith("/00-playwright-prefs.js"))?.bytes, 160);
@@ -213,6 +226,8 @@ test("bounded fixture archive preserves licenses/hash/modes/relative links and n
     await mkdir(join(cache, ".links")); await writeFile(join(cache, ".links", "pointer"), "private-canary");
     await symlink("LICENSE", join(cache, "chromium-1248", "license-link"));
     const output = join(root, "export"), manifest = await exportBrowserToolchain({ cacheDir: cache, outputDir: output, metadata, sourceCommit: "a".repeat(40), lockfileSha256: "b".repeat(64), exporterSha256: "c".repeat(64) });
+    assert.deepEqual(manifest.versions, { node: "24.22.0", pnpm: "12.14.0", playwright: "1.64.1" });
+    assert.equal(manifest.archive.file, "browser-toolchain-ubuntu24.04-x64-playwright1.64.1.tar.gz");
     const bytes = await readFile(join(output, manifest.archive.file)); assert.equal(createHash("sha256").update(bytes).digest("hex"), manifest.archive.sha256);
     assert.equal(manifest.counts.fileCount, 3); assert.equal(manifest.counts.symlinkCount, 1); assert.equal(manifest.licenseFiles.length, 3);
     const listing = (await run("tar", ["--list", "--gzip", "--file", join(output, manifest.archive.file)])).stdout;

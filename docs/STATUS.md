@@ -1,5 +1,13 @@
 # وضعیت اجرا
 
+## Dependency upgrade and replacement VPS, 20 October 2026
+
+The owner canceled OVF/OVA and requested a package upgrade followed by full testing and preparation of an equivalent staging replica. The candidate now pins Node24.22.0, pnpm12.14.0, Next16.4.2, React/DOM19.3.1, BetterAuth/adapter1.7.11, utils0.5.0, Zod4.6.7, Playwright1.64.1, Axe4.14.0, ESLint10.13.0, typescript-eslint8.72.0 and Vitest5.0.5. Compatible transitive packages were refreshed; exact TypeScript6.0.3/Node24 types and the intentional Drizzle esbuild override remain. See the [dependency matrix](ops/VPS_DEPENDENCY_MATRIX.md).
+
+Actual local Windows checks with the verified new Node/pnpm: install, compatible transitive refresh, repeated frozen install, lint, typecheck and production dependency audit passed. Unit suite:34 files,666 passed/6 conditional skips; these are not full Linux/DB acceptance. New migration guards:25 passed. Browser-export guard:10 passed/7 Linux-only skips, vendor metadata/fixture checked. Full Linux source/database/browser and packaged-image acceptance is pending for this candidate; historical CI results are not assigned to it.
+
+Read-only source SSH inventory at06:24:06Z confirmed Ubuntu24.04.5 amd64,4CPU/about4.80GiB RAM, healthy app/worker/DB and Docker29.9/Compose5.6. No source package upgrade or deployment occurred. Recommended new VPS:4vCPU/8GiB/100GBNVMe. [Fresh inventory](ops/VPS_SOURCE_INVENTORY.md), [clean-host migration](ops/NEW_VPS_MIGRATION.md), [requirements/tools](../deploy/vps/README.md) and [independent QA](qa/VPS_MIGRATION_READINESS.md) include Ubuntu packages, guarded fresh-host setup, full encrypted DB/ACL/account/media replication and cutover/rollback. New VPS access/origin/perimeter is not supplied; destination installation/restore/cutover remains unexecuted. The existing source preview and all data remain intact.
+
 ## کاتالوگ نمایشی حرفه‌ای، ۱۹ اکتبر ۲۰۲۶
 
 شش محصول خیالی سپیده، مه‌زار، رزوا، نارون، کهربا و شبگون با پسوند قابل مشاهدهٔ «(آزمایشی)»، متن صریح ساختگی، دو حجم ۵۰/۱۰۰ میلی‌لیتر و شش تصویر هماهنگ ۱۰۲۴×۱۵۳۶ روی `192.168.240.51` منتشر شدند. دارایی‌ها، manifest و ابزار محدود انتشار در commit `420990541325706cd120b98e5bea3fd4b32f22a4` روی main پوش شدند. چهار محصول QA قبلی فقط با شناسه/نسخهٔ دقیق آرشیو شدند؛ حذف یا seed انجام نشد. [قرارداد و منشأ تصاویر](design/DEMO_CATALOG.md).

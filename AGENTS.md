@@ -26,6 +26,8 @@ Pinned package manager pnpm. Commands: pnpm install --frozen-lockfile; pnpm dev;
 
 ## Deployment and completion
 
+The owner canceled OVF/OVA on 20 October 2026. Replacement VPS preparation uses docs/ops/NEW_VPS_MIGRATION.md and deploy/vps/requirements.json: upgrade and fully accept source/image first, then reconstruct the full staging DB/ACL/accounts/MFA/media/history on a fresh Ubuntu 24.04 amd64 target. Git alone is not a runtime-data backup. Do not replay source-bound provisioning, image approvals, preview capability or timers on a new host. Preserve the current source until independently accepted cutover; destination identity/access/origin must be supplied before execution.
+
 SSH morphiume-deploy is root@192.168.240.51 with a verified dedicated key outside Git. Host fingerprint SHA256:8CHT5tdzcOZb0udoponfH65bKCNtmGIIgng/Y+VUuAI; strict checking remains enabled. Server checkout /opt/morphiume tracks main. Preserve /srv/morphiume/postgres. Staging has separate storage, credentials, containers and access controls; see docs/ops and deploy/staging.
 
 Done means working DB-connected behavior, independent relevant tests actually executed, confirmed blockers fixed, honest docs/TEST_REPORT.md and STATUS.md, current runbooks/owner prerequisites and verified integration pushed main. Never invent test results, capacity, ASVS certification or production readiness. Continue authorized independent work while external-service inputs are outstanding.

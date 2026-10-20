@@ -19,7 +19,7 @@ import zipfile
 
 sys.dont_write_bytecode = True
 SCRIPT = Path(__file__).resolve().parents[2] / "scripts/import-browser-toolchain.py"
-OFFICIAL_PREF_FIXTURE = Path(__file__).resolve().parents[1] / "fixtures/firefox-playwright-preferences-1.64.0.txt"
+OFFICIAL_PREF_FIXTURE = Path(__file__).resolve().parents[1] / "fixtures/firefox-playwright-preferences-1.64.1.txt"
 spec = importlib.util.spec_from_file_location("browser_import", SCRIPT)
 m = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(m)
@@ -138,6 +138,23 @@ class ImportTests(unittest.TestCase):
         result = self.verify()
         self.assertEqual(result["state"], "verified")
         self.assertEqual((result["memberCount"], result["fileCount"], result["totalBytes"]), (6, 3, 45))
+
+    def test_current_toolchain_identity_rejects_previous_versions_despite_same_engine_revisions(self):
+        self.assertEqual(m.VERSIONS, {"node": "24.22.0", "pnpm": "12.14.0", "playwright": "1.64.1"})
+        self.assertEqual(m.ARCHIVE, "browser-toolchain-ubuntu24.04-x64-playwright1.64.1.tar.gz")
+        def validate_identity(mutate=None):
+            payload, trusted = build(mutate=mutate)
+            with zipfile.ZipFile(io.BytesIO(payload)) as archive:
+                m.validate_manifest(m.unique_json(archive.read(m.MANIFEST)), trusted)
+        validate_identity()
+        previous = {"node": "24.21.0", "pnpm": "11.25.0", "playwright": "1.64.0"}
+        for key, value in previous.items():
+            with self.subTest(version=key), self.assertRaises(m.Rejected):
+                validate_identity(lambda manifest, key=key, value=value: manifest["versions"].update({key: value}))
+        with self.assertRaises(m.Rejected):
+            validate_identity(lambda manifest: manifest.update(versions=previous))
+        with self.assertRaises(m.Rejected):
+            validate_identity(lambda manifest: manifest["archive"].update(file="browser-toolchain-ubuntu24.04-x64-playwright1.64.0.tar.gz"))
 
     def test_exact_vendor_icons_accepted(self):
         self.assertEqual(self.verify(items=icons())["fileCount"], 8)

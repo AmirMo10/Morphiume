@@ -9,13 +9,20 @@ import { pathToFileURL } from "node:url";
 const run = promisify(execFile);
 export const TOOLCHAIN_LIMITS = Object.freeze({ members: 50000, bytes: 4 * 1024 ** 3, fileBytes: 1024 ** 3, pathBytes: 1024, depth: 32 });
 export const TOOLCHAIN_PLATFORM = "ubuntu24.04-x64";
-const versions = Object.freeze({ node: "24.21.0", pnpm: "11.25.0", playwright: "1.64.0" });
+export const TOOLCHAIN_VERSIONS = Object.freeze({ node: "24.22.0", pnpm: "12.14.0", playwright: "1.64.1" });
+const versions = TOOLCHAIN_VERSIONS;
+// Independently reviewed v1.64.1 package metadata. Browser revisions happen to
+// match v1.64.0; old manifests/caches are not relabeled as the new toolchain.
+// https://github.com/microsoft/playwright/blob/v1.64.1/packages/playwright-core/browsers.json
+export const TOOLCHAIN_BROWSER_METADATA_SHA256 = "2cfd419f71ac6475d81e1301fa86c34cf2a2a6bae2a0da4b5a2b18310216b6bf";
 const knownEngines = new Set(["chromium", "chromium-headless-shell", "firefox", "webkit", "ffmpeg"]);
 const requiredEngines = ["chromium", "firefox", "webkit"];
 const forbiddenSegments = /^(?:Default|Profile(?:\s+.*)?|User Data|user_data|user-data|Cookies(?:-journal)?|History(?:-journal)?|Login Data|Web Data|Preferences|Local State|Session Storage|Local Storage|IndexedDB|GPUCache|Crash Reports|Cache|Network|SingletonCookie|SingletonLock|SingletonSocket|GITHUB_TOKEN|tokens?\.json|auth\.json|storage-state\.json|\.env(?:\..*)?|\.local|\.git|\.ssh|node_modules|id_rsa|id_ed25519|credentials(?:\.json)?|.*\.(?:pem|p12))$/iu;
 // Exact branding and default application preferences at the pinned revision.
 // These are distribution assets, not a
-// browser profile. See docs/qa/FIREFOX_VENDOR_CACHE_REVIEW.md for provenance.
+// browser profile. The exact 160-byte source was independently reviewed at
+// https://github.com/microsoft/playwright/blob/v1.64.1/browser_patches/firefox/preferences/00-playwright-prefs.js
+// Its digest is unchanged from the separately preserved v1.64.0 fixture.
 const firefoxIcons = "firefox-1555/firefox/browser/chrome/icons/default";
 const firefoxPreferences = "firefox-1555/firefox/browser/defaults/preferences";
 const playwrightPreferences = `${firefoxPreferences}/00-playwright-prefs.js`;
@@ -194,7 +201,7 @@ export async function exportBrowserToolchain({ cacheDir, outputDir, metadata, so
   const cache = resolve(cacheDir), output = resolve(outputDir); requireSafe(output !== cache && !output.startsWith(cache + sep));
   await mkdir(output, { mode: 0o700 }); requireSafe(await realpath(output) === output && !(await lstat(output)).isSymbolicLink());
   execution.stage = "cache-inspection";
-  const snapshot = await inspectBrowserCache(cache, metadata, limits), archiveName = "browser-toolchain-ubuntu24.04-x64-playwright1.64.0.tar.gz";
+  const snapshot = await inspectBrowserCache(cache, metadata, limits), archiveName = "browser-toolchain-ubuntu24.04-x64-playwright1.64.1.tar.gz";
   const list = resolve(output, "members-private.list"); await writeFile(list, snapshot.entries.map(entry => entry.path + "\0").join(""), { mode: 0o600 });
   const archive = resolve(output, archiveName);
   execution.stage = "archive-create";
@@ -216,8 +223,10 @@ async function main() {
   execution.stage = "identity"; execution.cacheDir = args[1];
   const sourceCommit = args[5], actualCommit = (await run("git", ["rev-parse", "HEAD"], { maxBuffer: 4096 })).stdout.trim(); requireSafe(sourceCommit === actualCommit, "source-identity");
   const packageInfo = JSON.parse(await readFile("package.json", "utf8")); requireSafe(packageInfo.packageManager === `pnpm@${versions.pnpm}` && packageInfo.devDependencies?.["@playwright/test"] === versions.playwright);
-  const core = resolve("node_modules/.pnpm/playwright-core@1.64.0/node_modules/playwright-core"); requireSafe(JSON.parse(await readFile(resolve(core, "package.json"), "utf8")).version === versions.playwright);
-  execution.metadata = JSON.parse(await readFile(resolve(core, "browsers.json"), "utf8"));
+  const core = resolve(`node_modules/.pnpm/playwright-core@${versions.playwright}/node_modules/playwright-core`); requireSafe(JSON.parse(await readFile(resolve(core, "package.json"), "utf8")).version === versions.playwright);
+  const browserMetadata = await readFile(resolve(core, "browsers.json"));
+  requireSafe(createHash("sha256").update(browserMetadata).digest("hex") === TOOLCHAIN_BROWSER_METADATA_SHA256, "source-identity");
+  execution.metadata = JSON.parse(browserMetadata.toString("utf8"));
   const manifest = await exportBrowserToolchain({ cacheDir: args[1], outputDir: args[3], sourceCommit, metadata: execution.metadata, lockfileSha256: await fileHash("pnpm-lock.yaml"), exporterSha256: await fileHash(process.argv[1]) });
   console.log(JSON.stringify({ state: "exported", sourceCommit, platform: manifest.platform, roots: manifest.roots.map(root => root.engine), ...manifest.counts, archiveBytes: manifest.archive.bytes, archiveSha256: manifest.archive.sha256, manifestSha256: await fileHash(resolve(args[3], "browser-toolchain.manifest.json")) }));
 }

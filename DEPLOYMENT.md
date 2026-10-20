@@ -1,5 +1,9 @@
 # Deployment server connection
 
+## Replacement VPS decision — 20 October 2026
+
+OVF/OVA is canceled. Use [NEW_VPS_MIGRATION.md](docs/ops/NEW_VPS_MIGRATION.md) and [deploy/vps](deploy/vps/README.md) to prepare a fresh Ubuntu24.04amd64 host, then transfer the newly accepted image and encrypted full staging DB/ACL/account/media state. Historical source-specific commands below are not new-host bootstrap instructions. Recommended starting VPS:4vCPU/8GiB/100GBNVMe; see the [measured sizing basis](docs/ops/VPS_SOURCE_INVENTORY.md). Target address/SSH fingerprint/CIDR/origin are still required; nothing has been installed on a new VPS.
+
 The Morphiume deployment server is `192.168.240.51` on SSH port `22`.
 
 ## Current status

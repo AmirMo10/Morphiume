@@ -26,14 +26,14 @@ jobs:
           --health-cmd "pg_isready -U morphiume_ci -d morphiume_staging"
           --health-interval 5s --health-timeout 5s --health-retries 12
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 24.21.0
-      - run: npm install --global pnpm@11.25.0
+          node-version: 24.22.0
+      - run: npm install --global pnpm@12.14.0
       - run: pnpm install --frozen-lockfile
       - name: Validate deployment and recovery boundaries without services
         run: |
@@ -51,6 +51,8 @@ jobs:
           python3 deploy/staging/recover-pre-service-restore-safety.py
           python3 tests/ops/restore-business-remote.test.py
           python3 -B tests/ops/browser-toolchain-import.test.py
+          python3 -B tests/ops/vps-handoff.test.py
+          node --test tests/ops/browser-toolchain-artifact.test.mjs
           node --test tests/ops/restore-business-contract.test.mjs
           node --test tests/ops/e4-restore-business-contract.test.mjs
           node --test tests/e2e/cart-lifecycle-diagnostics.test.ts
@@ -97,9 +99,10 @@ jobs:
       - name: Require complete server evidence without unexpected failures
         if: always()
         run: node scripts/accept-server-evidence.mjs verify-runtime
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
+          archive: true
           name: sanitized-browser-evidence
           path: |
             docs/qa/browser-summary.json
@@ -125,13 +128,13 @@ jobs:
           --health-cmd "pg_isready -U morphiume_ci -d morphiume_staging"
           --health-interval 5s --health-timeout 5s --health-retries 12
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 24.21.0
-      - run: npm install --global pnpm@11.25.0
+          node-version: 24.22.0
+      - run: npm install --global pnpm@12.14.0
       - run: pnpm install --frozen-lockfile
       - name: Build and scan immutable staging image before publishing
         env:
@@ -143,8 +146,8 @@ jobs:
           docker buildx create --use
           docker buildx build --file deploy/staging/Dockerfile --build-arg MORPHIUME_SOURCE_COMMIT="$GITHUB_SHA" --tag "$image" --load .
           docker run --rm --network none --read-only --cap-drop ALL --security-opt no-new-privileges:true --entrypoint node "$image" -e 'process.stdout.write(require("node:fs").readFileSync("/app/morphiume-native-audit.json","utf8"))' > .local/native-audit.json
-          curl --fail --location --silent --show-error --output /tmp/grype.tar.gz https://github.com/anchore/grype/releases/download/v0.120.1/grype_0.120.1_linux_amd64.tar.gz
-          echo '0a9ee97ef5ae2ee953b0a80098105052e846cdbe319a57d808b519c33cd1343d  /tmp/grype.tar.gz' | sha256sum --check
+          curl --fail --location --silent --show-error --output /tmp/grype.tar.gz https://github.com/anchore/grype/releases/download/v0.121.0/grype_0.121.0_linux_amd64.tar.gz
+          echo '64e07133d3486115de647a66581461dccf5c732748a0a3119077395565f15519  /tmp/grype.tar.gz' | sha256sum --check
           tar --extract --gzip --file /tmp/grype.tar.gz --directory /tmp grype
           /tmp/grype "docker:$image" --fail-on high --output json --file .local/image-scan.json
       - name: Prepare private configuration for the built image
@@ -173,8 +176,10 @@ jobs:
           docker save --platform linux/amd64 "$image" | gzip -1 > .local/accepted-image.tar.gz
           cd .local
           sha256sum accepted-image.tar.gz > accepted-image.sha256
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+          wc -c < accepted-image.tar.gz > accepted-image.bytes
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
+          archive: true
           name: accepted-runtime-image
           path: |
             .local/accepted-image.tar.gz
@@ -189,15 +194,18 @@ jobs:
       - name: Export only allowlisted image server failure evidence
         if: always()
         run: node tests/e2e/sanitize-server-log.mjs image-runtime
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
+          archive: true
           name: sanitized-image-evidence
           path: |
             docs/qa/browser-summary.json
             .local/image-scan.json
             .local/image-identity.json
             .local/native-audit.json
+            .local/accepted-image.sha256
+            .local/accepted-image.bytes
             .local/server-failures-image.json
           if-no-files-found: ignore
           retention-days: 14
