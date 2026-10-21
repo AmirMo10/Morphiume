@@ -2,6 +2,8 @@
 
 ## Replacement VPS handoff — 20 October 2026
 
+The upgrade is accepted: **932 tests plus 180 source/image browser cases passed** on [CI 39381986062](https://github.com/AmirMo10/Morphiume/actions/runs/39381986062). The image archive is retained and verified. [Exact release and remaining destination gates](docs/qa/VPS_DEPENDENCY_UPGRADE_EXECUTION.md).
+
 OVF/OVA is canceled. Follow the [clean Ubuntu VPS migration](docs/ops/NEW_VPS_MIGRATION.md), [machine-readable requirements](deploy/vps/requirements.json), [dependency matrix](docs/ops/VPS_DEPENDENCY_MATRIX.md) and [fresh source inventory/sizing](docs/ops/VPS_SOURCE_INVENTORY.md). The owner requested package upgrades and full source/image acceptance before migration. This replica preserves the complete current staging data/media/accounts/history; the separate public real-sales plan has different gates. No destination deployment is implied.
 
 وضعیت جاری در ۱۳ اکتبر ۲۰۲۶: فروشگاه و پنل روی [IP خصوصی](http://192.168.240.51) با حفاظت HTTP و محدودیت شبکه فعال‌اند. منبع مستقر E4، پایگاه با ۱۳ مهاجرت و ۵۳ جدول، مسیر خرید واقعی آزمایشی، بازیابی جدا و زمان‌بندی سلامت/پشتیبان پذیرفته شده‌اند. [گزارش پیشرفت](docs/PROJECT_PROGRESS_20261013.md) و [وضعیت](docs/STATUS.md) مرجع نتیجه‌های فعلی‌اند. برای عملیات جاری، [قرارداد استقرار](docs/ops/STAGING_CONTRACT.md) را بخوانید.
@@ -34,13 +36,13 @@ pnpm audit --prod
 
 آزمون‌های DB تنها با محیط جدا و تنظیمات معتبر اجرا می‌شوند؛ skipped با passed یکی نیست. مرورگرها باید با `pnpm exec playwright install` تأمین شوند. محدودیت‌های قدیمی دانلود و اجرای مرورگر در ویندوز محفوظ‌اند؛ هر سه موتور Linux برای E4 واقعاً اجرا و پذیرفته شدند. نتیجه و حدود هر محیط در [گزارش آزمون](docs/TEST_REPORT.md) ثبت‌اند؛ viewport موبایل آزمون دستگاه واقعی نیست.
 
-سرور `192.168.240.51` دارای Docker، Nginx و PostgreSQL staging جدا است. برنامهٔ E4 از IP خصوصی با حفاظت HTTP و محدودیت شبکه قابل دسترسی است؛ تونل SSH نیز برای عملیات و آزمون‌های مجاز باقی است. پورت برنامه و پایگاه مستقیماً در شبکه منتشر نشده‌اند.
+سرور `192.168.240.51` دارای Docker، Nginx و PostgreSQL staging جدا است. نسخهٔ جاری از IP خصوصی با محدودیت شبکه و استثنای کنترل‌شدهٔ ورود پنل مطابق [قرارداد دسترسی خصوصی](docs/ops/PRIVATE_PREVIEW_ACCESS.md) قابل دسترسی است؛ تونل SSH نیز برای عملیات و آزمون‌های مجاز باقی است. پورت برنامه و پایگاه مستقیماً در شبکه منتشر نشده‌اند.
 
 - Infrastructure health: [http://192.168.240.51/healthz](http://192.168.240.51/healthz)
 - SSH from the configured computer: `ssh morphiume-deploy`
 - Deployment instructions and verified server state: [DEPLOYMENT.md](DEPLOYMENT.md)
-- Repeatable server setup: [deploy/provision.sh](deploy/provision.sh)
-- Staging image and services: [deploy/staging/Dockerfile](deploy/staging/Dockerfile), [Compose](deploy/staging/compose.yaml)
+- New VPS setup and data replication: [deploy/vps](deploy/vps/README.md); historical initial host scaffold: [deploy/provision.sh](deploy/provision.sh)
+- Staging image and current source services: [Dockerfile](deploy/staging/Dockerfile), [runtime Compose](deploy/staging/runtime/compose.yaml); new-host [replica Compose](deploy/vps/compose.replica.yaml)
 - Browser/financial evidence: [docs/qa/ACCEPTANCE_MATRIX.md](docs/qa/ACCEPTANCE_MATRIX.md)
 - Actual backend checks: [docs/backend/CHECKS.md](docs/backend/CHECKS.md)
 

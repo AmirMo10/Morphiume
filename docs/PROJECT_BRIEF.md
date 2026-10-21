@@ -1,5 +1,7 @@
 # مشخصات اجرایی Morphiume
 
+Upgrade acceptance: c5cc9e4 / CI 39381986062 passed 932 tests and 180 browser cases on 20 October. The new VPS is still required; [actual result and exact migration image](qa/VPS_DEPENDENCY_UPGRADE_EXECUTION.md).
+
 ## Current owner decision — 20 October 2026
 
 OVF/OVA is canceled. Upgrade dependencies, fully accept the new source and packaged image, then prepare a fresh Ubuntu24.04amd64 VPS replica of the complete existing staging store, accounts/MFA, six demo products/media and financial/order history. Use [NEW_VPS_MIGRATION.md](ops/NEW_VPS_MIGRATION.md); keep the source intact until independently accepted cutover. The future public real-sales/domain transition remains separate. A Git checkout alone does not transfer runtime data, secrets, approvals or target access. No destination has yet been supplied or deployed.

@@ -1,5 +1,7 @@
 # پیش‌نیازها و ورودی‌های صاحب کسب‌وکار
 
+Upgrade acceptance: c5cc9e4 / CI 39381986062 passed 932 tests and 180 browser cases on 20 October. The new VPS is still required; [actual result and exact migration image](qa/VPS_DEPENDENCY_UPGRADE_EXECUTION.md).
+
 ## انتقال به VPS تازه، ۲۰ اکتبر ۲۰۲۶
 
 طرح OVF/OVA لغو شد. طبق تصمیم مالک، نخست بسته‌ها ارتقا و نسخهٔ تازه کامل آزموده می‌شود؛ سپس همان فروشگاه آزمایشی با همهٔ داده‌ها، حساب‌ها/MFA، تصاویر و تاریخچهٔ مالی به Ubuntu24.04amd64 منتقل خواهد شد. راهنمای جاری [انتقال به VPS تازه](ops/NEW_VPS_MIGRATION.md)، [نیازمندی ماشین‌خوان](../deploy/vps/requirements.json) و [اندازه‌گیری و منابع پیشنهادی](ops/VPS_SOURCE_INVENTORY.md) است. پیشنهاد شروع:۴vCPU،۸GiB RAM و۱۰۰GBNVMe.

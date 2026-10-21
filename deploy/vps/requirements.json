@@ -10,7 +10,11 @@
     "kernel": "6.8.0-146",
     "cpuCount": 4,
     "installedMemoryBytes": 5155532800,
-    "rootFilesystem": {"totalBytes": 25185042432, "usedBytes": 4870270976, "availableBytes": 19009507328},
+    "rootFilesystem": {
+      "totalBytes": 25185042432,
+      "usedBytes": 4870270976,
+      "availableBytes": 19009507328
+    },
     "composeVersion": "5.6.0",
     "dockerAptVersions": {
       "docker-ce": "5:29.9.0-1~ubuntu.24.04~noble",
@@ -26,28 +30,149 @@
       "openssh-server": "1:9.6p1-3ubuntu13.20"
     },
     "applicationDatabaseWorkerHealthy": true,
-    "meaning": "Fresh observed source metadata; target requirements are recommendations, not measurements of a new VPS"
+    "meaning": "Fresh observed source metadata; target requirements are recommendations, not measurements of a new VPS",
+    "finalPreservationCheck": {
+      "observedUtc": "2026-10-21T05:30:46.079897+00:00",
+      "applicationSource": "32b89e13d31288fe4497f7419e170550baf5b293",
+      "appWorkerDatabaseHealthy": true,
+      "readinessHttpStatus": 200,
+      "healthBackupTimersActiveEnabled": true,
+      "serverMutation": false
+    }
   },
   "host": {
     "os": "Ubuntu Server 24.04 LTS",
     "architecture": "amd64",
     "kernelPolicy": "Supported provider Ubuntu kernel, current security updates and completed required reboot before migration",
-    "initialPurchaseRecommendation": {"vcpu": 4, "ramGiB": 8, "nvmeGiB": 100},
-    "recoveryAndGrowthRecommendation": {"vcpu": 8, "ramGiB": 16, "nvmeGiB": 160},
-    "minimumGuard": {"vcpu": 4, "observedInstalledRamGiB": 7, "advertisedRamClassGiB": 8, "freshRootAvailableGiB": 60},
+    "initialPurchaseRecommendation": {
+      "vcpu": 4,
+      "ramGiB": 8,
+      "nvmeGB": 100
+    },
+    "recoveryAndGrowthRecommendation": {
+      "vcpu": 8,
+      "ramGiB": 16,
+      "nvmeGB": 160
+    },
+    "minimumGuard": {
+      "vcpu": 4,
+      "observedInstalledRamGiB": 7,
+      "advertisedRamClassGiB": 8,
+      "freshRootAvailableGiB": 60
+    },
     "swap": "Optional 2-4 GiB safety margin; not a substitute for RAM or measured capacity",
     "capacityGuarantee": false,
     "timeSynchronization": "Required; UTC storage, application business timezone Asia/Tehran",
     "offsiteBackup": "Separate versioned encrypted destination and independently held age recovery identity required"
   },
-  "ubuntuPackages": ["ca-certificates", "curl", "gnupg", "nginx", "ufw", "age", "git", "rsync", "python3", "jq", "tar", "gzip", "xz-utils", "util-linux", "iproute2", "procps", "openssh-server", "unattended-upgrades", "dnsutils", "iptables"],
-  "dockerAptPackages": ["docker-ce", "docker-ce-cli", "containerd.io", "docker-buildx-plugin", "docker-compose-plugin"],
+  "ubuntuPackages": [
+    "ca-certificates",
+    "curl",
+    "gnupg",
+    "nginx",
+    "ufw",
+    "age",
+    "git",
+    "rsync",
+    "python3",
+    "jq",
+    "tar",
+    "gzip",
+    "xz-utils",
+    "util-linux",
+    "iproute2",
+    "procps",
+    "openssh-server",
+    "unattended-upgrades",
+    "dnsutils",
+    "iptables"
+  ],
+  "dockerAptPackages": [
+    "docker-ce",
+    "docker-ce-cli",
+    "containerd.io",
+    "docker-buildx-plugin",
+    "docker-compose-plugin"
+  ],
   "aptVersionPolicy": "Use official signed Noble repositories; pin all five Docker package versions in a private target manifest and record dpkg-query package versions. Ubuntu security patch versions are captured at target preparation, not invented in Git.",
-  "noHostRuntimeInstallRequired": ["nodejs", "npm", "pnpm", "postgresql server/client", "redis", "Python pip packages", "Playwright browsers", "Chromium", "Firefox", "WebKit", "C/C++ compiler", "Alpine apk packages"],
+  "noHostRuntimeInstallRequired": [
+    "nodejs",
+    "npm",
+    "pnpm",
+    "postgresql server/client",
+    "redis",
+    "Python pip packages",
+    "Playwright browsers",
+    "Chromium",
+    "Firefox",
+    "WebKit",
+    "C/C++ compiler",
+    "Alpine apk packages"
+  ],
   "applicationRelease": {
-    "selectionStatus": "Select only after the requested dependency upgrade passes full source and packaged-image acceptance",
-    "acceptedCandidate": null,
-    "requiredCandidateFields": ["sourceCommit", "ciRunId", "ciAttempt", "testedPlatformConfig", "candidateManifestDigest", "archiveSha256", "archiveBytes", "postgresImage", "deploymentToolSha256", "lockfileSha256"],
+    "selectionStatus": "Accepted by full source and packaged-image CI on 20 October 2026; archive bytes/layers independently verified locally; destination not deployed",
+    "acceptedCandidate": {
+      "sourceCommit": "c5cc9e4b34d89167c3e58db98000b060666b0db5",
+      "testedPlatformConfig": "sha256:66d1404bf81d0054d15e9993490678c243bd1dea799e821d5339c8b32e76b0cf",
+      "candidateManifestDigest": "sha256:cc9058eb5232462336ac3df2a7fe863f287fe5db5dfe4fdb12a5fc4d98683398",
+      "archiveSha256": "ab8f2a898c6b7e2a9e265eb008ae90a53acd56513bbb0b4a2ed49890597d5009",
+      "archiveBytes": 88506979,
+      "ciRunId": 39381986062,
+      "ciAttempt": 1,
+      "postgresImage": "postgres:18.6-bookworm@sha256:afc7e2d441324c0388fa80c3d24f733b4194a4eb7f47dd8ee2b08eb1a24a647c",
+      "deploymentToolSha256": "eea4f44ca3d27622a56074416de7513cea651d291bb9e6d18824577ee0b5b61c",
+      "deploymentTools": {
+        "deploy/vps/bootstrap.py": "a65c52f435549251ccda391f0e03b9e269f1b4579e8c939ad50ee9efb4772093",
+        "deploy/vps/restore_media.py": "bdab46d086eb0a9edfc096a34a7a0af2477abe74df6778b206c04ed4e1a64583",
+        "deploy/vps/compose.replica.yaml": "331e78005d488fd9dee1b0a6d2142282e4f180e608c761e41cb63bc4269de71b",
+        "deploy/vps/init-replica.sh": "a7cf1f7d5e212575d0109ecc8928793a7d5640033ef512eca864dbcf65c2fdac"
+      },
+      "deploymentToolHashContract": "SHA256 of UTF-8 JSON deploymentTools with sorted keys, separators comma/colon and no final newline; requirements.json is release metadata, excluded from its own tool hash",
+      "lockfileSha256": "fbf420d37d07111bdb5fd95fcea3fa494500f3ae788bf7c862c85d9fa0aabf3c",
+      "packageJsonSha256": "c718cfc130a5f5d0a03f336f7451a4a61245665d865d7e2ab7b0ef0f6daac4d9",
+      "node": "24.22.0",
+      "packageManager": "pnpm@12.14.0",
+      "playwright": "1.64.1",
+      "image": "ghcr.io/amirmo10/morphiume:c5cc9e4b34d89167c3e58db98000b060666b0db5",
+      "registryDigestReference": "ghcr.io/amirmo10/morphiume@sha256:cc9058eb5232462336ac3df2a7fe863f287fe5db5dfe4fdb12a5fc4d98683398",
+      "acceptedArchiveRetainedLocally": true,
+      "archiveLayerVerification": "15 layers / 236798976 uncompressed bytes verified locally; no Docker load",
+      "targetEngineImageId": null,
+      "requiresFreshTargetEngineProof": true,
+      "testEvidence": {
+        "vitestFiles": 60,
+        "vitestPassed": 932,
+        "sourceBrowserCases": 90,
+        "imageBrowserCases": 90,
+        "perEnginePerSuite": 30,
+        "browserRetriesSkipsFlakyUnexpectedErrors": 0,
+        "sourceServerEvents": 0,
+        "imageServerEvents": 0
+      },
+      "scan": {
+        "tool": "Grype 0.121.0",
+        "high": 0,
+        "critical": 0,
+        "mediumMatches": 3,
+        "distinctMediumCves": [
+          "CVE-2025-60876"
+        ],
+        "disposition": "Latest Alpine 3.24 BusyBox 1.37.0-r31 is possibly vulnerable per vendor; no proven available same-branch fix, no suppression or reachability claim"
+      },
+      "executionReport": "docs/qa/VPS_DEPENDENCY_UPGRADE_EXECUTION.md"
+    },
+    "requiredCandidateFields": [
+      "sourceCommit",
+      "ciRunId",
+      "ciAttempt",
+      "testedPlatformConfig",
+      "candidateManifestDigest",
+      "archiveSha256",
+      "archiveBytes",
+      "postgresImage",
+      "deploymentToolSha256",
+      "lockfileSha256"
+    ],
     "runtimeSource": "The accepted Dockerfile and bundled standalone Node/worker/CLI image; use package.json and pnpm-lock.yaml at that exact source commit",
     "historicalBeforeUpgrade": {
       "applicationSource": "32b89e13d31288fe4497f7419e170550baf5b293",
@@ -56,12 +181,27 @@
       "meaning": "Historical reference only; never substitute these values for the newly accepted upgrade"
     }
   },
-  "activeContainerLimitsMiB": {"database": 1280, "application": 1536, "worker": 384, "sum": 3200},
+  "activeContainerLimitsMiB": {
+    "database": 1280,
+    "application": 1536,
+    "worker": 384,
+    "sum": 3200
+  },
   "network": {
-    "ingress": {"ssh": "Actual approved SSH port, restricted admin source CIDR", "httpHttps": "Reverse proxy only, explicit target preview CIDR/VPN until public launch"},
+    "ingress": {
+      "ssh": "Actual approved SSH port, restricted admin source CIDR",
+      "httpHttps": "Reverse proxy only, explicit target preview CIDR/VPN until public launch"
+    },
     "appBind": "127.0.0.1:3001",
     "databasePublish": "None",
-    "mustTest": ["Actual external IPv4", "Actual external IPv6 or verified absence of AAAA/IPv6 route", "Docker published ports", "Unknown Host rejection", "Forwarded header trust", "No public test control/OTP inbox"],
+    "mustTest": [
+      "Actual external IPv4",
+      "Actual external IPv6 or verified absence of AAAA/IPv6 route",
+      "Docker published ports",
+      "Unknown Host rejection",
+      "Forwarded header trust",
+      "No public test control/OTP inbox"
+    ],
     "sourceOrigin": "http://192.168.240.51",
     "targetOrigin": null,
     "previewAuthority": "Existing authless-admin capability is hard-coded to the source origin. Do not activate it on a new public origin; target login/MFA remains normal unless a separately reviewed restricted-preview implementation is accepted."
@@ -71,10 +211,23 @@
     "postgres": "/srv/morphiume/replica/postgres",
     "media": "/srv/morphiume/replica/media",
     "config": "/etc/morphiume-replica",
-    "preserveSource": ["/srv/morphiume/postgres", "/srv/morphiume/staging/postgres", "/srv/morphiume/staging/runtime", "/etc/morphiume-staging", "/etc/morphiume-staging-runtime"],
+    "preserveSource": [
+      "/srv/morphiume/postgres",
+      "/srv/morphiume/staging/postgres",
+      "/srv/morphiume/staging/runtime",
+      "/etc/morphiume-staging",
+      "/etc/morphiume-staging-runtime"
+    ],
     "transfer": "Encrypted logical database dump, exact bounded media tree, protected service config and role/ACL metadata; accepted immutable application image; no live PGDATA copy",
     "spaceRule": "Size from fresh allocated bytes: OS/Docker + current PG cluster growth + media + accepted/fallback image archives/layers + retained encrypted backups + largest isolated restore working set + >=25% free headroom. Include optional historical archives separately."
   },
   "sourcesVerifiedDate": "2026-10-20",
-  "officialSources": ["https://docs.docker.com/engine/install/ubuntu/", "https://docs.docker.com/engine/network/packet-filtering-firewalls/", "https://ubuntu.com/server/docs/how-to/software/package-management/", "https://www.postgresql.org/docs/18/app-pgdump.html", "https://www.postgresql.org/docs/18/app-pgrestore.html"]
+  "officialSources": [
+    "https://docs.docker.com/engine/install/ubuntu/",
+    "https://docs.docker.com/engine/network/packet-filtering-firewalls/",
+    "https://ubuntu.com/server/docs/how-to/software/package-management/",
+    "https://www.postgresql.org/docs/18/app-pgdump.html",
+    "https://www.postgresql.org/docs/18/app-pgrestore.html"
+  ],
+  "finalizedUtc": "2026-10-21T05:32:09.584944+00:00"
 }

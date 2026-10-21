@@ -16,13 +16,13 @@ Observed by read-only, strict host-key-checked SSH at **2026-10-20T06:24:06.1964
 | Active app / worker / DB | All three healthy |
 | Source app image | Source `32b89e13d31288fe4497f7419e170550baf5b293`; Engine ID `sha256:a72b341aaef4dc0006f3073015aac228cba692afca73ebbab49a1da9883b5391` |
 
-The virtual block disk is larger than the root filesystem; do not equate provider disk size with usable allocated root/data space. Three short idle samples observed app75.63–75.64MiB, worker39.05MiB and database195.9MiB. This is an idle observation, not peak use or a capacity/load benchmark. Runtime ceilings are DB1280MiB/1.5CPU, app1536MiB/1.5CPU and worker384MiB/0.5CPU, totaling3200MiB and3.5CPU. Host/kernel/cache/proxy/backup/restore need room beyond those ceilings.
+The virtual block disk is larger than the root filesystem; do not equate provider disk size with usable allocated root/data space. Three short idle samples observed app75.63–75.64 MiB, worker39.05 MiB and database195.9 MiB. This is an idle observation, not peak use or a capacity/load benchmark. Runtime ceilings are DB1280 MiB/1.5 CPU, app1536 MiB/1.5 CPU and worker384 MiB/0.5 CPU, totaling3200 MiB and3.5 CPU. Host/kernel/cache/proxy/backup/restore need room beyond those ceilings.
 
 ## Purchase recommendation
 
-Buy **Ubuntu Server24.04 LTS amd64, 4vCPU, 8GiB RAM and100GB NVMe** for the initial replica, with builds/browser tests on separate runners and encrypted backups offsite. Choose **8vCPU/16GiB/160GB NVMe** for concurrent isolated recovery and growth. These are engineering recommendations based on the actual service ceilings and operating tasks, not a promised request rate. A4GiB host has too little comfortable headroom above the3.125GiB container ceilings. Optional2–4GiB swap is emergency margin, not replacement RAM.
+Buy **Ubuntu Server24.04 LTS amd64, 4 vCPU, 8 GiB RAM and100 GB NVMe** for the initial replica, with builds/browser tests on separate runners and encrypted backups offsite. Choose **8 vCPU/16 GiB/160 GB NVMe** for concurrent isolated recovery and growth. These are engineering recommendations based on the actual service ceilings and operating tasks, not a promised request rate. A4 GiB host has too little comfortable headroom above the3.125 GiB container ceilings. Optional2–4 GiB swap is emergency margin, not replacement RAM.
 
-The currently used root space is only about4.54GiB. The100GB recommendation budgets growth, retained accepted/fallback images, encrypted backups and restore working space; it is not a claim that the current store occupies100GB. At final capture, recompute allocated PG/media/backup/image bytes and preserve at least25% free headroom. Keep historical stopped restore archives separate from active services.
+The currently used root space is only about4.54 GiB. The100 GB recommendation budgets growth, retained accepted/fallback images, encrypted backups and restore working space; it is not a claim that the current store occupies100 GB. At final capture, recompute allocated PG/media/backup/image bytes and preserve at least25% free headroom. Keep historical stopped restore archives separate from active services.
 
 ## Dated source Apt inventory
 

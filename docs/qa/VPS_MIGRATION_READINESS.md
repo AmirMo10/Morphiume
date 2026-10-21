@@ -1,5 +1,9 @@
 # Dependency upgrade and clean VPS migration acceptance
 
+## Final coordinator acceptance
+
+Full CI39381986062 for c5cc9e4 completed successfully on attempt1. Independent artifact/log review confirmed932 tests/60 files (including7 legacy checks), identical90-case source/image browser sets and clean uncapped server evidence. The coordinator subsequently verified and retained the complete archive bytes and15 layers. The scan retains3 Medium matches for one vendor-possibly-vulnerable BusyBox CVE, with no suppression or proved available vendor fix. [Final execution, residual finding and exact identities](VPS_DEPENDENCY_UPGRADE_EXECUTION.md). The preparation observations below are dated intermediate scopes; destination installation/restore/login/cutover remain unexecuted.
+
 Prepared on 2026-10-20 for the owner's request to upgrade dependencies first, test the result, and prepare an equivalent installation on a new VPS. The OVF/VM-clone route is cancelled. This is the independent acceptance record; the coordinator records actual candidate identities and executed results below as they become available.
 
 The requested destination initially reproduces the existing **staging** site, catalog, financial history and controlled payment/SMS behavior. It does not turn the demonstration shop into public real-money sales. [The public-domain migration runbook](../ops/MORPHIUME_IR_MIGRATION.md) describes a different later transition. Its instruction to exclude synthetic staging data from a new live ledger must not be misapplied to this requested staging replica, whose history must be retained.
